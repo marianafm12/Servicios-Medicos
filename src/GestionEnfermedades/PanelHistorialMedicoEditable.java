@@ -114,7 +114,7 @@ public class PanelHistorialMedicoEditable extends JPanel {
 
             // Consultar historial
             PreparedStatement ps2 = conn.prepareStatement(
-                    "SELECT FechaConsulta, Diagnostico, Sintomas, Medicamentos, Receta FROM Consultas WHERE IDPaciente = ? ORDER BY FechaConsulta DESC");
+                    "SELECT FechaConsulta, Diagnostico, Sintomas, MedicamentosRecetados, RecetaMedica FROM Consultas WHERE IDPaciente = ? ORDER BY FechaConsulta DESC");
             ps2.setInt(1, id);
             ResultSet rs2 = ps2.executeQuery();
 
@@ -127,8 +127,8 @@ public class PanelHistorialMedicoEditable extends JPanel {
                         "Fecha: " + rs2.getString("FechaConsulta") +
                                 "\nDiagnóstico: " + rs2.getString("Diagnostico") +
                                 "\nSíntomas: " + rs2.getString("Sintomas") +
-                                "\nMedicamentos: " + rs2.getString("Medicamentos") +
-                                "\nReceta: " + rs2.getString("Receta"));
+                                "\nMedicamentos Recetados: " + rs2.getString("MedicamentosRecetados") +
+                                "\nReceta Médica: " + rs2.getString("RecetaMedica"));
                 area.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
                 panelHistorial.add(area);
                 panelHistorial.add(Box.createVerticalStrut(10));

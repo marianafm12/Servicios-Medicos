@@ -1,81 +1,104 @@
 package Consultas;
 
+import BaseDeDatos.ConexionSQLite;
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 import java.sql.*;
 
-import BaseDeDatos.ConexionSQLite;
-
+/**
+ * Guarda una consulta médica:
+ * – Actualiza datos antropométricos en Registro
+ * – Inserta la consulta en Consultas, incluyendo IDMedico
+ */
 public class GuardarConsulta implements ActionListener {
-    private final JTextField[] campos;
-    private final JTextArea areaTexto;
 
-    public GuardarConsulta(JTextField[] campos, JTextArea areaTexto) {
-        this.campos = campos;
-        this.areaTexto = areaTexto;
+    /* ─── Datos fijos de la sesión ─── */
+    private final int idMedico;
+
+    /* ─── Controles de la UI ─── */
+    private final JTextField txtIdPaciente, txtEdad, txtAltura, txtPeso,
+            txtMedicacion, txtFechaConsulta;
+    private final JTextArea taSintomas, taMedicamentosRec,
+            taDiagnostico, taReceta;
+
+    public GuardarConsulta(
+            int idMedicoSesion,
+            JTextField txtIdPaciente,
+            JTextField txtEdad, JTextField txtAltura, JTextField txtPeso,
+            JTextField txtMedicacion,
+            JTextArea taSintomas, JTextArea taMedicamentosRec,
+            JTextArea taDiagnostico, JTextField txtFechaConsulta,
+            JTextArea taReceta) {
+
+        this.idMedico = idMedicoSesion; // ← valor que viene del login
+        this.txtIdPaciente = txtIdPaciente;
+        this.txtEdad = txtEdad;
+        this.txtAltura = txtAltura;
+        this.txtPeso = txtPeso;
+        this.txtMedicacion = txtMedicacion;
+        this.taSintomas = taSintomas;
+        this.taMedicamentosRec = taMedicamentosRec;
+        this.taDiagnostico = taDiagnostico;
+        this.txtFechaConsulta = txtFechaConsulta;
+        this.taReceta = taReceta;
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        // campos[0] = ID Paciente
-        // campos[1] = Nombre (visual)
-        // campos[2] = Edad (visual)
-        // campos[3] = Correo (visual)
-        // campos[4] = Fecha Consulta
-        // campos[5] = Última Consulta (no se guarda)
-        // campos[6] = Fecha Inicio Síntomas
 
-        String idPaciente = campos[0].getText().trim();
-        String sintomas = campos[4].getText().trim();
-        String medicamentos = campos[5].getText().trim();
-        String diagnostico = campos[6].getText().trim();
-        String fechaConsulta = campos[4].getText().trim();
-        String fechaUltima = campos[5].getText().trim();
-        String fechaInicio = campos[6].getText().trim();
-
-        String receta = areaTexto.getText().trim();
-
-        if (idPaciente.isEmpty() || sintomas.isEmpty() || medicamentos.isEmpty()
-                || diagnostico.isEmpty() || fechaConsulta.isEmpty()
-                || fechaInicio.isEmpty() || receta.isEmpty()) {
-            JOptionPane.showMessageDialog(null,
-                    "Todos los campos deben estar completos.",
-                    "Campos incompletos", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        if (!idPaciente.matches("\\d+")) {
+        /* 1. Validar ID Paciente */
+        String idTxt = txtIdPaciente.getText().trim();
+        if (!idTxt.matches("\\d+")) {
             JOptionPane.showMessageDialog(null,
                     "El ID del paciente debe ser numérico.",
-                    "ID inválido", JOptionPane.ERROR_MESSAGE);
+                    "Validación", JOptionPane.WARNING_MESSAGE);
+            txtIdPaciente.requestFocus();
+            return;
+        }
+        int idPaciente = Integer.parseInt(idTxt);
+
+        /* 2. Validar campos obligatorios */
+        if (taSintomas.getText().trim().isEmpty()
+                || taDiagnostico.getText().trim().isEmpty()) {
+            JOptionPane.showMessageDialog(null,
+                    "Síntomas y Diagnóstico son obligatorios.",
+                    "Validación", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
+        /* 3. SQL */
+        final String sqlUpdateRegistro = "UPDATE Registro SET Edad = ?, Altura = ?, Peso = ?, Medicacion = ? WHERE ID = ?";
+
+        final String sqlInsertConsulta = "INSERT INTO Consultas " +
+                "(IDMedico, IDPaciente, Sintomas, MedicamentosRecetados, Diagnostico, FechaConsulta, RecetaMedica) " +
+                "VALUES (?,?,?,?,?,?,?)";
+
         try (Connection conn = ConexionSQLite.conectar()) {
-            PreparedStatement checkStmt = conn.prepareStatement("SELECT COUNT(*) FROM InformacionAlumno WHERE ID = ?");
-            checkStmt.setInt(1, Integer.parseInt(idPaciente));
-            ResultSet rs = checkStmt.executeQuery();
-            if (rs.next() && rs.getInt(1) == 0) {
-                JOptionPane.showMessageDialog(null,
-                        "No existe un paciente con ese ID.",
-                        "Paciente no encontrado", JOptionPane.ERROR_MESSAGE);
-                return;
+            conn.setAutoCommit(false);
+
+            /* 3.1 Actualizar Registro */
+            try (PreparedStatement psUpd = conn.prepareStatement(sqlUpdateRegistro)) {
+                psUpd.setString(1, txtEdad.getText().trim());
+                psUpd.setString(2, txtAltura.getText().trim());
+                psUpd.setString(3, txtPeso.getText().trim());
+                psUpd.setString(4, txtMedicacion.getText().trim());
+                psUpd.setInt(5, idPaciente);
+                psUpd.executeUpdate();
             }
 
-            String sql = "INSERT INTO Consultas (IDPaciente, IDMedico, Sintomas, Medicamentos, Diagnostico, FechaConsulta, FechaUltimaConsulta, FechaInicioSintomas, Receta) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-            PreparedStatement ps = conn.prepareStatement(sql);
-            ps.setInt(1, Integer.parseInt(idPaciente));
-            ps.setInt(2, 1); // ID del médico (ajustable)
-            ps.setString(3, sintomas);
-            ps.setString(4, medicamentos);
-            ps.setString(5, diagnostico);
-            ps.setString(6, fechaConsulta);
-            ps.setString(7, fechaUltima); // NUEVO campo
-            ps.setString(8, fechaInicio);
-            ps.setString(9, receta);
-            ps.executeUpdate();
+            /* 3.2 Insertar Consulta */
+            try (PreparedStatement psIns = conn.prepareStatement(sqlInsertConsulta)) {
+                psIns.setInt(1, idMedico); // ★ nuevo
+                psIns.setInt(2, idPaciente);
+                psIns.setString(3, taSintomas.getText().trim());
+                psIns.setString(4, taMedicamentosRec.getText().trim());
+                psIns.setString(5, taDiagnostico.getText().trim());
+                psIns.setString(6, txtFechaConsulta.getText().trim());
+                psIns.setString(7, taReceta.getText().trim());
+                psIns.executeUpdate();
+            }
 
+            conn.commit();
             JOptionPane.showMessageDialog(null,
                     "Consulta guardada exitosamente.",
                     "Éxito", JOptionPane.INFORMATION_MESSAGE);
@@ -83,15 +106,19 @@ public class GuardarConsulta implements ActionListener {
 
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(null,
-                    "Error al guardar la consulta:\n" + ex.getMessage(),
+                    "Error al guardar consulta:\n" + ex.getMessage(),
                     "Error de BD", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void limpiarCampos() {
-        for (JTextField campo : campos) {
-            campo.setText("");
-        }
-        areaTexto.setText("");
+        txtEdad.setText("");
+        txtAltura.setText("");
+        txtPeso.setText("");
+        txtMedicacion.setText("");
+        taSintomas.setText("");
+        taMedicamentosRec.setText("");
+        taDiagnostico.setText("");
+        taReceta.setText("");
     }
 }
