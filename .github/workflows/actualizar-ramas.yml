@@ -1,0 +1,56 @@
+# .github/workflows/sync-project-branches.yml
+name: "Sincronizar ramas de proyecto"
+
+# Se dispara al hacer push a main o a dev
+on:
+  push:
+    branches:
+      - main
+      - dev
+
+permissions:
+  contents: write
+
+env:
+  # Lista de ramas de proyecto a sincronizar
+  PROJECT_BRANCHES: >
+    BaseDeDatos
+    Consultas
+    Emergencias
+    GestionCitas
+    GestionEnfermedades
+    Inicio
+    Justificantes
+    Registro
+    dev
+  # Rama origen (main o dev) que disparó el workflow
+  SOURCE_REF: ${{ github.ref_name }}
+
+jobs:
+  sync:
+    # Aquí ya no usamos env.SOURCE_REF sino github.ref_name
+    name: Fusionar ${{ github.ref_name }} → ramas de proyecto
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout completo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Configurar identidad de Git
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Fusionar ${{ github.ref_name }} en cada rama de proyecto
+        run: |
+          for branch in $PROJECT_BRANCHES; do
+            echo "➡️ Procesando $branch..."
+            git checkout "$branch"
+            git merge origin/${SOURCE_REF} --no-edit || {
+              echo "❗ Conflictos en $branch al fusionar ${SOURCE_REF}"
+              exit 1
+            }
+            git push origin "$branch"
+          done
