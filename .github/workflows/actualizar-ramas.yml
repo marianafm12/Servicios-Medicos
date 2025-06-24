@@ -6,7 +6,6 @@ on:
   push:
     branches:
       - main
-      - dev
 
 permissions:
   contents: write
@@ -14,15 +13,8 @@ permissions:
 env:
   # Lista de ramas de proyecto a sincronizar
   PROJECT_BRANCHES: >
-    BaseDeDatos
-    Consultas
-    Emergencias
-    GestionCitas
-    GestionEnfermedades
-    Inicio
-    Justificantes
-    Registro
-    dev
+    A
+    M
   # Rama origen (main o dev) que disparó el workflow
   SOURCE_REF: ${{ github.ref_name }}
 
