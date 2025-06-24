@@ -14,6 +14,7 @@ import GestionEnfermedades.PanelHistorialMedico;
 import GestionEnfermedades.PanelHistorialMedicoEditable;
 import Justificantes.PanelJustificantesProvider;
 import Justificantes.PanelMenuJustificantes;
+import Justificantes.JustificanteDAO;
 import Justificantes.PanelJustificantesPacienteMenu;
 import Registro.PanelRegistroPaciente;
 
@@ -33,6 +34,8 @@ public class InterfazMedica extends JFrame {
     private JLabel notificationIcon;
     private ImageIcon iconDefault, iconNew;
     private boolean hasNewNotification = false;
+    private int justificantesPendientes = 0;
+
 
     public InterfazMedica(boolean esMedico, int userId) {
         this.esMedico = esMedico;
@@ -55,10 +58,12 @@ public class InterfazMedica extends JFrame {
         }
     }
 
-    private void checkNotifications() {
+    public void checkNotifications() {
         if (!esMedico) {
             hasNewNotification = NotificacionDAO.tieneNotificacionesNoLeidas(userId);
-            System.out.println("¿Tiene notificaciones pendientes? " + hasNewNotification);
+        } else {
+            justificantesPendientes = JustificanteDAO.contarJustificantesPendientes();
+            hasNewNotification = justificantesPendientes > 0;
         }
 
         if (notificationIcon != null) {
@@ -66,15 +71,26 @@ public class InterfazMedica extends JFrame {
         }
     }
 
+
     private void mostrarNotificaciones() {
         if (esMedico) {
-            JOptionPane.showMessageDialog(this,
-                    "Funcionalidad de notificaciones para médicos en desarrollo.",
-                    "Notificaciones Médicas",
-                    JOptionPane.INFORMATION_MESSAGE);
+            justificantesPendientes = JustificanteDAO.contarJustificantesPendientes();
+            if (justificantesPendientes > 0) {
+                JOptionPane.showMessageDialog(this,
+                        "Hay " + justificantesPendientes + " justificantes pendientes por revisar.",
+                        "Notificaciones de Justificantes",
+                        JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this,
+                        "No hay justificantes pendientes.",
+                        "Notificaciones de Justificantes",
+                        JOptionPane.INFORMATION_MESSAGE);
+            }
+            notificationIcon.setIcon(justificantesPendientes > 0 ? iconNew : iconDefault);
             return;
         }
 
+    
         List<NotificacionDAO.Notificacion> lista = NotificacionDAO.obtenerNotificaciones(userId);
         if (lista.isEmpty()) {
             JOptionPane.showMessageDialog(this,
@@ -89,6 +105,7 @@ public class InterfazMedica extends JFrame {
             notificationIcon.setIcon(iconDefault);
         }
     }
+
 
     private void initUI() {
         setUndecorated(true);

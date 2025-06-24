@@ -31,8 +31,7 @@ public class PanelMenuJustificantes extends JPanel {
         );
         btnDesdeSolicitud.setMaximumSize(new Dimension(350, 60));
         btnDesdeSolicitud.addActionListener(e -> {
-            new SolicitudesJustificantesFrame(panelManager).setVisible(true);
-
+            panelManager.mostrarPanelPersonalizado(new SolicitudesJustificantesFrame(panelManager));
         });
 
         // Botón para emitir directamente
