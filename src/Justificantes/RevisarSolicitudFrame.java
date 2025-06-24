@@ -5,7 +5,6 @@ import Utilidades.PanelManager;
 
 import javax.swing.*;
 
-import Inicio.InterfazMedica;
 import Inicio.SesionUsuario;
 
 import java.awt.*;
@@ -27,12 +26,10 @@ public class RevisarSolicitudFrame extends JPanel {
     private final String medicoFirmante = SesionUsuario.getMedicoActual();
 
     private final PanelManager panelManager;
-    private final InterfazMedica interfazMedica;
 
-    public RevisarSolicitudFrame(int folio, ActionListener volverAction, PanelManager panelManager, InterfazMedica interfazMedica) {
+    public RevisarSolicitudFrame(int folio, ActionListener volverAction, PanelManager panelManager) {
         this.folio = folio;
         this.panelManager = panelManager;
-        this.interfazMedica = interfazMedica;
         this.justificante = JustificanteDAO.obtenerPorFolio(folio).orElse(null);
 
         if (justificante == null) {
@@ -160,44 +157,71 @@ public class RevisarSolicitudFrame extends JPanel {
         filaBotones2.add(volverBtn);
         add(filaBotones2, gbc);
 
-            
-    btnAprobar.addActionListener(e -> {
-    LocalDate inicio = construirFecha(diaInicio, mesInicio, anioInicio);
-    LocalDate fin = construirFecha(diaFin, mesFin, anioFin);
+        // Acción: Aprobar
+btnAprobar.addActionListener(e -> {
+LocalDate inicio = construirFecha(diaInicio, mesInicio, anioInicio);
+LocalDate fin = construirFecha(diaFin, mesFin, anioFin);
 
-    if (inicio == null || fin == null) {
-        return; 
-    }
+if (inicio == null || fin == null) {
+    return; // ya se mostró el mensaje de error en construirFecha
+}
 
-    if (inicio.isAfter(fin)) {
-        JOptionPane.showMessageDialog(this, "La fecha de inicio no puede ser posterior a la fecha de fin.",
-                "Error de Fecha", JOptionPane.ERROR_MESSAGE);
-        return;
-    }
+if (inicio.isAfter(fin)) {
+    JOptionPane.showMessageDialog(this, "La fecha de inicio no puede ser posterior a la fecha de fin.",
+            "Error de Fecha", JOptionPane.ERROR_MESSAGE);
+    return;
+}
 
 
-        String motivo = motivoField.getText().trim();
-        String diag = diagnosticoArea.getText().trim();
+    String motivo = motivoField.getText().trim();
+    String diag = diagnosticoArea.getText().trim();
 
-        boolean ok = JustificanteDAO.aprobarJustificante(folio, motivo, diag, medicoFirmante, inicio, fin);
-        if (ok) {
-            JOptionPane.showMessageDialog(this, "Justificante aprobado.");
+    boolean ok = JustificanteDAO.aprobarJustificante(folio, motivo, diag, medicoFirmante, inicio, fin);
+    if (ok) {
+        JOptionPane.showMessageDialog(this, "Justificante aprobado.");
 
-            // REFRESCAR el objeto actualizado
-            Justificante justiActualizado = JustificanteDAO.obtenerPorFolio(folio).orElse(null);
+        // REFRESCAR el objeto actualizado
+        Justificante justiActualizado = JustificanteDAO.obtenerPorFolio(folio).orElse(null);
 
-            if (justiActualizado != null) {
-                File pdf = GeneradorPDFJustificante.generar(justiActualizado);
-                if (pdf != null && pdf.exists()) {
-                    try {
-                        Desktop.getDesktop().open(pdf);
-                    } catch (Exception ex) {
-                        JOptionPane.showMessageDialog(this, "Error al abrir el PDF.");
-                    }
+        if (justiActualizado != null) {
+            File pdf = GeneradorPDFJustificante.generar(justiActualizado);
+            if (pdf != null && pdf.exists()) {
+                try {
+                    Desktop.getDesktop().open(pdf);
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(this, "Error al abrir el PDF.");
                 }
             }
+        }
 
-            // Deshabilitar botones y campos
+        // Deshabilitar botones y campos
+        motivoField.setEditable(false);
+        diagnosticoArea.setEditable(false);
+        diaInicio.setEnabled(false);
+        mesInicio.setEnabled(false);
+        anioInicio.setEnabled(false);
+        diaFin.setEnabled(false);
+        mesFin.setEnabled(false);
+        anioFin.setEnabled(false);
+        btnAprobar.setEnabled(false);
+        btnRechazar.setEnabled(false);
+        limpiarBtn.setEnabled(false);
+
+        volverAction.actionPerformed(null);
+        
+    }
+});
+
+
+        // Acción: Rechazar
+btnRechazar.addActionListener(e -> {
+    int confirm = JOptionPane.showConfirmDialog(this,
+            "¿Seguro que deseas rechazar esta solicitud?", "Confirmar rechazo", JOptionPane.YES_NO_OPTION);
+    if (confirm == JOptionPane.YES_OPTION) {
+        if (JustificanteDAO.rechazarJustificante(folio, medicoFirmante)) {
+            JOptionPane.showMessageDialog(this, "Justificante rechazado.");
+
+            // Deshabilitar UI
             motivoField.setEditable(false);
             diagnosticoArea.setEditable(false);
             diaInicio.setEnabled(false);
@@ -211,42 +235,9 @@ public class RevisarSolicitudFrame extends JPanel {
             limpiarBtn.setEnabled(false);
 
             volverAction.actionPerformed(null);
-            interfazMedica.checkNotifications();
-
-            
         }
-    });
-
-
-            // Acción: Rechazar
-    btnRechazar.addActionListener(e -> {
-        int confirm = JOptionPane.showConfirmDialog(this,
-                "¿Seguro que deseas rechazar esta solicitud?", "Confirmar rechazo", JOptionPane.YES_NO_OPTION);
-        if (confirm == JOptionPane.YES_OPTION) {
-            if (JustificanteDAO.rechazarJustificante(folio, medicoFirmante)) {
-                JOptionPane.showMessageDialog(this, "Justificante rechazado.");
-
-                // Deshabilitar UI
-                motivoField.setEditable(false);
-                diagnosticoArea.setEditable(false);
-                diaInicio.setEnabled(false);
-                mesInicio.setEnabled(false);
-                anioInicio.setEnabled(false);
-                diaFin.setEnabled(false);
-                mesFin.setEnabled(false);
-                anioFin.setEnabled(false);
-                btnAprobar.setEnabled(false);
-                btnRechazar.setEnabled(false);
-                limpiarBtn.setEnabled(false);
-
-                volverAction.actionPerformed(null);
-            }
-        }
-    });
-
-
-
-
+    }
+});
 
 
         limpiarBtn.addActionListener(e -> {

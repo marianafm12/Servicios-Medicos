@@ -172,19 +172,4 @@ public class JustificanteDAO {
                 fechaInicio, fechaFin, diagnostico, receta,
                 estado, resueltoPor, fechaResolucion);
     }
-
-    public static int contarJustificantesPendientes() {
-    String sql = "SELECT COUNT(*) FROM JustificantePaciente WHERE estado IS NULL OR estado = '' OR estado = 'Pendiente'";
-    try (Connection con = ConexionSQLite.conectar();
-         PreparedStatement ps = con.prepareStatement(sql);
-         ResultSet rs = ps.executeQuery()) {
-        if (rs.next()) {
-            return rs.getInt(1);
-        }
-    } catch (SQLException ex) {
-        ex.printStackTrace();
-    }
-    return 0;
-}
-
 }

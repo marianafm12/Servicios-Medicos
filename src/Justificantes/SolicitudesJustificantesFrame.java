@@ -2,7 +2,6 @@ package Justificantes;
 
 import java.awt.event.ActionListener;
 import BaseDeDatos.ConexionSQLite;
-import Inicio.InterfazMedica;
 import Utilidades.ColoresUDLAP;
 import Utilidades.PanelManager;
 
@@ -12,27 +11,27 @@ import javax.swing.table.JTableHeader;
 import java.awt.*;
 import java.sql.*;
 
-public class SolicitudesJustificantesFrame extends JPanel {
+public class SolicitudesJustificantesFrame extends JFrame {
 
     private JTable tabla;
     private DefaultTableModel modelo;
     private JPanel panelCentro;
     private final PanelManager panelManager;
 
-    private JButton btnVer;
-    private JButton btnEliminar;
-    private JButton btnRegresar;
-    private JPanel panelBotones;
-
     public SolicitudesJustificantesFrame(PanelManager panelManager) {
         this.panelManager = panelManager;
 
-        setLayout(new BorderLayout(10, 10));
+        setTitle("Solicitudes de Justificantes");
+        setSize(950, 600);
+        setLocationRelativeTo(null);
         setBackground(ColoresUDLAP.BLANCO);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setLayout(new BorderLayout(10, 10));
 
         JLabel titulo = new JLabel("Solicitudes de Justificantes", SwingConstants.CENTER);
         titulo.setFont(new Font("Arial", Font.BOLD, 24));
         titulo.setForeground(new Color(0, 102, 0));
+        titulo.setBackground(ColoresUDLAP.BLANCO);
         titulo.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
         add(titulo, BorderLayout.NORTH);
 
@@ -42,11 +41,12 @@ public class SolicitudesJustificantesFrame extends JPanel {
         crearTabla();
         cargarDatosDesdeBD();
 
-        panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 10));
+        // Panel inferior con botones
+        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 10));
 
-        btnVer = new JButton("Ver Seleccionado");
-        btnEliminar = new JButton("Eliminar");
-        btnRegresar = new JButton("Regresar");
+        JButton btnVer = new JButton("Ver Seleccionado");
+        JButton btnEliminar = new JButton("Eliminar");
+        JButton btnRegresar = new JButton("Regresar");
 
         btnVer.setFont(new Font("Arial", Font.BOLD, 15));
         btnEliminar.setFont(new Font("Arial", Font.BOLD, 15));
@@ -66,7 +66,10 @@ public class SolicitudesJustificantesFrame extends JPanel {
 
         btnVer.addActionListener(e -> verSeleccionado());
         btnEliminar.addActionListener(e -> eliminarSeleccionado());
-        btnRegresar.addActionListener(e -> panelManager.showPanel("justificantes"));
+        btnRegresar.addActionListener(e -> {
+            panelManager.showPanel("menuJustificantes");
+            dispose();
+        });
 
         panelBotones.add(btnRegresar);
         panelBotones.add(btnVer);
@@ -99,24 +102,19 @@ public class SolicitudesJustificantesFrame extends JPanel {
     }
 
     private void cargarDatosDesdeBD() {
-        modelo = new DefaultTableModel() {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false; // Hace que ninguna celda sea editable
-            }
-        };
-
+        modelo = new DefaultTableModel();
         modelo.setColumnIdentifiers(new String[] {
                 "Folio", "ID Paciente", "Nombre", "Motivo", "Fecha Inicio", "Fecha Fin", "Estado"
         });
 
-        String sql = "SELECT folio, idPaciente, nombrePaciente, motivo, fechaInicio, fechaFin, estado " +
-                "FROM JustificantePaciente " +
-                "ORDER BY CASE estado " +
-                "  WHEN 'Pendiente' THEN 1 " +
-                "  WHEN 'Aprobado' THEN 2 " +
-                "  WHEN 'Rechazado' THEN 3 " +
-                "  ELSE 4 END";
+ String sql = "SELECT folio, idPaciente, nombrePaciente, motivo, fechaInicio, fechaFin, estado " +
+             "FROM JustificantePaciente " +
+             "ORDER BY CASE estado " +
+             "  WHEN 'Pendiente' THEN 1 " +
+             "  WHEN 'Aprobado' THEN 2 " +
+             "  WHEN 'Rechazado' THEN 3 " +
+             "  ELSE 4 END";
+
 
         try (Connection con = ConexionSQLite.conectar();
              PreparedStatement ps = con.prepareStatement(sql);
@@ -157,24 +155,18 @@ public class SolicitudesJustificantesFrame extends JPanel {
 
         int folio = (int) modelo.getValueAt(fila, 0);
 
+        // Acción que ejecutará el botón "Volver"
         ActionListener volverAction = e -> {
             crearTabla();
             cargarDatosDesdeBD();
-            panelCentro.removeAll();
-            panelCentro.add(new JScrollPane(tabla), BorderLayout.CENTER);
-            panelCentro.revalidate();
-            panelCentro.repaint();
-            panelBotones.setVisible(true); 
         };
 
         panelCentro.removeAll();
         panelCentro.setLayout(new BorderLayout());
-        panelCentro.add(new RevisarSolicitudFrame(folio, volverAction, panelManager, (InterfazMedica) SwingUtilities.getWindowAncestor(this)));
-
+        panelCentro.add(new RevisarSolicitudFrame(folio, volverAction, panelManager), BorderLayout.CENTER);
 
         panelCentro.revalidate();
         panelCentro.repaint();
-        panelBotones.setVisible(false); 
     }
 
     private void eliminarSeleccionado() {
@@ -222,5 +214,10 @@ public class SolicitudesJustificantesFrame extends JPanel {
             JOptionPane.showMessageDialog(this, "Error al eliminar de la base de datos.", "Error",
                     JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    public static void main(String[] args) {
+        // Si deseas probarlo desde aquí, puedes inicializar con null
+        SwingUtilities.invokeLater(() -> new SolicitudesJustificantesFrame(null).setVisible(true));
     }
 }
