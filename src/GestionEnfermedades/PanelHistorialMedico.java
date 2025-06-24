@@ -105,7 +105,7 @@ public class PanelHistorialMedico extends JPanel implements PanelProvider {
     private ArrayList<HistorialMedicoItem> obtenerHistorialConsultas() {
         ArrayList<HistorialMedicoItem> lista = new ArrayList<>();
         String sql = """
-                    SELECT FechaConsulta, Sintomas, MedicamentosRecetados, Diagnostico, Receta
+                    SELECT FechaConsulta, Sintomas, MedicamentosRecetados, Diagnostico, RecetaMedica
                     FROM Consultas
                     WHERE IDPaciente = ?
                     ORDER BY FechaConsulta DESC
@@ -121,7 +121,7 @@ public class PanelHistorialMedico extends JPanel implements PanelProvider {
                 String sintomas = rs.getString("Sintomas");
                 String medicamentos = rs.getString("MedicamentosRecetados");
                 String diagnostico = rs.getString("Diagnostico");
-                String receta = rs.getString("Receta");
+                String receta = rs.getString("RecetaMedica");
 
                 lista.add(new HistorialMedicoItem(fecha, diagnostico, sintomas, medicamentos, receta));
             }
