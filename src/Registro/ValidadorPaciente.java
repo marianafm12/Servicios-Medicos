@@ -1,7 +1,5 @@
 package Registro;
 
-import java.util.regex.*;
-
 public class ValidadorPaciente {
 
     /**
