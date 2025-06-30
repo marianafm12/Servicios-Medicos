@@ -16,10 +16,10 @@ public class AgendaCitaFrame extends JPanel {
     private JTextField campoNombre;
     private JTextField campoApellidos;
     private JTextField campoID;
-    private JComboBox<String> comboServicio;
-    private CalendarioUDLAP calendarioUDLAP;
-    private JComboBox<String> comboHora;
-    private JComboBox<String> comboMinuto;
+    private ComboBoxUDLAP<String> comboServicio;
+    private DatePickerUDLAP datePickerUDLAP;
+    private ComboBoxUDLAP<String> comboHora;
+    private ComboBoxUDLAP<String> comboMinuto;
     private JLabel errorLabel;
 
     public AgendaCitaFrame(int idPaciente, PanelManager panelManager) {
@@ -101,12 +101,10 @@ public class AgendaCitaFrame extends JPanel {
         add(lblServicio, gbc);
 
         gbc.gridx = 1;
-        comboServicio = new JComboBox<>(new String[] { "Consulta", "Enfermería", "Examen Médico" });
-        comboServicio.setFont(fieldFont);
-        comboServicio.setBackground(ColoresUDLAP.BLANCO);
+        comboServicio = new ComboBoxUDLAP<>(new String[] { "Consulta", "Enfermería", "Examen Médico" });
         add(comboServicio, gbc);
 
-        // — FECHA (CalendarioUDLAP) —
+        // — FECHA (DatePickerUDLAP) —
         gbc.gridy++;
         gbc.gridx = 0;
         JLabel lblFecha = new JLabel("Fecha de la Cita:");
@@ -114,12 +112,8 @@ public class AgendaCitaFrame extends JPanel {
         add(lblFecha, gbc);
 
         gbc.gridx = 1;
-        JPanel panelFecha = new JPanel(new BorderLayout());
-        panelFecha.setBackground(ColoresUDLAP.BLANCO);
-        // Instanciamos y mostramos el CalendarioUDLAP
-        calendarioUDLAP = new CalendarioUDLAP();
-        panelFecha.add(calendarioUDLAP, BorderLayout.CENTER);
-        add(panelFecha, gbc);
+        datePickerUDLAP = new DatePickerUDLAP();
+        add(datePickerUDLAP, gbc);
 
         // — HORA —
         gbc.gridy++;
@@ -132,13 +126,11 @@ public class AgendaCitaFrame extends JPanel {
         JPanel panelHora = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
         panelHora.setBackground(ColoresUDLAP.BLANCO);
 
-        comboHora = new JComboBox<>(new String[] {
+        comboHora = new ComboBoxUDLAP<>(new String[] {
                 "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21"
         });
-        comboHora.setFont(fieldFont);
 
-        comboMinuto = new JComboBox<>(new String[] { "00", "30" });
-        comboMinuto.setFont(fieldFont);
+        comboMinuto = new ComboBoxUDLAP<>(new String[] { "00", "30" });
 
         panelHora.add(comboHora);
         panelHora.add(new JLabel(":"));
@@ -173,8 +165,7 @@ public class AgendaCitaFrame extends JPanel {
     }
 
     private void validarYConfirmarCita() {
-        // Obtenemos la fecha del CalendarioUDLAP
-        LocalDate fechaSeleccionada = calendarioUDLAP.getSelectedDate();
+        LocalDate fechaSeleccionada = datePickerUDLAP.getDate();
         if (fechaSeleccionada == null
                 || !ValidacionesCita.esFechaValida(
                         fechaSeleccionada.getDayOfMonth(),
@@ -300,7 +291,7 @@ public class AgendaCitaFrame extends JPanel {
 
     private Border getCampoBorde() {
         return BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(ColoresUDLAP.GRIS_OSCURO),
+                BorderFactory.createLineBorder(ColoresUDLAP.GRIS_CLARO),
                 BorderFactory.createEmptyBorder(5, 5, 5, 5));
     }
 }

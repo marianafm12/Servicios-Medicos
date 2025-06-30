@@ -29,7 +29,8 @@ public class RevisarSolicitudFrame extends JPanel {
     private final PanelManager panelManager;
     private final InterfazMedica interfazMedica;
 
-    public RevisarSolicitudFrame(int folio, ActionListener volverAction, PanelManager panelManager, InterfazMedica interfazMedica) {
+    public RevisarSolicitudFrame(int folio, ActionListener volverAction, PanelManager panelManager,
+            InterfazMedica interfazMedica) {
         this.folio = folio;
         this.panelManager = panelManager;
         this.interfazMedica = interfazMedica;
@@ -153,82 +154,50 @@ public class RevisarSolicitudFrame extends JPanel {
         JPanel filaBotones2 = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
         filaBotones2.setBackground(ColoresUDLAP.BLANCO);
         JButton abrirArchivoBtn = botonTransparente("Abrir Archivo", ColoresUDLAP.AZUL, ColoresUDLAP.AZUL);
-        JButton vistaBtn = botonTransparente("Vista preliminar del Justificante", ColoresUDLAP.VERDE_OSCURO, ColoresUDLAP.VERDE_OSCURO);
-        JButton volverBtn = botonTransparente("Volver", ColoresUDLAP.GRIS_OSCURO, ColoresUDLAP.GRIS_OSCURO);
+        JButton vistaBtn = botonTransparente("Vista preliminar del Justificante", ColoresUDLAP.VERDE_OSCURO,
+                ColoresUDLAP.VERDE_OSCURO);
+        JButton volverBtn = botonTransparente("Volver", ColoresUDLAP.GRIS_CLARO, ColoresUDLAP.GRIS_CLARO);
         filaBotones2.add(abrirArchivoBtn);
         filaBotones2.add(vistaBtn);
         filaBotones2.add(volverBtn);
         add(filaBotones2, gbc);
 
-            
-    btnAprobar.addActionListener(e -> {
-    LocalDate inicio = construirFecha(diaInicio, mesInicio, anioInicio);
-    LocalDate fin = construirFecha(diaFin, mesFin, anioFin);
+        btnAprobar.addActionListener(e -> {
+            LocalDate inicio = construirFecha(diaInicio, mesInicio, anioInicio);
+            LocalDate fin = construirFecha(diaFin, mesFin, anioFin);
 
-    if (inicio == null || fin == null) {
-        return; 
-    }
-
-    if (inicio.isAfter(fin)) {
-        JOptionPane.showMessageDialog(this, "La fecha de inicio no puede ser posterior a la fecha de fin.",
-                "Error de Fecha", JOptionPane.ERROR_MESSAGE);
-        return;
-    }
-
-
-        String motivo = motivoField.getText().trim();
-        String diag = diagnosticoArea.getText().trim();
-
-        boolean ok = JustificanteDAO.aprobarJustificante(folio, motivo, diag, medicoFirmante, inicio, fin);
-        if (ok) {
-            JOptionPane.showMessageDialog(this, "Justificante aprobado.");
-
-            // REFRESCAR el objeto actualizado
-            Justificante justiActualizado = JustificanteDAO.obtenerPorFolio(folio).orElse(null);
-
-            if (justiActualizado != null) {
-                File pdf = GeneradorPDFJustificante.generar(justiActualizado);
-                if (pdf != null && pdf.exists()) {
-                    try {
-                        Desktop.getDesktop().open(pdf);
-                    } catch (Exception ex) {
-                        JOptionPane.showMessageDialog(this, "Error al abrir el PDF.");
-                    }
-                }
+            if (inicio == null || fin == null) {
+                return;
             }
 
-            // Deshabilitar botones y campos
-            motivoField.setEditable(false);
-            diagnosticoArea.setEditable(false);
-            diaInicio.setEnabled(false);
-            mesInicio.setEnabled(false);
-            anioInicio.setEnabled(false);
-            diaFin.setEnabled(false);
-            mesFin.setEnabled(false);
-            anioFin.setEnabled(false);
-            btnAprobar.setEnabled(false);
-            btnRechazar.setEnabled(false);
-            limpiarBtn.setEnabled(false);
+            if (inicio.isAfter(fin)) {
+                JOptionPane.showMessageDialog(this, "La fecha de inicio no puede ser posterior a la fecha de fin.",
+                        "Error de Fecha", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
 
-            volverAction.actionPerformed(null);
-            interfazMedica.checkNotifications();
+            String motivo = motivoField.getText().trim();
+            String diag = diagnosticoArea.getText().trim();
 
-            
-        }
+            boolean ok = JustificanteDAO.aprobarJustificante(folio, motivo, diag, medicoFirmante, inicio, fin);
+            if (ok) {
+                JOptionPane.showMessageDialog(this, "Justificante aprobado.");
 
-    interfazMedica.checkNotifications();
-    });
+                // REFRESCAR el objeto actualizado
+                Justificante justiActualizado = JustificanteDAO.obtenerPorFolio(folio).orElse(null);
 
+                if (justiActualizado != null) {
+                    File pdf = GeneradorPDFJustificante.generar(justiActualizado);
+                    if (pdf != null && pdf.exists()) {
+                        try {
+                            Desktop.getDesktop().open(pdf);
+                        } catch (Exception ex) {
+                            JOptionPane.showMessageDialog(this, "Error al abrir el PDF.");
+                        }
+                    }
+                }
 
-            // Acción: Rechazar
-    btnRechazar.addActionListener(e -> {
-        int confirm = JOptionPane.showConfirmDialog(this,
-                "¿Seguro que deseas rechazar esta solicitud?", "Confirmar rechazo", JOptionPane.YES_NO_OPTION);
-        if (confirm == JOptionPane.YES_OPTION) {
-            if (JustificanteDAO.rechazarJustificante(folio, medicoFirmante)) {
-                JOptionPane.showMessageDialog(this, "Justificante rechazado.");
-
-                // Deshabilitar UI
+                // Deshabilitar botones y campos
                 motivoField.setEditable(false);
                 diagnosticoArea.setEditable(false);
                 diaInicio.setEnabled(false);
@@ -242,15 +211,39 @@ public class RevisarSolicitudFrame extends JPanel {
                 limpiarBtn.setEnabled(false);
 
                 volverAction.actionPerformed(null);
+                interfazMedica.checkNotifications();
+
             }
-        }
-        interfazMedica.checkNotifications();
-    });
 
+            interfazMedica.checkNotifications();
+        });
 
+        // Acción: Rechazar
+        btnRechazar.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(this,
+                    "¿Seguro que deseas rechazar esta solicitud?", "Confirmar rechazo", JOptionPane.YES_NO_OPTION);
+            if (confirm == JOptionPane.YES_OPTION) {
+                if (JustificanteDAO.rechazarJustificante(folio, medicoFirmante)) {
+                    JOptionPane.showMessageDialog(this, "Justificante rechazado.");
 
+                    // Deshabilitar UI
+                    motivoField.setEditable(false);
+                    diagnosticoArea.setEditable(false);
+                    diaInicio.setEnabled(false);
+                    mesInicio.setEnabled(false);
+                    anioInicio.setEnabled(false);
+                    diaFin.setEnabled(false);
+                    mesFin.setEnabled(false);
+                    anioFin.setEnabled(false);
+                    btnAprobar.setEnabled(false);
+                    btnRechazar.setEnabled(false);
+                    limpiarBtn.setEnabled(false);
 
-
+                    volverAction.actionPerformed(null);
+                }
+            }
+            interfazMedica.checkNotifications();
+        });
 
         limpiarBtn.addActionListener(e -> {
             diagnosticoArea.setText("");
@@ -333,33 +326,35 @@ public class RevisarSolicitudFrame extends JPanel {
 
     private String[] generarDias() {
         String[] d = new String[31];
-        for (int i = 1; i <= 31; i++) d[i - 1] = String.valueOf(i);
+        for (int i = 1; i <= 31; i++)
+            d[i - 1] = String.valueOf(i);
         return d;
     }
 
     private String[] generarMeses() {
-        return new String[]{"Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto",
-                "Septiembre", "Octubre", "Noviembre", "Diciembre"};
+        return new String[] { "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto",
+                "Septiembre", "Octubre", "Noviembre", "Diciembre" };
     }
 
     private String[] generarAnios() {
         int base = LocalDate.now().getYear();
         String[] a = new String[6];
-        for (int i = 0; i < 6; i++) a[i] = String.valueOf(base + i);
+        for (int i = 0; i < 6; i++)
+            a[i] = String.valueOf(base + i);
         return a;
     }
 
-private LocalDate construirFecha(JComboBox<String> dia, JComboBox<String> mes, JComboBox<String> anio) {
-    try {
-        int d = Integer.parseInt((String) dia.getSelectedItem());
-        int m = mes.getSelectedIndex() + 1;
-        int y = Integer.parseInt((String) anio.getSelectedItem());
-        return LocalDate.of(y, m, d);
-    } catch (Exception e) {
-        JOptionPane.showMessageDialog(this, "Fecha inválida. Verifique el día, mes y año ingresados.",
-                "Error de Fecha", JOptionPane.ERROR_MESSAGE);
-        return null;
+    private LocalDate construirFecha(JComboBox<String> dia, JComboBox<String> mes, JComboBox<String> anio) {
+        try {
+            int d = Integer.parseInt((String) dia.getSelectedItem());
+            int m = mes.getSelectedIndex() + 1;
+            int y = Integer.parseInt((String) anio.getSelectedItem());
+            return LocalDate.of(y, m, d);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Fecha inválida. Verifique el día, mes y año ingresados.",
+                    "Error de Fecha", JOptionPane.ERROR_MESSAGE);
+            return null;
+        }
     }
-}
 
 }
