@@ -1,107 +1,98 @@
 package Utilidades;
 
 import javax.swing.*;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.time.LocalDate;
 
 public class DatePickerUDLAP extends JPanel {
-        private JTextField txtFecha;
-        private JButton btnCalendar;
-        private CalendarioUDLAP calendario;
-        private JPopupMenu popup;
-        private LocalDate selectedDate;
+    private final JTextField campoFecha;
+    private final JButton btnCalendario;
+    private final JPopupMenu popup;
+    private final CalendarioUDLAP calendario;
 
-        public DatePickerUDLAP() {
-                setLayout(new BorderLayout(0, 0));
-                txtFecha = new JTextField(10);
-                txtFecha.setEditable(false);
-                txtFecha.setBackground(Color.WHITE);
-                txtFecha.setFont(new Font("Arial", Font.PLAIN, 14));
+    public DatePickerUDLAP() {
+        setLayout(new BorderLayout(4, 0));
+        setOpaque(false);
 
-                btnCalendar = new JButton("📅");
-                btnCalendar.setFocusable(false);
-                btnCalendar.setMargin(new Insets(0, 6, 0, 6));
-                btnCalendar.setFont(new Font("Arial", Font.PLAIN, 16));
-                btnCalendar.setBorder(BorderFactory.createEmptyBorder(2, 8, 2, 8));
+        campoFecha = new JTextField(12);
+        campoFecha.setEditable(false);
+        campoFecha.setBackground(ColoresUDLAP.BLANCO);
+        campoFecha.setFont(new Font("Arial", Font.PLAIN, 14));
+        campoFecha.setBorder(BorderFactory.createLineBorder(ColoresUDLAP.GRIS_CLARO));
+        campoFecha.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-                calendario = new CalendarioUDLAP();
-                calendario.setOpaque(true);
+        btnCalendario = new JButton("\uD83D\uDCC5"); // Icono calendario 📅 (puedes usar uno propio)
+        btnCalendario.setFocusable(false);
+        btnCalendario.setFont(new Font("Arial", Font.PLAIN, 16));
+        btnCalendario.setBackground(ColoresUDLAP.BLANCO);
+        btnCalendario.setBorder(BorderFactory.createLineBorder(ColoresUDLAP.NARANJA_BARRA));
+        btnCalendario.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnCalendario.setPreferredSize(new Dimension(38, 30));
 
-                popup = new JPopupMenu();
-                popup.setBorder(BorderFactory.createLineBorder(Color.ORANGE, 2));
-                popup.setLayout(new BorderLayout());
-                popup.add(calendario, BorderLayout.CENTER);
+        popup = new JPopupMenu();
+        popup.setLayout(new BorderLayout());
+        calendario = new CalendarioUDLAP();
+        popup.add(calendario, BorderLayout.CENTER);
 
-                add(txtFecha, BorderLayout.CENTER);
-                add(btnCalendar, BorderLayout.EAST);
+        MouseListener mostrarPopup = new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                mostrarCalendario();
+            }
+        };
+        campoFecha.addMouseListener(mostrarPopup);
+        btnCalendario.addMouseListener(mostrarPopup);
 
-                // Mostrar calendario al hacer click en el botón o campo de texto
-                btnCalendar.addActionListener(e -> mostrarCalendario());
-                txtFecha.addMouseListener(new MouseAdapter() {
-                        public void mouseClicked(MouseEvent e) {
-                                mostrarCalendario();
-                        }
-                });
+        calendario.setDateSelectionListener((fecha) -> {
+            if (fecha != null) {
+                campoFecha.setText(fecha.toString());
+            } else {
+                campoFecha.setText("");
+            }
+            popup.setVisible(false);
+        });
 
-                // Listener de selección de fecha (incluye limpiar y hoy)
-                calendario.setDateSelectionListener(date -> {
-                        selectedDate = date;
-                        if (date == null) {
-                                txtFecha.setText("");
-                        } else {
-                                txtFecha.setText(formato(date));
-                        }
-                        popup.setVisible(false);
-                });
+        popup.addPopupMenuListener(new PopupMenuListener() {
+            public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+            }
 
-                // Cerrar popup solo si se hace click FUERA del calendario y del DatePicker
-                Toolkit.getDefaultToolkit().addAWTEventListener(event -> {
-                        if (popup.isVisible() && event instanceof MouseEvent) {
-                                MouseEvent me = (MouseEvent) event;
-                                if (me.getID() == MouseEvent.MOUSE_PRESSED) {
-                                        Component comp = me.getComponent();
-                                        boolean esPopup = SwingUtilities.isDescendingFrom(comp, popup);
-                                        boolean esBoton = SwingUtilities.isDescendingFrom(comp, btnCalendar) ||
-                                                        SwingUtilities.isDescendingFrom(comp, txtFecha);
-                                        if (!esPopup && !esBoton) {
-                                                popup.setVisible(false);
-                                        }
-                                }
-                        }
-                }, AWTEvent.MOUSE_EVENT_MASK);
+            public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+            }
+
+            public void popupMenuCanceled(PopupMenuEvent e) {
+            }
+        });
+
+        add(campoFecha, BorderLayout.CENTER);
+        add(btnCalendario, BorderLayout.EAST);
+    }
+
+    private void mostrarCalendario() {
+        calendario.setPreferredSize(new Dimension(430, 350));
+        popup.pack();
+        popup.show(this, 0, getHeight());
+    }
+
+    public LocalDate getDate() {
+        String txt = campoFecha.getText();
+        if (txt == null || txt.isEmpty())
+            return null;
+        try {
+            return LocalDate.parse(txt);
+        } catch (Exception ex) {
+            return null;
         }
+    }
 
-        /** Muestra el calendario debajo del campo de texto */
-        private void mostrarCalendario() {
-                if (selectedDate != null) {
-                        calendario.setSelectedDate(selectedDate);
-                } else {
-                        calendario.setSelectedDate(LocalDate.now());
-                }
-                popup.show(this, 0, getHeight());
-        }
+    public void setDate(LocalDate fecha) {
+        calendario.setSelectedDate(fecha);
+        campoFecha.setText(fecha != null ? fecha.toString() : "");
+    }
 
-        /** Formato de fecha (puedes personalizarlo) */
-        private String formato(LocalDate fecha) {
-                if (fecha == null)
-                        return "";
-                return String.format("%02d/%02d/%04d", fecha.getDayOfMonth(), fecha.getMonthValue(), fecha.getYear());
-        }
-
-        public LocalDate getSelectedDate() {
-                return selectedDate;
-        }
-
-        /** Si necesitas establecer fecha desde fuera */
-        public void setSelectedDate(LocalDate date) {
-                this.selectedDate = date;
-                calendario.setSelectedDate(date);
-                txtFecha.setText(formato(date));
-        }
-
-        /** Si quieres saber si está abierto el calendario */
-        public boolean isCalendarVisible() {
-                return popup.isVisible();
-        }
+    public JTextField getTextField() {
+        return campoFecha;
+    }
 }

@@ -264,7 +264,7 @@ public class FormularioJustificanteFrame extends JPanel {
 
     private Border getCampoBorde() {
         return BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(ColoresUDLAP.GRIS_OSCURO),
+                BorderFactory.createLineBorder(ColoresUDLAP.GRIS_CLARO),
                 BorderFactory.createEmptyBorder(5, 5, 5, 5));
     }
 
