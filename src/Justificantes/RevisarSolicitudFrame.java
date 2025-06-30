@@ -215,6 +215,8 @@ public class RevisarSolicitudFrame extends JPanel {
 
             
         }
+
+    interfazMedica.checkNotifications();
     });
 
 
@@ -242,6 +244,7 @@ public class RevisarSolicitudFrame extends JPanel {
                 volverAction.actionPerformed(null);
             }
         }
+        interfazMedica.checkNotifications();
     });
 
 
