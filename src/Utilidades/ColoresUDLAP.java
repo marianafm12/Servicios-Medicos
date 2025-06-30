@@ -19,5 +19,6 @@ public class ColoresUDLAP {
     public static final Color AMARILLO = Color.YELLOW;
     public static final Color AZUL = Color.BLUE;
     public static final Color GRIS_OSCURO = new Color(102, 102, 102);
+    public static final Color NARANJA_SUAVE = new Color(255, 204, 153);
 
 }

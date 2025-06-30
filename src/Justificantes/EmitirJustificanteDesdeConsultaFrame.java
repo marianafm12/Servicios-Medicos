@@ -145,15 +145,11 @@ public class EmitirJustificanteDesdeConsultaFrame extends JPanel {
         guardarBtn.addActionListener(e -> guardar());
 
         JButton cancelarBtn = botonTransparente("Cancelar", ColoresUDLAP.ROJO, ColoresUDLAP.ROJO_HOVER);
-        cancelarBtn.addActionListener(e -> panelManager.showPanel("menuJustificantes"));
-
-        JButton regresarBtn = botonTransparente("Regresar", ColoresUDLAP.GRIS_OSCURO, ColoresUDLAP.GRIS_OSCURO);
-        regresarBtn.addActionListener(e -> panelManager.showPanel("justificantes"));
+        cancelarBtn.addActionListener(e -> panelManager.showPanel("justificantes"));
 
         panelBotones.add(subirArchivoBtn);
         panelBotones.add(guardarBtn);
         panelBotones.add(cancelarBtn);
-        panelBotones.add(regresarBtn);
         add(panelBotones, gbc);
 
         // Autocompletar nombre

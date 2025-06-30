@@ -34,7 +34,13 @@ public class MisJustificantesPacientePanel extends JPanel {
 
         modelo = new DefaultTableModel(new String[]{
                 "Folio", "Motivo", "Inicio", "Fin", "Estado", "Médico"
-        }, 0);
+        }, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
 
         tabla = new JTable(modelo);
         tabla.setFont(new Font("Segoe UI", Font.PLAIN, 15));

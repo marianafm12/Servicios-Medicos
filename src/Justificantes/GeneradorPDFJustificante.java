@@ -2,7 +2,6 @@ package Justificantes;
 
 import com.lowagie.text.*;
 import com.lowagie.text.pdf.PdfWriter;
-import com.lowagie.text.Image;
 
 import java.awt.Color;
 import java.io.File;
@@ -61,8 +60,14 @@ public class GeneradorPDFJustificante {
 
             cuerpo.append("Se solicita reposo obligatorio desde el ")
                   .append(j.getFechaInicio().format(fmt)).append(" hasta el ")
-                  .append(j.getFechaFin().format(fmt)).append(", ")
-                  .append("con aprobación del médico ").append(j.getResueltoPor()).append(".\n\n");
+                  .append(j.getFechaFin().format(fmt)).append(", ");
+
+            if (j.getResueltoPor() != null) {
+                cuerpo.append("con aprobación del médico ").append(j.getResueltoPor()).append(".\n\n");
+            } else {
+                cuerpo.append("aún en espera de revisión médica.\n\n");
+            }
+
 
             cuerpo.append("El diagnóstico emitido es: ").append(j.getDiagnostico()).append("\n\n");
 
@@ -78,12 +83,15 @@ public class GeneradorPDFJustificante {
             // Información de control
             doc.add(new Paragraph("Folio: " + j.getFolio(), texto));
             doc.add(new Paragraph("Estado del justificante: " + j.getEstado(), texto));
-            doc.add(new Paragraph("Resuelto por: " + j.getResueltoPor(), texto));
-            doc.add(new Paragraph("Fecha de resolución: " + j.getFechaResolucion().format(fmt), texto));
+            doc.add(new Paragraph("Resuelto por: " + (j.getResueltoPor() != null ? j.getResueltoPor() : "Pendiente"), texto));
+            doc.add(new Paragraph("Fecha de resolución: " + 
+                (j.getFechaResolucion() != null ? j.getFechaResolucion().format(fmt) : "Pendiente"), texto));
+
 
             // Firma
             doc.add(new Paragraph("\n\n________________________", texto));
-            doc.add(new Paragraph(j.getResueltoPor(), firma));
+            doc.add(new Paragraph(j.getResueltoPor() != null ? j.getResueltoPor() : "________________", firma));
+
 
             doc.close();
             return file;
