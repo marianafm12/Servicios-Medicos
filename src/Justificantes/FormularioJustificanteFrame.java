@@ -35,7 +35,7 @@ public class FormularioJustificanteFrame extends JPanel {
         gbc.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        Font labelFont = new Font("Arial", Font.BOLD, 14);
+        // Font labelFont = new Font("Arial", Font.BOLD, 14);
         Font fieldFont = new Font("Arial", Font.PLAIN, 14);
 
         // Título
@@ -264,7 +264,7 @@ public class FormularioJustificanteFrame extends JPanel {
 
     private Border getCampoBorde() {
         return BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(ColoresUDLAP.GRIS_CLARO),
+                BorderFactory.createLineBorder(ColoresUDLAP.GRIS_OSCURO),
                 BorderFactory.createEmptyBorder(5, 5, 5, 5));
     }
 

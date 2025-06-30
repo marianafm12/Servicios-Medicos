@@ -1,15 +1,12 @@
 package GestionCitas;
 
-import Utilidades.ColoresUDLAP;
-import Utilidades.PanelManager;
-
+import Utilidades.*;
+import BaseDeDatos.*;
 import javax.swing.*;
 import javax.swing.border.Border;
-
 import java.awt.*;
 import java.sql.*;
 import java.time.LocalDate;
-import BaseDeDatos.ConexionSQLite;
 
 public class AgendaCitaFrame extends JPanel {
 
@@ -20,9 +17,7 @@ public class AgendaCitaFrame extends JPanel {
     private JTextField campoApellidos;
     private JTextField campoID;
     private JComboBox<String> comboServicio;
-    private JComboBox<Integer> comboDia;
-    private JComboBox<String> comboMes;
-    private JComboBox<Integer> comboAño;
+    private CalendarioUDLAP calendarioUDLAP;
     private JComboBox<String> comboHora;
     private JComboBox<String> comboMinuto;
     private JLabel errorLabel;
@@ -42,7 +37,7 @@ public class AgendaCitaFrame extends JPanel {
         Font labelFont = new Font("Arial", Font.BOLD, 14);
         Font fieldFont = new Font("Arial", Font.PLAIN, 14);
 
-        // Título
+        // — TÍTULO —
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.gridwidth = 2;
@@ -54,7 +49,7 @@ public class AgendaCitaFrame extends JPanel {
         gbc.gridwidth = 1;
         gbc.gridy++;
 
-        // ID
+        // — ID PACIENTE —
         gbc.gridx = 0;
         JLabel lblID = new JLabel("ID del Paciente:");
         lblID.setFont(labelFont);
@@ -67,7 +62,7 @@ public class AgendaCitaFrame extends JPanel {
         campoID.setBorder(getCampoBorde());
         add(campoID, gbc);
 
-        // Nombre
+        // — NOMBRE —
         gbc.gridy++;
         gbc.gridx = 0;
         JLabel lblNombre = new JLabel("Nombre:");
@@ -81,7 +76,7 @@ public class AgendaCitaFrame extends JPanel {
         campoNombre.setBorder(getCampoBorde());
         add(campoNombre, gbc);
 
-        // Apellidos
+        // — APELLIDOS —
         gbc.gridy++;
         gbc.gridx = 0;
         JLabel lblApellidos = new JLabel("Apellidos:");
@@ -95,10 +90,10 @@ public class AgendaCitaFrame extends JPanel {
         campoApellidos.setBorder(getCampoBorde());
         add(campoApellidos, gbc);
 
-        // Datos desde BD
+        // carga datos desde BD
         cargarDatosPersonales(idPaciente);
 
-        // Servicio
+        // — SERVICIO —
         gbc.gridy++;
         gbc.gridx = 0;
         JLabel lblServicio = new JLabel("Servicio:");
@@ -108,10 +103,10 @@ public class AgendaCitaFrame extends JPanel {
         gbc.gridx = 1;
         comboServicio = new JComboBox<>(new String[] { "Consulta", "Enfermería", "Examen Médico" });
         comboServicio.setFont(fieldFont);
-        comboServicio.setBackground(Color.WHITE);
+        comboServicio.setBackground(ColoresUDLAP.BLANCO);
         add(comboServicio, gbc);
 
-        // Fecha
+        // — FECHA (CalendarioUDLAP) —
         gbc.gridy++;
         gbc.gridx = 0;
         JLabel lblFecha = new JLabel("Fecha de la Cita:");
@@ -119,31 +114,14 @@ public class AgendaCitaFrame extends JPanel {
         add(lblFecha, gbc);
 
         gbc.gridx = 1;
-        JPanel panelFecha = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        JPanel panelFecha = new JPanel(new BorderLayout());
         panelFecha.setBackground(ColoresUDLAP.BLANCO);
-
-        comboDia = new JComboBox<>();
-        for (int d = 1; d <= 31; d++)
-            comboDia.addItem(d);
-        comboDia.setFont(fieldFont);
-
-        comboMes = new JComboBox<>(new String[] {
-                "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-                "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
-        });
-        comboMes.setFont(fieldFont);
-
-        comboAño = new JComboBox<>();
-        for (int a = LocalDate.now().getYear(); a <= 2030; a++)
-            comboAño.addItem(a);
-        comboAño.setFont(fieldFont);
-
-        panelFecha.add(comboDia);
-        panelFecha.add(comboMes);
-        panelFecha.add(comboAño);
+        // Instanciamos y mostramos el CalendarioUDLAP
+        calendarioUDLAP = new CalendarioUDLAP();
+        panelFecha.add(calendarioUDLAP, BorderLayout.CENTER);
         add(panelFecha, gbc);
 
-        // Hora
+        // — HORA —
         gbc.gridy++;
         gbc.gridx = 0;
         JLabel lblHora = new JLabel("Hora de la Cita:");
@@ -155,8 +133,7 @@ public class AgendaCitaFrame extends JPanel {
         panelHora.setBackground(ColoresUDLAP.BLANCO);
 
         comboHora = new JComboBox<>(new String[] {
-                "08", "09", "10", "11", "12", "13", "14", "15",
-                "16", "17", "18", "19", "20", "21"
+                "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21"
         });
         comboHora.setFont(fieldFont);
 
@@ -168,7 +145,7 @@ public class AgendaCitaFrame extends JPanel {
         panelHora.add(comboMinuto);
         add(panelHora, gbc);
 
-        // Mensaje de error
+        // — MENSAJE DE ERROR —
         gbc.gridy++;
         gbc.gridx = 0;
         gbc.gridwidth = 2;
@@ -177,15 +154,17 @@ public class AgendaCitaFrame extends JPanel {
         errorLabel.setForeground(Color.RED);
         add(errorLabel, gbc);
 
-        // Botones
+        // — BOTONES —
         gbc.gridy++;
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
         panelBotones.setBackground(ColoresUDLAP.BLANCO);
 
-        JButton btnConfirmar = botonTransparente("Confirmar", ColoresUDLAP.VERDE, ColoresUDLAP.VERDE_HOVER);
-        JButton btnCancelar = botonTransparente("Volver", ColoresUDLAP.NARANJA, ColoresUDLAP.NARANJA_HOVER);
+        JButton btnConfirmar = botonTransparente("Confirmar",
+                ColoresUDLAP.VERDE, ColoresUDLAP.VERDE_HOVER);
+        JButton btnCancelar = botonTransparente("Volver",
+                ColoresUDLAP.NARANJA, ColoresUDLAP.NARANJA_HOVER);
 
-        btnConfirmar.addActionListener(e -> validarYConfirmarCita(idPaciente));
+        btnConfirmar.addActionListener(e -> validarYConfirmarCita());
         btnCancelar.addActionListener(e -> panelManager.showPanel("panelGestionCitas"));
 
         panelBotones.add(btnConfirmar);
@@ -193,46 +172,27 @@ public class AgendaCitaFrame extends JPanel {
         add(panelBotones, gbc);
     }
 
-    private void cargarDatosPersonales(int id) {
-        String sql = "SELECT Nombre, ApellidoPaterno, ApellidoMaterno FROM InformacionAlumno WHERE ID = ?";
-        try (Connection conn = ConexionSQLite.conectar();
-                PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, id);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    campoNombre.setText(rs.getString("Nombre"));
-                    campoApellidos.setText(rs.getString("ApellidoPaterno") + " " + rs.getString("ApellidoMaterno"));
-                } else {
-                    campoNombre.setText("Desconocido");
-                    campoApellidos.setText("Desconocido");
-                }
-            }
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
-    }
-
-    private void validarYConfirmarCita(int idPaciente) {
-        String servicio = (String) comboServicio.getSelectedItem();
-        int dia = (int) comboDia.getSelectedItem();
-        int mes = comboMes.getSelectedIndex() + 1;
-        int año = (int) comboAño.getSelectedItem();
-        String hora = (String) comboHora.getSelectedItem();
-        String minuto = (String) comboMinuto.getSelectedItem();
-
-        // ✅ Validación de fecha usando la clase centralizada
-        if (!ValidacionesCita.esFechaValida(dia, mes, año)) {
-            errorLabel.setText("Fecha inválida (debe ser válida y futura)");
+    private void validarYConfirmarCita() {
+        // Obtenemos la fecha del CalendarioUDLAP
+        LocalDate fechaSeleccionada = calendarioUDLAP.getSelectedDate();
+        if (fechaSeleccionada == null
+                || !ValidacionesCita.esFechaValida(
+                        fechaSeleccionada.getDayOfMonth(),
+                        fechaSeleccionada.getMonthValue(),
+                        fechaSeleccionada.getYear())) {
+            errorLabel.setText("Fecha inválida (debe ser futura y válida)");
+            errorLabel.setForeground(Color.RED);
             return;
         }
-
-        String fecha = String.format("%04d-%02d-%02d", año, mes, dia);
+        String fecha = fechaSeleccionada.toString(); // yyyy-MM-dd
+        String servicio = (String) comboServicio.getSelectedItem();
+        String hora = (String) comboHora.getSelectedItem();
+        String minuto = (String) comboMinuto.getSelectedItem();
         String horaFinal = hora + ":" + minuto;
 
         try (Connection conn = ConexionSQLite.conectar()) {
-
+            // cita ocupada
             if (ValidacionesCita.estaCitaOcupada(fecha, horaFinal, servicio)) {
-                Object[] opciones = { "Sí", "No" };
                 int opcion = JOptionPane.showOptionDialog(
                         this,
                         "La cita ya está ocupada. ¿Deseas unirte a la lista de espera?",
@@ -240,44 +200,46 @@ public class AgendaCitaFrame extends JPanel {
                         JOptionPane.YES_NO_OPTION,
                         JOptionPane.QUESTION_MESSAGE,
                         null,
-                        opciones,
-                        opciones[0] // opción por defecto
-                );
-
+                        new Object[] { "Sí", "No" },
+                        "Sí");
                 if (opcion == JOptionPane.YES_OPTION) {
-                    new javax.swing.SwingWorker<Void, Void>() {
+                    new SwingWorker<Void, Void>() {
                         @Override
                         protected Void doInBackground() {
                             try {
-                                ListaEsperaDAO.registrarEnEspera(String.valueOf(idPaciente), fecha, hora, servicio);
-                            } catch (SQLException e) {
-                                e.printStackTrace();
+                                ListaEsperaDAO.registrarEnEspera(
+                                        String.valueOf(idPaciente),
+                                        fecha, horaFinal, servicio);
+                            } catch (SQLException ex) {
+                                ex.printStackTrace();
                             }
                             return null;
                         }
                     }.execute();
-
                     errorLabel.setForeground(Color.ORANGE);
                     errorLabel.setText("Registrado en lista de espera.");
                 }
                 return;
             }
 
-            // ✅ Validación: ya tiene cita para ese servicio
-            if (ValidacionesCita.pacienteYaTieneCitaParaServicio(idPaciente, servicio)) {
+            // ya tiene cita para ese servicio
+            if (ValidacionesCita.pacienteYaTieneCitaParaServicio(
+                    idPaciente, servicio)) {
+                errorLabel.setForeground(Color.RED);
                 errorLabel.setText("Ya tienes una cita para este servicio.");
                 return;
             }
 
-            // 👇 Inserción original sin cambios
-            String sqlI = "INSERT INTO CitasMedicas(idPaciente,fecha,hora,servicio) VALUES(?,?,?,?)";
-            try (PreparedStatement psI = conn.prepareStatement(sqlI)) {
-                psI.setInt(1, idPaciente);
-                psI.setString(2, fecha);
-                psI.setString(3, horaFinal);
-                psI.setString(4, servicio);
-                psI.executeUpdate();
-                errorLabel.setForeground(new Color(0, 100, 0));
+            // INSERT en BD
+            String sql = "INSERT INTO CitasMedicas"
+                    + "(idPaciente,fecha,hora,servicio) VALUES(?,?,?,?)";
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setInt(1, idPaciente);
+                ps.setString(2, fecha);
+                ps.setString(3, horaFinal);
+                ps.setString(4, servicio);
+                ps.executeUpdate();
+                errorLabel.setForeground(ColoresUDLAP.VERDE_OSCURO);
                 errorLabel.setText("Cita agendada exitosamente.");
             }
 
@@ -288,12 +250,38 @@ public class AgendaCitaFrame extends JPanel {
         }
     }
 
+    private void cargarDatosPersonales(int id) {
+        String sql = "SELECT Nombre, ApellidoPaterno, ApellidoMaterno "
+                + "FROM InformacionAlumno WHERE ID = ?";
+        try (Connection conn = ConexionSQLite.conectar();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    campoNombre.setText(
+                            rs.getString("Nombre"));
+                    campoApellidos.setText(
+                            rs.getString("ApellidoPaterno")
+                                    + " " +
+                                    rs.getString("ApellidoMaterno"));
+                } else {
+                    campoNombre.setText("Desconocido");
+                    campoApellidos.setText("Desconocido");
+                }
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+    }
+
     private JButton botonTransparente(String texto, Color base, Color hover) {
         JButton button = new JButton(texto) {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setRenderingHint(
+                        RenderingHints.KEY_ANTIALIASING,
+                        RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(getModel().isRollover() ? hover : base);
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 25, 25);
                 super.paintComponent(g);
@@ -312,8 +300,7 @@ public class AgendaCitaFrame extends JPanel {
 
     private Border getCampoBorde() {
         return BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(ColoresUDLAP.GRIS_CLARO),
+                BorderFactory.createLineBorder(ColoresUDLAP.GRIS_OSCURO),
                 BorderFactory.createEmptyBorder(5, 5, 5, 5));
     }
-
 }
