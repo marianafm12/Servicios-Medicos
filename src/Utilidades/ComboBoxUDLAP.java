@@ -1,190 +1,266 @@
 package Utilidades;
 
 import javax.swing.*;
-import javax.swing.plaf.basic.BasicComboBoxUI;
-import javax.swing.plaf.basic.BasicScrollBarUI;
-import javax.swing.plaf.basic.ComboPopup;
+import javax.swing.border.Border;
+import javax.swing.plaf.basic.*;
 import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 
-public class ComboBoxUDLAP<E> extends JComboBox<E> {
+/**
+ * JComboBox con estilo UDLAP:
+ * - fondo blanco y borde gris claro
+ * - placeholder en gris claro e itálica
+ * - flecha blanca sobre NARANJA_BARRA
+ * - hover en NARANJA_HOVER con texto blanco/negrita
+ * - scroll de lista en VERDE_HOVER
+ * - altura igual a un JTextField estándar
+ */
+public class ComboBoxUDLAP<T> extends JComboBox<T> {
+    private final T placeholder;
+    private final CustomRenderer renderer;
 
-    public ComboBoxUDLAP(E[] items) {
-        super(agregarTextoInicial(items));
-        setFont(new Font("Arial", Font.PLAIN, 14));
+    public ComboBoxUDLAP(T placeholder, T[] items) {
+        super();
+        this.placeholder = placeholder;
+        addItem(placeholder);
+        for (T item : items)
+            addItem(item);
+        this.renderer = new CustomRenderer(placeholder.toString(), ColoresUDLAP.NARANJA_HOVER);
+        initUI();
+    }
+
+    public ComboBoxUDLAP(T[] items) {
+        super(items);
+        this.placeholder = null;
+        this.renderer = new CustomRenderer(null, ColoresUDLAP.NARANJA_HOVER);
+        initUI();
+    }
+
+    private void initUI() {
+        if (placeholder != null)
+            setSelectedIndex(0);
         setBackground(Color.WHITE);
-        setForeground(ColoresUDLAP.NEGRO);
-        setBorder(BorderFactory.createLineBorder(ColoresUDLAP.NARANJA_BARRA, 1));
-        setRenderer(new UDLAPRenderer<>());
-        setUI(new ComboBoxUDLAPUI());
-        setSelectedIndex(0);
+        setRenderer(renderer);
+        setUI(new CustomComboBoxUI(ColoresUDLAP.NARANJA_BARRA, renderer));
+        int baseHeight = new JTextField().getPreferredSize().height;
+        int baseWidth = new JTextField().getPreferredSize().width;
+        setPreferredSize(new Dimension(baseWidth + 60, baseHeight + 8));
+        Border line = BorderFactory.createLineBorder(ColoresUDLAP.GRIS_CLARO);
+        Border empty = BorderFactory.createEmptyBorder(5, 5, 5, 5);
+        setBorder(BorderFactory.createCompoundBorder(line, empty));
     }
 
-    // Agrega la opción "Selecciona una opción" al inicio
-    @SuppressWarnings("unchecked")
-    private static <E> E[] agregarTextoInicial(E[] items) {
-        Object[] nuevo = new Object[items.length + 1];
-        nuevo[0] = "Selecciona una opción";
-        System.arraycopy(items, 0, nuevo, 1, items.length);
-        return (E[]) nuevo;
-    }
+    private static class CustomComboBoxUI extends BasicComboBoxUI {
+        private final Color arrowBg;
+        private final CustomRenderer renderer;
 
-    // Renderer para color institucional y fondo blanco siempre
-    private static class UDLAPRenderer<E> extends DefaultListCellRenderer {
-        @Override
-        public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
-                boolean cellHasFocus) {
-            JLabel comp = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-            comp.setFont(new Font("Arial", Font.PLAIN, 14));
-            comp.setOpaque(true);
-
-            // Fondo blanco SIEMPRE en el "campo" (index == -1)
-            if (index == -1) {
-                comp.setBackground(Color.WHITE);
-                if ("Selecciona una opción".equals(value)) {
-                    comp.setForeground(ColoresUDLAP.BLANCO);
-                } else {
-                    comp.setForeground(ColoresUDLAP.NEGRO);
-                }
-            } else {
-                // Lista desplegada
-                if ("Selecciona una opción".equals(value)) {
-                    comp.setForeground(ColoresUDLAP.GRIS_OSCURO);
-                    comp.setBackground(Color.WHITE);
-                } else if (isSelected) {
-                    comp.setBackground(ColoresUDLAP.NARANJA_HOVER);
-                    comp.setForeground(Color.WHITE);
-                } else {
-                    comp.setBackground(Color.WHITE);
-                    comp.setForeground(ColoresUDLAP.NEGRO);
-                }
-            }
-            return comp;
+        public CustomComboBoxUI(Color arrowBg, CustomRenderer renderer) {
+            this.arrowBg = arrowBg;
+            this.renderer = renderer;
         }
-    }
 
-    // UI personalizada solo para la flecha y scrollbar
-    private static class ComboBoxUDLAPUI extends BasicComboBoxUI {
         @Override
         protected JButton createArrowButton() {
-            return new ArrowButtonUDLAP();
+            JButton btn = new JButton(new ArrowIcon(12, 12, arrowBg, Color.WHITE));
+            btn.setBorder(BorderFactory.createEmptyBorder());
+            btn.setContentAreaFilled(true);
+            btn.setBackground(arrowBg);
+            return btn;
         }
 
         @Override
-        protected ComboPopup createPopup() {
-            ComboPopup popup = super.createPopup();
+        protected void installListeners() {
+            super.installListeners();
 
-            // Encuentra el JScrollPane dentro del popup
-            JScrollPane scroll = findScrollPane((Component) popup);
-            if (scroll != null) {
-                JScrollBar vBar = scroll.getVerticalScrollBar();
-                JScrollBar hBar = scroll.getHorizontalScrollBar();
-                vBar.setUI(new UDLAPScrollBarUI());
-                vBar.setBackground(Color.WHITE);
-                vBar.setPreferredSize(new Dimension(14, 60));
-                if (hBar != null) {
-                    hBar.setUI(new UDLAPScrollBarUI());
-                    hBar.setBackground(Color.WHITE);
-                    hBar.setPreferredSize(new Dimension(60, 14));
+            BasicComboPopup popup = (BasicComboPopup) this.popup;
+            JList<?> list = popup.getList();
+            list.setCellRenderer(renderer);
+
+            // Hover en lista
+            list.addMouseMotionListener(new MouseMotionAdapter() {
+                @Override
+                public void mouseMoved(MouseEvent e) {
+                    int idx = list.locationToIndex(e.getPoint());
+                    renderer.setRolloverIndex(idx);
+                    list.repaint();
                 }
-            }
-            return popup;
-        }
+            });
 
-        // Busca recursivamente un JScrollPane dentro del popup
-        private JScrollPane findScrollPane(Component comp) {
-            if (comp instanceof JScrollPane)
-                return (JScrollPane) comp;
-            if (comp instanceof Container) {
-                for (Component child : ((Container) comp).getComponents()) {
-                    JScrollPane found = findScrollPane(child);
-                    if (found != null)
-                        return found;
-                }
-            }
-            return null;
-        }
-    }
-
-    // Flecha institucional: blanca con fondo naranja
-    private static class ArrowButtonUDLAP extends JButton {
-        private boolean hovered = false;
-
-        public ArrowButtonUDLAP() {
-            setPreferredSize(new Dimension(28, 24));
-            setFocusPainted(false);
-            setBorderPainted(false);
-            setContentAreaFilled(false);
-            setOpaque(false);
-            setBorder(BorderFactory.createEmptyBorder());
-            setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-            addMouseListener(new java.awt.event.MouseAdapter() {
-                public void mouseEntered(java.awt.event.MouseEvent evt) {
-                    hovered = true;
-                    repaint();
-                }
-
-                public void mouseExited(java.awt.event.MouseEvent evt) {
-                    hovered = false;
-                    repaint();
+            // Personalizamos el scroll del popup
+            SwingUtilities.invokeLater(() -> {
+                JScrollPane scroll = (JScrollPane) SwingUtilities.getAncestorOfClass(JScrollPane.class, list);
+                if (scroll != null) {
+                    // Vertical
+                    JScrollBar vsb = scroll.getVerticalScrollBar();
+                    if (vsb != null) {
+                        vsb.setUI(new CustomScrollBarUI(ColoresUDLAP.VERDE_HOVER));
+                    }
+                    // Horizontal (sólo si existe)
+                    JScrollBar hsb = scroll.getHorizontalScrollBar();
+                    if (hsb != null) {
+                        hsb.setUI(new CustomScrollBarUI(ColoresUDLAP.VERDE_HOVER));
+                    }
                 }
             });
         }
 
         @Override
-        protected void paintComponent(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.setColor(hovered ? ColoresUDLAP.NARANJA_HOVER : ColoresUDLAP.NARANJA_BARRA);
-            g2.fillRect(0, 0, getWidth(), getHeight());
-            int w = getWidth(), h = getHeight();
-            int size = Math.min(w, h) / 2 + 2;
-            int x = w / 2, y = h / 2 + 1;
-            Polygon flecha = new Polygon(
-                    new int[] { x - size / 2, x + size / 2, x },
-                    new int[] { y - size / 4, y - size / 4, y + size / 2 },
-                    3);
-            g2.setColor(Color.WHITE);
-            g2.fillPolygon(flecha);
-            g2.dispose();
+        public void paintCurrentValue(Graphics g, Rectangle bounds, boolean hasFocus) {
+            g.setColor(Color.WHITE);
+            g.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
+            super.paintCurrentValue(g, bounds, false);
         }
     }
 
-    // ScrollBar institucional: verde hover
-    private static class UDLAPScrollBarUI extends BasicScrollBarUI {
+    /** UI para pintar el thumb del scroll con un color fijo. */
+    private static class CustomScrollBarUI extends BasicScrollBarUI {
+        private final Color thumbColor;
+
+        public CustomScrollBarUI(Color thumbColor) {
+            this.thumbColor = thumbColor;
+        }
+
         @Override
         protected void configureScrollBarColors() {
-            this.thumbColor = ColoresUDLAP.VERDE_HOVER;
-            this.thumbHighlightColor = ColoresUDLAP.VERDE_HOVER.darker();
-            this.thumbDarkShadowColor = ColoresUDLAP.VERDE_HOVER;
-            this.thumbLightShadowColor = ColoresUDLAP.VERDE_HOVER;
+            // Asignamos nuestro color al thumb y dejamos el track sin relleno
+            this.thumbHighlightColor = thumbColor.brighter();
+            this.thumbDarkShadowColor = thumbColor.darker();
             this.trackColor = Color.WHITE;
         }
 
         @Override
-        protected JButton createDecreaseButton(int orientation) {
-            return createZeroButton();
+        protected void paintThumb(Graphics g, JComponent c, Rectangle thumbBounds) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                    RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(thumbColor);
+            g2.fillRoundRect(thumbBounds.x, thumbBounds.y,
+                    thumbBounds.width, thumbBounds.height, 4, 4);
+            g2.dispose();
         }
 
         @Override
-        protected JButton createIncreaseButton(int orientation) {
-            return createZeroButton();
+        protected Dimension getMinimumThumbSize() {
+            // Evita que el thumb sea demasiado pequeño
+            return new Dimension(20, 20);
         }
 
-        private JButton createZeroButton() {
+        @Override
+        protected JButton createDecreaseButton(int orientation) {
             JButton btn = new JButton();
             btn.setPreferredSize(new Dimension(0, 0));
             btn.setMinimumSize(new Dimension(0, 0));
             btn.setMaximumSize(new Dimension(0, 0));
-            btn.setVisible(false);
+            return btn;
+        }
+
+        @Override
+        protected JButton createIncreaseButton(int orientation) {
+            JButton btn = new JButton();
+            btn.setPreferredSize(new Dimension(0, 0));
+            btn.setMinimumSize(new Dimension(0, 0));
+            btn.setMaximumSize(new Dimension(0, 0));
             return btn;
         }
     }
 
-    // Devuelve null si está en la opción inicial
-    public E getValorSeleccionado() {
-        int idx = getSelectedIndex();
-        if (idx <= 0)
-            return null;
-        return (E) getItemAt(idx);
+    // -----------------
+    // Icono de flecha
+    // -----------------
+    private static class ArrowIcon implements Icon {
+        private final int w, h;
+        private final Color bg, fg;
+
+        public ArrowIcon(int w, int h, Color bg, Color fg) {
+            this.w = w;
+            this.h = h;
+            this.bg = bg;
+            this.fg = fg;
+        }
+
+        @Override
+        public int getIconWidth() {
+            return w;
+        }
+
+        @Override
+        public int getIconHeight() {
+            return h;
+        }
+
+        @Override
+        public void paintIcon(Component c, Graphics g, int x, int y) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                    RenderingHints.VALUE_ANTIALIAS_ON);
+            // fondo de la flecha
+            g2.setColor(bg);
+            g2.fillRect(x, y, w, h);
+            // triángulo
+            g2.setColor(fg);
+            Polygon p = new Polygon();
+            p.addPoint(x + w / 4, y + h / 3);
+            p.addPoint(x + w * 3 / 4, y + h / 3);
+            p.addPoint(x + w / 2, y + h * 2 / 3);
+            g2.fill(p);
+            g2.dispose();
+        }
+    }
+
+    // ----------------------------------------
+    // Renderer (placeholder + hover naranja)
+    // ----------------------------------------
+    private static class CustomRenderer extends DefaultListCellRenderer {
+        private final String placeholder;
+        private final Color hoverBg;
+        private int rolloverIndex = -1;
+
+        public CustomRenderer(String placeholder, Color hoverBg) {
+            this.placeholder = placeholder;
+            this.hoverBg = hoverBg;
+        }
+
+        public void setRolloverIndex(int idx) {
+            this.rolloverIndex = idx;
+        }
+
+        @Override
+        public Component getListCellRendererComponent(JList<?> list,
+                Object value,
+                int index,
+                boolean isSelected,
+                boolean cellHasFocus) {
+            // Forzamos isSelected=false para evitar azul en lista
+            super.getListCellRendererComponent(list, value, index, false, cellHasFocus);
+
+            if (index == -1) {
+                // Combo cerrado: placeholder o texto normal
+                if (placeholder != null && placeholder.equals(value)) {
+                    setForeground(Color.GRAY);
+                    setFont(getFont().deriveFont(Font.ITALIC));
+                } else {
+                    setForeground(Color.BLACK);
+                    setFont(getFont().deriveFont(Font.PLAIN));
+                }
+            } else {
+                // Fondo/lista por defecto (blanco)
+                setBackground(list.getBackground());
+                setForeground(list.getForeground());
+                setFont(getFont().deriveFont(Font.PLAIN));
+                // Placeholder en lista
+                if (placeholder != null && placeholder.equals(value)) {
+                    setForeground(Color.GRAY);
+                    setFont(getFont().deriveFont(Font.ITALIC));
+                }
+                // Hover
+                if (index == rolloverIndex) {
+                    setBackground(hoverBg);
+                    setForeground(Color.WHITE);
+                    setFont(getFont().deriveFont(Font.BOLD));
+                }
+            }
+            return this;
+        }
     }
 }
