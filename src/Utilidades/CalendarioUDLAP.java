@@ -22,8 +22,8 @@ public class CalendarioUDLAP extends JPanel {
         setBackground(ColoresUDLAP.BLANCO);
 
         // --- Ajuste de ancho (y alto) del panel principal ---
-        setPreferredSize(new Dimension(350, 300));
-        setMinimumSize(new Dimension(340, 300));
+        setPreferredSize(new Dimension(300, 250));
+        setMinimumSize(new Dimension(300, 260));
 
         add(createHeaderPanel(), BorderLayout.NORTH);
         add(createCalendarPanel(), BorderLayout.CENTER);
@@ -137,7 +137,7 @@ public class CalendarioUDLAP extends JPanel {
                 }
                 BotonUDLAP btn = new BotonUDLAP("", baseColor, hoverColor, fgBase, fgHover, diaFont, 18);
                 btn.setFocusPainted(false);
-                btn.setBorder(BorderFactory.createLineBorder(ColoresUDLAP.GRIS_CLARO));
+                btn.setBorder(BorderFactory.createLineBorder(ColoresUDLAP.BLANCO));
                 btn.setPreferredSize(new Dimension(48, 36)); // Ajuste de ancho del botón día
                 int row = i, col = j;
                 btn.addActionListener(e -> dayClicked(row, col));

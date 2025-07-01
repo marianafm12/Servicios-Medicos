@@ -17,12 +17,10 @@ import Justificantes.PanelMenuJustificantes;
 import Justificantes.JustificanteDAO;
 import Justificantes.PanelJustificantesPacienteMenu;
 import Registro.PanelRegistroPaciente;
-import Emergencias.Emergencia;
-import Emergencias.EmergenciaDAO;
-import Emergencias.PanelDetalleEmergencia;
-import Inicio.SesionUsuario;
-
-
+//import Emergencias.Emergencia;
+import Emergencias.*;
+//import Emergencias.PanelDetalleEmergencia;
+//import Inicio.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -41,7 +39,6 @@ public class InterfazMedica extends JFrame {
     private ImageIcon iconDefault, iconNew;
     private boolean hasNewNotification = false;
     private int justificantesPendientes = 0;
-
 
     public InterfazMedica(boolean esMedico, int userId) {
         this.esMedico = esMedico;
@@ -75,7 +72,7 @@ public class InterfazMedica extends JFrame {
             hasNewNotification = justificantesPendientes > 0;
         }
 
-      int emergenciasPendientes = EmergenciaDAO.contarPendientes();
+        int emergenciasPendientes = EmergenciaDAO.contarPendientes();
         if (esMedico) {
             hasNewNotification = hasNewNotification || (emergenciasPendientes > 0);
         }
@@ -83,7 +80,6 @@ public class InterfazMedica extends JFrame {
             notificationIcon.setIcon(hasNewNotification ? iconNew : iconDefault);
         }
     }
-
 
     private void mostrarNotificaciones() {
         if (esMedico) {
@@ -95,11 +91,11 @@ public class InterfazMedica extends JFrame {
             StringBuilder msg = new StringBuilder();
             if (justificantesPendientes > 0) {
                 msg.append("• ").append(justificantesPendientes)
-                .append(" justificante(s) pendiente(s)\n");
+                        .append(" justificante(s) pendiente(s)\n");
             }
             if (emergenciasPendientes > 0) {
                 msg.append("• ").append(emergenciasPendientes)
-                .append(" emergencia(s) pendiente(s)");
+                        .append(" emergencia(s) pendiente(s)");
             }
             if (msg.length() == 0) {
                 msg.append("No hay notificaciones pendientes.");
@@ -107,11 +103,10 @@ public class InterfazMedica extends JFrame {
 
             // Mostrar diálogo
             JOptionPane.showMessageDialog(
-                this,
-                msg.toString(),
-                "Notificaciones UDLAP",
-                JOptionPane.INFORMATION_MESSAGE
-            );
+                    this,
+                    msg.toString(),
+                    "Notificaciones UDLAP",
+                    JOptionPane.INFORMATION_MESSAGE);
 
             // Actualizar icono
             hasNewNotification = (justificantesPendientes + emergenciasPendientes) > 0;
@@ -123,11 +118,10 @@ public class InterfazMedica extends JFrame {
         List<NotificacionDAO.Notificacion> lista = NotificacionDAO.obtenerNotificaciones(userId);
         if (lista.isEmpty()) {
             JOptionPane.showMessageDialog(
-                this,
-                "No hay nuevas notificaciones.",
-                "Notificaciones",
-                JOptionPane.INFORMATION_MESSAGE
-            );
+                    this,
+                    "No hay nuevas notificaciones.",
+                    "Notificaciones",
+                    JOptionPane.INFORMATION_MESSAGE);
             notificationIcon.setIcon(iconDefault);
         } else {
             for (NotificacionDAO.Notificacion n : lista) {
@@ -137,8 +131,6 @@ public class InterfazMedica extends JFrame {
             notificationIcon.setIcon(iconDefault);
         }
     }
-
-
 
     private void initUI() {
         setUndecorated(true);
@@ -175,8 +167,9 @@ public class InterfazMedica extends JFrame {
         menu.setBorder(BorderFactory.createEmptyBorder(15, 8, 8, 8));
 
         String[] items = esMedico
-                ? new String[]{"Registrar Paciente", "Consulta Nueva", "Historial Médico", "Justificantes", "Emergencias"}
-                : new String[]{"Mis Citas", "Historial Médico", "Justificantes", "Reportar Emergencia"};
+                ? new String[] { "Registrar Paciente", "Consulta Nueva", "Historial Médico", "Justificantes",
+                        "Emergencias" }
+                : new String[] { "Mis Citas", "Historial Médico", "Justificantes", "Reportar Emergencia" };
 
         Font btnFont = new Font("Arial", Font.BOLD, 20);
 
@@ -207,14 +200,12 @@ public class InterfazMedica extends JFrame {
                 boton.addActionListener(e -> manejarClick(idx));
             }
 
-            menu.add(Box.createVerticalStrut(10)); 
-            menu.add(boton); 
+            menu.add(Box.createVerticalStrut(10));
+            menu.add(boton);
         }
 
         return menu;
     }
-
-
 
     private void manejarClick(int idx) {
         String[] medicoKeys = { "formularioRegistro", "consultaNueva", "historialMedico", "justificantes",
@@ -228,144 +219,177 @@ public class InterfazMedica extends JFrame {
     // Fragmento de InterfazMedica.java con registrarPaneles() actualizado para usar
     // PanelHistorialMedicoEditable
 
-   /**
- * Registra cada uno de los paneles manejados por el PanelManager,
- * incluyendo el nuevo detalle de emergencia.
- */
-private void registrarPaneles() {
-    if (esMedico) {
-        // 0) Formulario de Registro de Paciente
-        panelManager.registerPanel(new PanelProvider() {
-            @Override public JPanel getPanel() {
-                return new PanelRegistroPaciente();
-            }
-            @Override public String getPanelName() {
-                return "formularioRegistro";
-            }
-        });
+    /**
+     * Registra cada uno de los paneles manejados por el PanelManager,
+     * incluyendo el nuevo detalle de emergencia.
+     */
+    private void registrarPaneles() {
+        if (esMedico) {
+            // 0) Formulario de Registro de Paciente
+            panelManager.registerPanel(new PanelProvider() {
+                @Override
+                public JPanel getPanel() {
+                    return new PanelRegistroPaciente();
+                }
 
-        // 1) Nueva Consulta
-        panelManager.registerPanel(new PanelProvider() {
-            @Override public JPanel getPanel() {
-                return new PanelConsultaNueva(userId, nombreUsuario);
-            }
-            @Override public String getPanelName() {
-                return "consultaNueva";
-            }
-        });
+                @Override
+                public String getPanelName() {
+                    return "formularioRegistro";
+                }
+            });
 
-        // 2) Historial Médico Editable
-        panelManager.registerPanel(new PanelProvider() {
-            @Override public JPanel getPanel() {
-                return new PanelHistorialMedicoEditable();
-            }
-            @Override public String getPanelName() {
-                return "historialMedico";
-            }
-        });
+            // 1) Nueva Consulta
+            panelManager.registerPanel(new PanelProvider() {
+                @Override
+                public JPanel getPanel() {
+                    return new PanelConsultaNueva(userId, nombreUsuario);
+                }
 
-        // 3) Justificantes
-        panelManager.registerPanel(new PanelProvider() {
-            @Override public JPanel getPanel() {
-                return new PanelMenuJustificantes(panelManager);
-            }
-            @Override public String getPanelName() {
-                return "justificantes";
-            }
-        });
+                @Override
+                public String getPanelName() {
+                    return "consultaNueva";
+                }
+            });
 
-        // 4) Menú de Emergencias
-        panelManager.registerPanel(new PanelProvider() {
-            @Override public JPanel getPanel() {
-                return new PanelMenuEmergencias(panelManager, esMedico, userId);
-            }
-            @Override public String getPanelName() {
-                return "menuEmergencias";
-            }
-        });
+            // 2) Historial Médico Editable
+            panelManager.registerPanel(new PanelProvider() {
+                @Override
+                public JPanel getPanel() {
+                    return new PanelHistorialMedicoEditable();
+                }
 
-        // 5) Ver Emergencias
-        panelManager.registerPanel(new PanelProvider() {
-            @Override public JPanel getPanel() {
-                return new PanelVerEmergencias(panelManager, esMedico, userId);
-            }
-            @Override public String getPanelName() {
-                return "verEmergencias";
-            }
-        });
+                @Override
+                public String getPanelName() {
+                    return "historialMedico";
+                }
+            });
 
-        // ¡NO registramos aquí el detalle! Lo haremos justo antes de mostrarlo.
-    } else {
-        // Paneles para el paciente
+            // 3) Justificantes
+            panelManager.registerPanel(new PanelProvider() {
+                @Override
+                public JPanel getPanel() {
+                    return new PanelMenuJustificantes(panelManager);
+                }
 
-        // 0) Gestión de Citas
-        panelManager.registerPanel(new PanelProvider() {
-            @Override public JPanel getPanel() {
-                return new PanelGestionCitas(userId, panelManager);
-            }
-            @Override public String getPanelName() {
-                return "panelGestionCitas";
-            }
-        });
+                @Override
+                public String getPanelName() {
+                    return "justificantes";
+                }
+            });
 
-        // 1) Historial Médico (solo lectura)
-        panelManager.registerPanel(new PanelProvider() {
-            @Override public JPanel getPanel() {
-                return new PanelHistorialMedico(userId);
-            }
-            @Override public String getPanelName() {
-                return "historialMedico";
-            }
-        });
+            // 4) Menú de Emergencias
+            panelManager.registerPanel(new PanelProvider() {
+                @Override
+                public JPanel getPanel() {
+                    return new PanelMenuEmergencias(panelManager, esMedico, userId);
+                }
 
-        // 2) Justificantes Paciente
-        panelManager.registerPanel(new PanelProvider() {
-            @Override public JPanel getPanel() {
-                return new PanelJustificantesPacienteMenu(panelManager);
-            }
-            @Override public String getPanelName() {
-                return "justificantesPaciente";
-            }
-        });
+                @Override
+                public String getPanelName() {
+                    return "menuEmergencias";
+                }
+            });
 
-        // 3) Reportar Emergencia
-        panelManager.registerPanel(new PanelProvider() {
-            @Override public JPanel getPanel() {
-                return new PanelReportarEmergencia();
-            }
-            @Override public String getPanelName() {
-                return "reportarEmergencia";
-            }
-        });
+            // 5) Ver Emergencias
+            panelManager.registerPanel(new PanelProvider() {
+                @Override
+                public JPanel getPanel() {
+                    return new PanelVerEmergencias(panelManager, esMedico, userId);
+                }
 
-        // 4) Agendar Cita
-        panelManager.registerPanel(new PanelProvider() {
-            @Override public JPanel getPanel() {
-                return new AgendaCitaFrame(userId, panelManager);
-            }
-            @Override public String getPanelName() {
-                return "agendarCita";
-            }
-        });
+                @Override
+                public String getPanelName() {
+                    return "verEmergencias";
+                }
+            });
 
-        // 5) Modificar Cita
-        panelManager.registerPanel(new PanelProvider() {
-            @Override public JPanel getPanel() {
-                return new ModificarCitaFrame(userId, panelManager);
-            }
-            @Override public String getPanelName() {
-                return "modificarCita";
-            }
-        });
+            // ¡NO registramos aquí el detalle! Lo haremos justo antes de mostrarlo.
+        } else {
+            // Paneles para el paciente
+
+            // 0) Gestión de Citas
+            panelManager.registerPanel(new PanelProvider() {
+                @Override
+                public JPanel getPanel() {
+                    return new PanelGestionCitas(userId, panelManager);
+                }
+
+                @Override
+                public String getPanelName() {
+                    return "panelGestionCitas";
+                }
+            });
+
+            // 1) Historial Médico (solo lectura)
+            panelManager.registerPanel(new PanelProvider() {
+                @Override
+                public JPanel getPanel() {
+                    return new PanelHistorialMedico(userId);
+                }
+
+                @Override
+                public String getPanelName() {
+                    return "historialMedico";
+                }
+            });
+
+            // 2) Justificantes Paciente
+            panelManager.registerPanel(new PanelProvider() {
+                @Override
+                public JPanel getPanel() {
+                    return new PanelJustificantesPacienteMenu(panelManager);
+                }
+
+                @Override
+                public String getPanelName() {
+                    return "justificantesPaciente";
+                }
+            });
+
+            // 3) Reportar Emergencia
+            panelManager.registerPanel(new PanelProvider() {
+                @Override
+                public JPanel getPanel() {
+                    return new PanelReportarEmergencia();
+                }
+
+                @Override
+                public String getPanelName() {
+                    return "reportarEmergencia";
+                }
+            });
+
+            // 4) Agendar Cita
+            panelManager.registerPanel(new PanelProvider() {
+                @Override
+                public JPanel getPanel() {
+                    return new AgendaCitaFrame(userId, panelManager);
+                }
+
+                @Override
+                public String getPanelName() {
+                    return "agendarCita";
+                }
+            });
+
+            // 5) Modificar Cita
+            panelManager.registerPanel(new PanelProvider() {
+                @Override
+                public JPanel getPanel() {
+                    return new ModificarCitaFrame(userId, panelManager);
+                }
+
+                @Override
+                public String getPanelName() {
+                    return "modificarCita";
+                }
+            });
+        }
+
+        // Mostrar panel inicial
+        panelManager.showPanel(esMedico ? "formularioRegistro" : "panelGestionCitas");
+        checkNotifications();
     }
-
-    // Mostrar panel inicial
-    panelManager.showPanel(esMedico ? "formularioRegistro" : "panelGestionCitas");
-    checkNotifications();
-}
-
-
-
 
     private JPanel crearTopPanel() {
         JPanel panel = new JPanel(new BorderLayout());

@@ -45,7 +45,6 @@ public class AgendaCitaFrame extends JPanel {
         lblTitulo.setFont(new Font("Arial", Font.BOLD, 16));
         lblTitulo.setForeground(ColoresUDLAP.VERDE_OSCURO);
         add(lblTitulo, gbc);
-
         gbc.gridwidth = 1;
         gbc.gridy++;
 
@@ -54,7 +53,6 @@ public class AgendaCitaFrame extends JPanel {
         JLabel lblID = new JLabel("ID del Paciente:");
         lblID.setFont(labelFont);
         add(lblID, gbc);
-
         gbc.gridx = 1;
         campoID = new JTextField(String.valueOf(idPaciente), 20);
         campoID.setFont(fieldFont);
@@ -68,7 +66,6 @@ public class AgendaCitaFrame extends JPanel {
         JLabel lblNombre = new JLabel("Nombre:");
         lblNombre.setFont(labelFont);
         add(lblNombre, gbc);
-
         gbc.gridx = 1;
         campoNombre = new JTextField(20);
         campoNombre.setFont(fieldFont);
@@ -82,7 +79,6 @@ public class AgendaCitaFrame extends JPanel {
         JLabel lblApellidos = new JLabel("Apellidos:");
         lblApellidos.setFont(labelFont);
         add(lblApellidos, gbc);
-
         gbc.gridx = 1;
         campoApellidos = new JTextField(20);
         campoApellidos.setFont(fieldFont);
@@ -90,18 +86,19 @@ public class AgendaCitaFrame extends JPanel {
         campoApellidos.setBorder(getCampoBorde());
         add(campoApellidos, gbc);
 
-        // carga datos desde BD
+        // Carga datos desde BD
         cargarDatosPersonales(idPaciente);
 
-        // — SERVICIO —
+        // — SERVICIO — (ComboBoxUDLAP con placeholder)
         gbc.gridy++;
         gbc.gridx = 0;
         JLabel lblServicio = new JLabel("Servicio:");
         lblServicio.setFont(labelFont);
         add(lblServicio, gbc);
-
         gbc.gridx = 1;
-        comboServicio = new ComboBoxUDLAP<>(new String[] { "Consulta", "Enfermería", "Examen Médico" });
+        comboServicio = new ComboBoxUDLAP<>(
+                "Seleccione una opción",
+                new String[] { "Consulta", "Enfermería", "Examen Médico" });
         add(comboServicio, gbc);
 
         // — FECHA (DatePickerUDLAP) —
@@ -110,28 +107,23 @@ public class AgendaCitaFrame extends JPanel {
         JLabel lblFecha = new JLabel("Fecha de la Cita:");
         lblFecha.setFont(labelFont);
         add(lblFecha, gbc);
-
         gbc.gridx = 1;
         datePickerUDLAP = new DatePickerUDLAP();
         add(datePickerUDLAP, gbc);
 
-        // — HORA —
+        // — HORA — (dos ComboBoxUDLAP)
         gbc.gridy++;
         gbc.gridx = 0;
         JLabel lblHora = new JLabel("Hora de la Cita:");
         lblHora.setFont(labelFont);
         add(lblHora, gbc);
-
         gbc.gridx = 1;
         JPanel panelHora = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
         panelHora.setBackground(ColoresUDLAP.BLANCO);
-
         comboHora = new ComboBoxUDLAP<>(new String[] {
                 "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21"
         });
-
         comboMinuto = new ComboBoxUDLAP<>(new String[] { "00", "30" });
-
         panelHora.add(comboHora);
         panelHora.add(new JLabel(":"));
         panelHora.add(comboMinuto);
@@ -150,15 +142,12 @@ public class AgendaCitaFrame extends JPanel {
         gbc.gridy++;
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
         panelBotones.setBackground(ColoresUDLAP.BLANCO);
-
         JButton btnConfirmar = botonTransparente("Confirmar",
                 ColoresUDLAP.VERDE, ColoresUDLAP.VERDE_HOVER);
         JButton btnCancelar = botonTransparente("Volver",
                 ColoresUDLAP.NARANJA, ColoresUDLAP.NARANJA_HOVER);
-
         btnConfirmar.addActionListener(e -> validarYConfirmarCita());
         btnCancelar.addActionListener(e -> panelManager.showPanel("panelGestionCitas"));
-
         panelBotones.add(btnConfirmar);
         panelBotones.add(btnCancelar);
         add(panelBotones, gbc);
@@ -175,6 +164,7 @@ public class AgendaCitaFrame extends JPanel {
             errorLabel.setForeground(Color.RED);
             return;
         }
+
         String fecha = fechaSeleccionada.toString(); // yyyy-MM-dd
         String servicio = (String) comboServicio.getSelectedItem();
         String hora = (String) comboHora.getSelectedItem();
@@ -182,7 +172,7 @@ public class AgendaCitaFrame extends JPanel {
         String horaFinal = hora + ":" + minuto;
 
         try (Connection conn = ConexionSQLite.conectar()) {
-            // cita ocupada
+            // 1) ¿cita ocupada?
             if (ValidacionesCita.estaCitaOcupada(fecha, horaFinal, servicio)) {
                 int opcion = JOptionPane.showOptionDialog(
                         this,
@@ -207,23 +197,20 @@ public class AgendaCitaFrame extends JPanel {
                             return null;
                         }
                     }.execute();
-                    errorLabel.setForeground(Color.ORANGE);
+                    errorLabel.setForeground(ColoresUDLAP.NARANJA);
                     errorLabel.setText("Registrado en lista de espera.");
                 }
                 return;
             }
-
-            // ya tiene cita para ese servicio
+            // 2) ¿ya tiene cita para el servicio?
             if (ValidacionesCita.pacienteYaTieneCitaParaServicio(
                     idPaciente, servicio)) {
                 errorLabel.setForeground(Color.RED);
                 errorLabel.setText("Ya tienes una cita para este servicio.");
                 return;
             }
-
-            // INSERT en BD
-            String sql = "INSERT INTO CitasMedicas"
-                    + "(idPaciente,fecha,hora,servicio) VALUES(?,?,?,?)";
+            // 3) Insert en BD
+            String sql = "INSERT INTO CitasMedicas (idPaciente, fecha, hora, servicio) VALUES (?,?,?,?)";
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 ps.setInt(1, idPaciente);
                 ps.setString(2, fecha);
@@ -233,7 +220,6 @@ public class AgendaCitaFrame extends JPanel {
                 errorLabel.setForeground(ColoresUDLAP.VERDE_OSCURO);
                 errorLabel.setText("Cita agendada exitosamente.");
             }
-
         } catch (SQLException ex) {
             errorLabel.setForeground(Color.RED);
             errorLabel.setText("Error al registrar cita.");
@@ -249,12 +235,10 @@ public class AgendaCitaFrame extends JPanel {
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    campoNombre.setText(
-                            rs.getString("Nombre"));
+                    campoNombre.setText(rs.getString("Nombre"));
                     campoApellidos.setText(
-                            rs.getString("ApellidoPaterno")
-                                    + " " +
-                                    rs.getString("ApellidoMaterno"));
+                            rs.getString("ApellidoPaterno") + " "
+                                    + rs.getString("ApellidoMaterno"));
                 } else {
                     campoNombre.setText("Desconocido");
                     campoApellidos.setText("Desconocido");
