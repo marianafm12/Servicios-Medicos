@@ -25,7 +25,7 @@ public class PanelDetalleEmergencia extends JPanel {
         setBackground(ColoresUDLAP.BLANCO);
 
         // --- Título ---
-        JLabel titulo = new JLabel("Detalle de Emergencia", SwingConstants.CENTER);
+        JLabel titulo = new JLabel("Información de la Emergencia", SwingConstants.CENTER);
         titulo.setFont(new Font("Arial", Font.BOLD, 24));
         titulo.setForeground(ColoresUDLAP.VERDE_OSCURO);
         titulo.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
@@ -53,7 +53,7 @@ public class PanelDetalleEmergencia extends JPanel {
             emergencia.getTelefonoContacto() != null
                 ? emergencia.getTelefonoContacto()
                 : "-"));
-        centro.add(makeRow("Médico Responsable: ",
+        centro.add(makeRow("Paramédico Responsable: ",
             emergencia.getMedicoResponsable() != null
                 ? emergencia.getMedicoResponsable()
                 : "-"));
