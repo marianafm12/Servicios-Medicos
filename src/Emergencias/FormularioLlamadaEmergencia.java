@@ -2,12 +2,16 @@
 package Emergencias;
 
 import Utilidades.ColoresUDLAP;
+import Utilidades.ComboBoxUDLAP;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Date;
 import javax.swing.border.Border;
+import BaseDeDatos.ConexionSQLite;
+import Emergencias.EmergenciaDB;
+
 
 import java.sql.*;
 
@@ -17,12 +21,11 @@ public class FormularioLlamadaEmergencia extends JPanel {
     private JTextField campoIDPaciente;
     private JTextField campoUbicacion;
     private JTextField campoTelefonoContacto;
-    private JComboBox<String> comboTipoEmergencia;
+    private ComboBoxUDLAP<String> comboTipoEmergencia;
     private JRadioButton rbRojo, rbNaranja, rbAmarillo, rbVerde, rbAzul;
     private ButtonGroup grupoGravedad;
     private JTextArea areaDescripcion;
     private JLabel errorLabel;
-    private JComboBox<ResponsableItem> comboResponsable;
     private JSpinner spinnerFechaIncidente;
 
     private boolean esMedico;
@@ -114,15 +117,18 @@ public class FormularioLlamadaEmergencia extends JPanel {
 
         gbc.gridy++;
         gbc.gridx = 0;
+
         JLabel lblResp = new JLabel("Médico Responsable:");
         lblResp.setFont(labelFont);
         add(lblResp, gbc);
 
         gbc.gridx = 1;
-        comboResponsable = new JComboBox<>();
-        comboResponsable.setFont(fieldFont);
-        add(comboResponsable, gbc);
-        cargarResponsables();
+        // justo antes de crear el JLabel
+        String nombreMedico = obtenerNombreMedico(idUsuario);
+        JLabel lblMedicoActual = new JLabel(nombreMedico);
+        lblMedicoActual.setFont(fieldFont);
+        add(lblMedicoActual, gbc);
+
 
         gbc.gridy++;
         gbc.gridx = 0;
@@ -143,10 +149,11 @@ public class FormularioLlamadaEmergencia extends JPanel {
         add(lblTipo, gbc);
 
         gbc.gridx = 1;
-        comboTipoEmergencia = new JComboBox<>(new String[]{
-                "Caída/Golpe", "Corte", "Quemadura", "Atragantamiento",
-                "Intoxicación Alimentaria", "Accidente Eléctrico",
-                "Accidente Deportivo", "Accidente Automovilístico"
+        comboTipoEmergencia = new ComboBoxUDLAP<>("Seleccione", new String[]{
+            "Caída/Golpe", "Corte", "Quemadura", "Atragantamiento",
+            "Intoxicación Alimentaria", "Accidente Eléctrico",
+            "Accidente Deportivo", "Accidente Automovilístico",
+            "Otra" 
         });
         comboTipoEmergencia.setFont(fieldFont);
         add(comboTipoEmergencia, gbc);
@@ -234,22 +241,6 @@ public class FormularioLlamadaEmergencia extends JPanel {
 
     }
 
-    private void cargarResponsables() {
-        String sql = "SELECT ID, Nombre, ApellidoPaterno, ApellidoMaterno FROM InformacionMedico";
-        try (Connection conn = BaseDeDatos.ConexionSQLite.conectar();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                int id = rs.getInt("ID");
-                String nombre = rs.getString("Nombre") + " " +
-                        rs.getString("ApellidoPaterno") + " " +
-                        rs.getString("ApellidoMaterno");
-                comboResponsable.addItem(new ResponsableItem(id, nombre));
-            }
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Error al cargar médicos:\n" + ex.getMessage(), "Error BD", JOptionPane.ERROR_MESSAGE);
-        }
-    }
 
     private JButton botonTransparente(String texto, Color base, Color hover) {
         JButton button = new JButton(texto) {
@@ -279,136 +270,150 @@ public class FormularioLlamadaEmergencia extends JPanel {
                 BorderFactory.createEmptyBorder(5, 5, 5, 5));
     }
 
-    private static class ResponsableItem {
-        final int id;
-        final String nombre;
-
-        ResponsableItem(int id, String nombre) {
-            this.id = id;
-            this.nombre = nombre;
-        }
-
-        @Override
-        public String toString() {
-            return nombre;
-        }
-    }
-
-private void registrarEmergencia() {
-    String ubicacion = campoUbicacion.getText().trim();
-    if (ubicacion.isEmpty()) {
-        errorLabel.setForeground(Color.RED);
-        errorLabel.setText("La ubicación es obligatoria.");
-        return;
-    }
-
-    int idPaciente = 0;
-    String tipo = null, gravedad = null, descripcion = null, telefono = null;
-    int idResponsable = -1;
-    Date fechaIncidente = (Date) spinnerFechaIncidente.getValue();
-    Timestamp fecha = new Timestamp(fechaIncidente.getTime());
-
-    try {
-        // Solo validar si se proporcionan
-        String inputId = campoIDPaciente.getText().trim();
-        if (!inputId.isEmpty()) {
-            if (!inputId.matches("\\d+")) {
-                errorLabel.setText("El ID del paciente debe ser numérico");
+        private void registrarEmergencia() {
+            // 1) Validar ubicación
+            String ubicacion = campoUbicacion.getText().trim();
+            if (ubicacion.isEmpty()) {
+                errorLabel.setForeground(Color.RED);
+                errorLabel.setText("La ubicación es obligatoria.");
                 return;
             }
-            idPaciente = Integer.parseInt(inputId);
 
-            if (!pacienteExiste(idPaciente)) {
-        errorLabel.setText("El ID del paciente no existe en la base de datos");
-        return;
-    }
-        }
-
-        if (comboTipoEmergencia.getSelectedIndex() != -1) {
-            tipo = (String) comboTipoEmergencia.getSelectedItem();
-        }
-
-        if (grupoGravedad.getSelection() != null) {
-            gravedad = rbRojo.isSelected() ? "Rojo"
-                      : rbNaranja.isSelected() ? "Naranja"
-                      : rbAmarillo.isSelected() ? "Amarillo"
-                      : rbVerde.isSelected() ? "Verde"
-                      : rbAzul.isSelected() ? "Azul" : null;
-        }
-
-        String inputDesc = areaDescripcion.getText().trim();
-        if (!inputDesc.isEmpty()) {
-            descripcion = inputDesc;
-        }
-
-        String inputTel = campoTelefonoContacto.getText().trim();
-        if (!inputTel.isEmpty()) {
-            if (!inputTel.matches("\\d{10,15}")) {
-                errorLabel.setText("El teléfono debe tener entre 10 y 15 dígitos");
+            // 2) Validar tipo de emergencia (ComboBoxUDLAP arranca en índice 0 con "Seleccione")
+            if (comboTipoEmergencia.getSelectedIndex() == 0) {
+                errorLabel.setForeground(Color.RED);
+                errorLabel.setText("Debe seleccionar el tipo de emergencia.");
                 return;
             }
-            telefono = inputTel;
+            String tipo = (String) comboTipoEmergencia.getSelectedItem();
+
+            // 3) Validar gravedad (radio buttons)
+            if (grupoGravedad.getSelection() == null) {
+                errorLabel.setForeground(Color.RED);
+                errorLabel.setText("Debe seleccionar la gravedad.");
+                return;
+            }
+            String gravedad = rbRojo.isSelected()   ? "Rojo"
+                            : rbNaranja.isSelected()? "Naranja"
+                            : rbAmarillo.isSelected()? "Amarillo"
+                            : rbVerde.isSelected()  ? "Verde"
+                            : "Azul";
+
+            try {
+                // 4) Validar y extraer ID de paciente (opcional)
+                int idPaciente = 0;
+                String inputId = campoIDPaciente.getText().trim();
+                if (!inputId.isEmpty()) {
+                    if (!inputId.matches("\\d+")) {
+                        errorLabel.setForeground(Color.RED);
+                        errorLabel.setText("El ID del paciente debe ser numérico.");
+                        return;
+                    }
+                    idPaciente = Integer.parseInt(inputId);
+                    if (!pacienteExiste(idPaciente)) {
+                        errorLabel.setForeground(Color.RED);
+                        errorLabel.setText("El ID del paciente no existe.");
+                        return;
+                    }
+                }
+
+                // 5) Fecha de incidente
+                Date fechaInc = (Date) spinnerFechaIncidente.getValue();
+                Timestamp timestamp = new Timestamp(fechaInc.getTime());
+
+                // 6) Descripción (opcional)
+                String descripcion = areaDescripcion.getText().trim();
+                if (descripcion.isEmpty()) {
+                    descripcion = null;
+                }
+
+                // 7) Teléfono contacto (opcional, 10–15 dígitos)
+                String telefono = campoTelefonoContacto.getText().trim();
+                if (!telefono.isEmpty()) {
+                    if (!telefono.matches("\\d{10,15}")) {
+                        errorLabel.setForeground(Color.RED);
+                        errorLabel.setText("El teléfono debe tener entre 10 y 15 dígitos.");
+                        return;
+                    }
+                } else {
+                    telefono = null;
+                }
+
+                // 8) Responsable = usuario logueado
+                int idResponsable = idUsuario;
+
+                // 9) Guardar en BD
+                boolean exito = EmergenciaDB.guardarEmergencia(
+                    idPaciente > 0 ? Integer.valueOf(idPaciente) : null,
+                    ubicacion,
+                    tipo,
+                    gravedad,
+                    descripcion,
+                    timestamp,
+                    telefono,
+                    idResponsable
+                );
+
+                if (exito) {
+                    errorLabel.setForeground(new Color(0, 128, 0));
+                    errorLabel.setText("Emergencia registrada correctamente.");
+
+                    // 10) Limpiar formulario
+                    campoUbicacion.setText("");
+                    campoIDPaciente.setText("");
+                    areaDescripcion.setText("");
+                    campoTelefonoContacto.setText("");
+                    grupoGravedad.clearSelection();
+                    comboTipoEmergencia.setSelectedIndex(0);
+                } else {
+                    errorLabel.setForeground(Color.RED);
+                    errorLabel.setText("No se pudo registrar la emergencia.");
+                }
+
+            } catch (Exception e) {
+                errorLabel.setForeground(Color.RED);
+                errorLabel.setText("Error al registrar emergencia: " + e.getMessage());
+                e.printStackTrace();
+            }
         }
 
-        if (comboResponsable.getSelectedItem() != null) {
-            idResponsable = ((ResponsableItem) comboResponsable.getSelectedItem()).id;
+
+
+
+
+    private boolean pacienteExiste(int idPaciente) {
+        String sql = "SELECT 1 FROM InformacionAlumno WHERE ID = ?";
+        try (Connection conn = BaseDeDatos.ConexionSQLite.conectar();
+            PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, idPaciente);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next(); 
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            return false;
         }
-
-        // Guardar en BD
-        boolean exito = EmergenciaDB.guardarEmergencia(
-    idPaciente > 0 ? idPaciente : null,
-    ubicacion,
-    tipo,
-    gravedad,
-    descripcion,
-    fecha,
-    telefono,
-    idResponsable != -1 ? idResponsable : null
-);
-
-if (exito) {
-    errorLabel.setForeground(new Color(0, 128, 0));
-    errorLabel.setText("Emergencia registrada correctamente.");
-
-    campoUbicacion.setText("");
-    areaDescripcion.setText("");
-    campoTelefonoContacto.setText("");
-    grupoGravedad.clearSelection();
-    comboTipoEmergencia.setSelectedIndex(0);
-    comboResponsable.setSelectedIndex(0);
-} else {
-    errorLabel.setForeground(Color.RED);
-    errorLabel.setText("No se pudo registrar la emergencia.");
-}
-
-
-
-
-
-
-    } catch (Exception e) {
-        errorLabel.setForeground(Color.RED);
-        errorLabel.setText("Error: " + e.getMessage());
-        e.printStackTrace();
     }
-}
 
-
-
-
-private boolean pacienteExiste(int idPaciente) {
-    String sql = "SELECT 1 FROM InformacionAlumno WHERE ID = ?";
-    try (Connection conn = BaseDeDatos.ConexionSQLite.conectar();
-         PreparedStatement ps = conn.prepareStatement(sql)) {
-        ps.setInt(1, idPaciente);
-        try (ResultSet rs = ps.executeQuery()) {
-            return rs.next(); 
+    private String obtenerNombreMedico(int idMedico) {
+        String sql = "SELECT Nombre, ApellidoPaterno, ApellidoMaterno "
+                + "FROM InformacionMedico WHERE ID = ?";
+        try (Connection conn = ConexionSQLite.conectar();
+            PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, idMedico);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("Nombre") + " "
+                        + rs.getString("ApellidoPaterno") + " "
+                        + rs.getString("ApellidoMaterno");
+                }
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
         }
-    } catch (SQLException ex) {
-        ex.printStackTrace();
-        return false;
+        return "Desconocido";
     }
-}
+
 
 
  }
