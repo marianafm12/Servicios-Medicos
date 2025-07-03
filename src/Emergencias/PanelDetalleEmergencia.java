@@ -40,11 +40,10 @@ public class PanelDetalleEmergencia extends JPanel {
 
         centro.add(makeRow("ID Emergencia: ", String.valueOf(emergencia.getId())));
         centro.add(makeRow(
-            "ID Paciente: ",
-            emergencia.getIdPaciente() != null 
-                ? emergencia.getIdPaciente().toString() 
-                : "-"
-        ));
+                "ID Paciente: ",
+                emergencia.getIdPaciente() != null
+                        ? emergencia.getIdPaciente().toString()
+                        : "-"));
         centro.add(makeRow("Ubicación: ", emergencia.getUbicacion()));
         centro.add(makeRow("Tipo de Emergencia: ", emergencia.getTipoDeEmergencia()));
         centro.add(makeRow("Gravedad: ", emergencia.getGravedad()));
@@ -64,31 +63,18 @@ public class PanelDetalleEmergencia extends JPanel {
                         : "-"));
 
         JScrollPane scroll = new JScrollPane(centro);
-        scroll.setBorder(BorderFactory.createEmptyBorder());  // quita el marco
+        scroll.setBorder(BorderFactory.createEmptyBorder()); // quita el marco
         add(scroll, BorderLayout.CENTER);
-
 
         // --- Botón Regresar ---
         JPanel botones = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         botones.setBackground(ColoresUDLAP.BLANCO);
-<<<<<<< Updated upstream
         JButton btnRegresar = botonTransparente("Regresar",
-            ColoresUDLAP.VERDE,    // color base
-            ColoresUDLAP.VERDE_HOVER    // color hover
+                ColoresUDLAP.VERDE_SOLIDO, // color base
+                ColoresUDLAP.VERDE_HOVER // color hover
         );
 
-
-        btnRegresar.addActionListener(e ->
-            panelManager.showPanel("verEmergencias")
-        );
-=======
-        JButton btnRegresar = new JButton("Regresar");
-        btnRegresar.setFont(new Font("Arial", Font.BOLD, 15));
-        btnRegresar.setBackground(Color.GRAY);
-        btnRegresar.setForeground(Color.WHITE);
-        btnRegresar.setFocusPainted(false);
         btnRegresar.addActionListener(e -> panelManager.showPanel("verEmergencias"));
->>>>>>> Stashed changes
         botones.add(btnRegresar);
         add(botones, BorderLayout.SOUTH);
     }
