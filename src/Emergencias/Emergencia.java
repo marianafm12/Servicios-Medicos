@@ -4,7 +4,7 @@ import java.sql.Timestamp;
 
 public class Emergencia {
     private final int    id;
-    private final int    idPaciente;
+    private final Integer idPaciente;
     private final String ubicacion;
     private final String tipoDeEmergencia;
     private final String gravedad;
@@ -16,7 +16,7 @@ public class Emergencia {
     private final String medicoResponsable;
 
     public Emergencia(int id,
-                      int idPaciente,
+                      Integer idPaciente,
                       String ubicacion,
                       String tipoDeEmergencia,
                       String gravedad,
@@ -40,7 +40,7 @@ public class Emergencia {
     }
 
     public int getId()                          { return id; }
-    public int getIdPaciente()                  { return idPaciente; }
+    public Integer getIdPaciente()                  { return idPaciente; }
     public String getUbicacion()                { return ubicacion; }
     public String getTipoDeEmergencia()         { return tipoDeEmergencia; }
     public String getGravedad()                 { return gravedad; }
