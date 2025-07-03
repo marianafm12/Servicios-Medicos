@@ -1,7 +1,7 @@
 # ServiciosMedicos-POO
   Proyecto final de la materia Programación Orientada a Objetos en el cual se creó un sistema desde cero enfocado para optimizar servicios médicos UDLAP.
 
-# Intrucciones de uso del programa y sobre el repositorio
+# Instrucciones de uso del programa y sobre el repositorio
   ### El proyecto inicialmente se tiene que ejecutar desde **\src\Inicio\InterfazLogin**, en donde saltará la interfaz gráfica para iniciar sesión y de ahí se sigue automáticamente el flujo del programa
 
   * La branch de dev es en la que se hacían todos los merge y cuando ya se revisaba el correcto funcionamiento, se hacía el merge con el main.
