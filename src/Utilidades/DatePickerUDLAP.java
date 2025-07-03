@@ -24,9 +24,9 @@ public class DatePickerUDLAP extends JPanel {
         campoFecha.setBorder(BorderFactory.createLineBorder(ColoresUDLAP.GRIS_CLARO));
         campoFecha.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-        btnCalendario = new JButton("\uD83D\uDCC5"); // Icono calendario 📅 (puedes usar uno propio)
+        btnCalendario = new JButton("\uD83D\uDCC6"); // Icono calendario 📅 (puedes usar uno propio)
         btnCalendario.setFocusable(false);
-        btnCalendario.setFont(new Font("Arial", Font.PLAIN, 16));
+        btnCalendario.setFont(new Font("JoyPixels", Font.PLAIN, 14));
         btnCalendario.setBackground(ColoresUDLAP.BLANCO);
         btnCalendario.setBorder(BorderFactory.createLineBorder(ColoresUDLAP.NARANJA_BARRA));
         btnCalendario.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -95,4 +95,10 @@ public class DatePickerUDLAP extends JPanel {
     public JTextField getTextField() {
         return campoFecha;
     }
+
+    // Dentro de DatePickerUDLAP.java
+    public void setBlockWeekends(boolean block) {
+        calendario.setBlockWeekends(block);
+    }
+
 }

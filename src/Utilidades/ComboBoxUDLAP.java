@@ -2,6 +2,8 @@ package Utilidades;
 
 import javax.swing.*;
 import javax.swing.border.Border;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 import javax.swing.plaf.basic.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
@@ -24,8 +26,9 @@ public class ComboBoxUDLAP<T> extends JComboBox<T> {
         super();
         this.placeholder = placeholder;
         addItem(placeholder);
-        for (T item : items)
+        for (T item : items) {
             addItem(item);
+        }
         this.renderer = new CustomRenderer(placeholder.toString(), ColoresUDLAP.NARANJA_HOVER);
         initUI();
     }
@@ -38,18 +41,95 @@ public class ComboBoxUDLAP<T> extends JComboBox<T> {
     }
 
     private void initUI() {
-        if (placeholder != null)
+        if (placeholder != null) {
             setSelectedIndex(0);
+        }
         setBackground(Color.WHITE);
         setRenderer(renderer);
         setUI(new CustomComboBoxUI(ColoresUDLAP.NARANJA_BARRA, renderer));
+
+        addPopupMenuListener(new PopupMenuListener() {
+            @Override
+            public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+                // al abrir, si el primer elemento es el placeholder, lo quitamos
+                if (placeholder != null
+                        && getItemCount() > 0
+                        && placeholder.equals(getItemAt(0))) {
+                    removeItemAt(0);
+                }
+            }
+
+            @Override
+            public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+                // al cerrar, si no está, lo insertamos de nuevo
+                if (placeholder != null
+                        && (getItemCount() == 0 || !placeholder.equals(getItemAt(0)))) {
+                    insertItemAt(placeholder, 0);
+                }
+                // si no hay selección válida, marcamos el placeholder
+                if (getSelectedItem() == null) {
+                    setSelectedIndex(0);
+                }
+            }
+
+            @Override
+            public void popupMenuCanceled(PopupMenuEvent e) {
+            }
+        });
+
         int baseHeight = new JTextField().getPreferredSize().height;
         int baseWidth = new JTextField().getPreferredSize().width;
         setPreferredSize(new Dimension(baseWidth + 60, baseHeight + 8));
+
         Border line = BorderFactory.createLineBorder(ColoresUDLAP.GRIS_CLARO);
         Border empty = BorderFactory.createEmptyBorder(5, 5, 5, 5);
         setBorder(BorderFactory.createCompoundBorder(line, empty));
     }
+
+    /**
+     * Antes de mostrar el popup, elimina el placeholder de los ítems
+     * para que no aparezca en la lista desplegable.
+     */
+    @Override
+    public void showPopup() {
+        if (placeholder != null && getItemCount() > 0 && placeholder.equals(getItemAt(0))) {
+            removeItemAt(0);
+        }
+        super.showPopup();
+    }
+
+    /**
+     * Después de cerrar el popup, reinserta el placeholder en la posición 0.
+     * Si no hay selección (getSelectedItem()==null), lo marca como seleccionado.
+     */
+    @Override
+    public void hidePopup() {
+        super.hidePopup();
+        if (placeholder != null && (getItemCount() == 0 || !placeholder.equals(getItemAt(0)))) {
+            insertItemAt(placeholder, 0);
+        }
+        if (getSelectedItem() == null) {
+            setSelectedIndex(0);
+        }
+    }
+
+    /**
+     * Si el elemento seleccionado coincide con el placeholder,
+     * devuelve null en lugar de dicho placeholder.
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    public T getSelectedItem() {
+        Object sel = super.getSelectedItem();
+        if (sel != null && placeholder != null && placeholder.equals(sel)) {
+            return null;
+        }
+        return (T) sel;
+    }
+
+    // -------------------------
+    // Custom UI y Renderers
+    // -------------------------
 
     private static class CustomComboBoxUI extends BasicComboBoxUI {
         private final Color arrowBg;
@@ -91,12 +171,10 @@ public class ComboBoxUDLAP<T> extends JComboBox<T> {
             SwingUtilities.invokeLater(() -> {
                 JScrollPane scroll = (JScrollPane) SwingUtilities.getAncestorOfClass(JScrollPane.class, list);
                 if (scroll != null) {
-                    // Vertical
                     JScrollBar vsb = scroll.getVerticalScrollBar();
                     if (vsb != null) {
                         vsb.setUI(new CustomScrollBarUI(ColoresUDLAP.VERDE_HOVER));
                     }
-                    // Horizontal (sólo si existe)
                     JScrollBar hsb = scroll.getHorizontalScrollBar();
                     if (hsb != null) {
                         hsb.setUI(new CustomScrollBarUI(ColoresUDLAP.VERDE_HOVER));
@@ -113,7 +191,6 @@ public class ComboBoxUDLAP<T> extends JComboBox<T> {
         }
     }
 
-    /** UI para pintar el thumb del scroll con un color fijo. */
     private static class CustomScrollBarUI extends BasicScrollBarUI {
         private final Color thumbColor;
 
@@ -123,7 +200,6 @@ public class ComboBoxUDLAP<T> extends JComboBox<T> {
 
         @Override
         protected void configureScrollBarColors() {
-            // Asignamos nuestro color al thumb y dejamos el track sin relleno
             this.thumbHighlightColor = thumbColor.brighter();
             this.thumbDarkShadowColor = thumbColor.darker();
             this.trackColor = Color.WHITE;
@@ -142,7 +218,6 @@ public class ComboBoxUDLAP<T> extends JComboBox<T> {
 
         @Override
         protected Dimension getMinimumThumbSize() {
-            // Evita que el thumb sea demasiado pequeño
             return new Dimension(20, 20);
         }
 
@@ -150,8 +225,6 @@ public class ComboBoxUDLAP<T> extends JComboBox<T> {
         protected JButton createDecreaseButton(int orientation) {
             JButton btn = new JButton();
             btn.setPreferredSize(new Dimension(0, 0));
-            btn.setMinimumSize(new Dimension(0, 0));
-            btn.setMaximumSize(new Dimension(0, 0));
             return btn;
         }
 
@@ -159,15 +232,10 @@ public class ComboBoxUDLAP<T> extends JComboBox<T> {
         protected JButton createIncreaseButton(int orientation) {
             JButton btn = new JButton();
             btn.setPreferredSize(new Dimension(0, 0));
-            btn.setMinimumSize(new Dimension(0, 0));
-            btn.setMaximumSize(new Dimension(0, 0));
             return btn;
         }
     }
 
-    // -----------------
-    // Icono de flecha
-    // -----------------
     private static class ArrowIcon implements Icon {
         private final int w, h;
         private final Color bg, fg;
@@ -194,10 +262,8 @@ public class ComboBoxUDLAP<T> extends JComboBox<T> {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                     RenderingHints.VALUE_ANTIALIAS_ON);
-            // fondo de la flecha
             g2.setColor(bg);
             g2.fillRect(x, y, w, h);
-            // triángulo
             g2.setColor(fg);
             Polygon p = new Polygon();
             p.addPoint(x + w / 4, y + h / 3);
@@ -208,9 +274,6 @@ public class ComboBoxUDLAP<T> extends JComboBox<T> {
         }
     }
 
-    // ----------------------------------------
-    // Renderer (placeholder + hover naranja)
-    // ----------------------------------------
     private static class CustomRenderer extends DefaultListCellRenderer {
         private final String placeholder;
         private final Color hoverBg;
@@ -231,11 +294,10 @@ public class ComboBoxUDLAP<T> extends JComboBox<T> {
                 int index,
                 boolean isSelected,
                 boolean cellHasFocus) {
-            // Forzamos isSelected=false para evitar azul en lista
             super.getListCellRendererComponent(list, value, index, false, cellHasFocus);
 
             if (index == -1) {
-                // Combo cerrado: placeholder o texto normal
+                // Combo cerrado
                 if (placeholder != null && placeholder.equals(value)) {
                     setForeground(Color.GRAY);
                     setFont(getFont().deriveFont(Font.ITALIC));
@@ -244,16 +306,15 @@ public class ComboBoxUDLAP<T> extends JComboBox<T> {
                     setFont(getFont().deriveFont(Font.PLAIN));
                 }
             } else {
-                // Fondo/lista por defecto (blanco)
+                // Lista desplegada
                 setBackground(list.getBackground());
                 setForeground(list.getForeground());
                 setFont(getFont().deriveFont(Font.PLAIN));
-                // Placeholder en lista
+
                 if (placeholder != null && placeholder.equals(value)) {
                     setForeground(Color.GRAY);
                     setFont(getFont().deriveFont(Font.ITALIC));
                 }
-                // Hover
                 if (index == rolloverIndex) {
                     setBackground(hoverBg);
                     setForeground(Color.WHITE);

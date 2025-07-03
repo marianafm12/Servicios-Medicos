@@ -109,6 +109,7 @@ public class AgendaCitaFrame extends JPanel {
         add(lblFecha, gbc);
         gbc.gridx = 1;
         datePickerUDLAP = new DatePickerUDLAP();
+        datePickerUDLAP.setBlockWeekends(true); // Bloquear fines de semana
         add(datePickerUDLAP, gbc);
 
         // — HORA — (dos ComboBoxUDLAP)

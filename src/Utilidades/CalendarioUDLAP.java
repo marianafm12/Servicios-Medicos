@@ -12,38 +12,50 @@ public class CalendarioUDLAP extends JPanel {
     private JLabel lblMonth, lblYear;
     private Consumer<LocalDate> dateSelectionListener;
     private BotonUDLAP btnHoy, btnLimpiar;
+    private boolean blockWeekends = false;
 
     public CalendarioUDLAP() {
+        this(false);
+    }
+
+    /**
+     * @param blockWeekends si true, los fines de semana quedan deshabilitados
+     */
+    public CalendarioUDLAP(boolean blockWeekends) {
+        this.blockWeekends = blockWeekends;
         LocalDate now = LocalDate.now();
         this.year = now.getYear();
         this.month = now.getMonthValue();
 
         setLayout(new BorderLayout());
         setBackground(ColoresUDLAP.BLANCO);
-
-        // --- Ajuste de ancho (y alto) del panel principal ---
         setPreferredSize(new Dimension(300, 250));
         setMinimumSize(new Dimension(300, 260));
 
         add(createHeaderPanel(), BorderLayout.NORTH);
         add(createCalendarPanel(), BorderLayout.CENTER);
         add(createBottomPanel(), BorderLayout.SOUTH);
-
         updateCalendar();
     }
 
-    // --- Panel superior ---
+    /**
+     * Permite habilitar o deshabilitar bloqueos de fin de semana en tiempo de
+     * ejecución
+     */
+    public void setBlockWeekends(boolean block) {
+        this.blockWeekends = block;
+        updateCalendar();
+    }
+
     private JPanel createHeaderPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBackground(ColoresUDLAP.BLANCO); // Fondo blanco
+        panel.setBackground(ColoresUDLAP.BLANCO);
         GridBagConstraints c = new GridBagConstraints();
 
-        // Flechas con hover naranja
         BotonUDLAP prevYear = createFlechaButton("<<");
         BotonUDLAP prevMonth = createFlechaButton("<");
         BotonUDLAP nextMonth = createFlechaButton(">");
         BotonUDLAP nextYear = createFlechaButton(">>");
-
         prevYear.addActionListener(e -> {
             year--;
             updateCalendar();
@@ -58,7 +70,6 @@ public class CalendarioUDLAP extends JPanel {
         lblMonth = new JLabel("", SwingConstants.CENTER);
         lblMonth.setForeground(ColoresUDLAP.NARANJA_BARRA);
         lblMonth.setFont(new Font("Arial", Font.BOLD, 15));
-
         lblYear = new JLabel("", SwingConstants.CENTER);
         lblYear.setForeground(ColoresUDLAP.NARANJA_BARRA);
         lblYear.setFont(new Font("Arial", Font.BOLD, 15));
@@ -89,14 +100,13 @@ public class CalendarioUDLAP extends JPanel {
         return panel;
     }
 
-    // --- Flechas: blanco, hover naranja ---
     private BotonUDLAP createFlechaButton(String text) {
         return new BotonUDLAP(
                 text,
-                ColoresUDLAP.BLANCO, // base blanco
-                ColoresUDLAP.NARANJA_HOVER, // hover naranja institucional
-                ColoresUDLAP.NARANJA_BARRA, // texto naranja
-                ColoresUDLAP.BLANCO, // texto blanco en hover
+                ColoresUDLAP.BLANCO,
+                ColoresUDLAP.NARANJA_HOVER,
+                ColoresUDLAP.NARANJA_BARRA,
+                ColoresUDLAP.BLANCO,
                 new Font("Arial", Font.BOLD, 17), 20) {
             {
                 setPreferredSize(new Dimension(36, 30));
@@ -107,11 +117,10 @@ public class CalendarioUDLAP extends JPanel {
         };
     }
 
-    // --- Panel de días con botones personalizados ---
     private JPanel createCalendarPanel() {
         JPanel panel = new JPanel(new GridLayout(7, 7));
         panel.setBackground(ColoresUDLAP.BLANCO);
-        panel.setPreferredSize(new Dimension(430, 230)); // Ajuste de ancho
+        panel.setPreferredSize(new Dimension(430, 230));
 
         String[] days = { "Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sa" };
         for (String day : days) {
@@ -125,20 +134,11 @@ public class CalendarioUDLAP extends JPanel {
         Font diaFont = new Font("Arial", Font.BOLD, 14);
         for (int i = 0; i < 6; i++) {
             for (int j = 0; j < 7; j++) {
-                Color baseColor = ColoresUDLAP.BLANCO;
-                Color hoverColor = ColoresUDLAP.VERDE_HOVER;
-                Color fgBase = ColoresUDLAP.NEGRO;
-                Color fgHover = ColoresUDLAP.BLANCO;
-                if (j == 0 || j == 6) { // Sábado/Domingo
-                    baseColor = ColoresUDLAP.ROJO_SOLIDO;
-                    hoverColor = ColoresUDLAP.ROJO_HOVER;
-                    fgBase = ColoresUDLAP.BLANCO;
-                    fgHover = ColoresUDLAP.BLANCO;
-                }
-                BotonUDLAP btn = new BotonUDLAP("", baseColor, hoverColor, fgBase, fgHover, diaFont, 18);
+                BotonUDLAP btn = new BotonUDLAP("", ColoresUDLAP.BLANCO, ColoresUDLAP.VERDE_HOVER,
+                        ColoresUDLAP.NEGRO, ColoresUDLAP.BLANCO, diaFont, 18);
                 btn.setFocusPainted(false);
                 btn.setBorder(BorderFactory.createLineBorder(ColoresUDLAP.BLANCO));
-                btn.setPreferredSize(new Dimension(48, 36)); // Ajuste de ancho del botón día
+                btn.setPreferredSize(new Dimension(48, 36));
                 int row = i, col = j;
                 btn.addActionListener(e -> dayClicked(row, col));
                 dayButtons[i][j] = btn;
@@ -148,15 +148,12 @@ public class CalendarioUDLAP extends JPanel {
         return panel;
     }
 
-    // --- Panel inferior con botones personalizados ---
     private JPanel createBottomPanel() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 4));
         panel.setBackground(ColoresUDLAP.BLANCO);
 
-        btnHoy = new BotonUDLAP(
-                "Hoy", ColoresUDLAP.VERDE_SOLIDO, ColoresUDLAP.VERDE_HOVER,
-                ColoresUDLAP.BLANCO, ColoresUDLAP.BLANCO,
-                new Font("Arial", Font.BOLD, 13), 22);
+        btnHoy = new BotonUDLAP("Hoy", ColoresUDLAP.VERDE_SOLIDO, ColoresUDLAP.VERDE_HOVER,
+                ColoresUDLAP.BLANCO, ColoresUDLAP.BLANCO, new Font("Arial", Font.BOLD, 13), 22);
         btnHoy.setFocusPainted(false);
         btnHoy.setBorder(BorderFactory.createEmptyBorder(4, 16, 4, 16));
         btnHoy.addActionListener(e -> {
@@ -169,10 +166,8 @@ public class CalendarioUDLAP extends JPanel {
             updateCalendar();
         });
 
-        btnLimpiar = new BotonUDLAP(
-                "Limpiar", ColoresUDLAP.ROJO_SOLIDO, ColoresUDLAP.ROJO_HOVER,
-                ColoresUDLAP.BLANCO, ColoresUDLAP.BLANCO,
-                new Font("Arial", Font.BOLD, 13), 22);
+        btnLimpiar = new BotonUDLAP("Limpiar", ColoresUDLAP.ROJO_SOLIDO, ColoresUDLAP.ROJO_HOVER,
+                ColoresUDLAP.BLANCO, ColoresUDLAP.BLANCO, new Font("Arial", Font.BOLD, 13), 22);
         btnLimpiar.setFocusPainted(false);
         btnLimpiar.setBorder(BorderFactory.createEmptyBorder(4, 16, 4, 16));
         btnLimpiar.addActionListener(e -> {
@@ -187,11 +182,10 @@ public class CalendarioUDLAP extends JPanel {
         return panel;
     }
 
-    // --- Lógica principal de pintado ---
     private void updateCalendar() {
         YearMonth yearMonth = YearMonth.of(year, month);
         LocalDate firstDayOfMonth = yearMonth.atDay(1);
-        int startDay = firstDayOfMonth.getDayOfWeek().getValue() % 7; // 0=Domingo
+        int startDay = firstDayOfMonth.getDayOfWeek().getValue() % 7;
         int daysInMonth = yearMonth.lengthOfMonth();
 
         lblMonth.setText(getMonthName(month));
@@ -211,7 +205,8 @@ public class CalendarioUDLAP extends JPanel {
                 boolean esHoy = btnDate.equals(LocalDate.now());
                 boolean esSeleccionado = selectedDate != null && btnDate.equals(selectedDate);
                 boolean esFinDeSemana = (j == 0 || j == 6);
-                btn.setDia(dayCounter, esHoy, esSeleccionado, esFinDeSemana, !esFinDeSemana);
+                boolean habil = !blockWeekends || !esFinDeSemana;
+                btn.setDia(dayCounter, esHoy, esSeleccionado, esFinDeSemana, habil);
                 dayCounter++;
             }
         }
@@ -258,12 +253,10 @@ public class CalendarioUDLAP extends JPanel {
     }
 
     public void setSelectedDate(LocalDate date) {
+        this.selectedDate = date;
         if (date != null) {
-            this.selectedDate = date;
-            this.year = date.getYear();
-            this.month = date.getMonthValue();
-        } else {
-            this.selectedDate = null;
+            year = date.getYear();
+            month = date.getMonthValue();
         }
         updateCalendar();
     }
@@ -272,11 +265,10 @@ public class CalendarioUDLAP extends JPanel {
         return selectedDate;
     }
 
-    // --- Botón institucional homogéneo para calendario ---
     private static class BotonUDLAP extends JButton {
         private final Color baseColor, hoverColor, fgBase, fgHover;
-        private Integer numeroDia = null;
-        private boolean esHoy = false, esSeleccionado = false, esFinDeSemana = false, habil = false;
+        private Integer numeroDia;
+        private boolean esHoy, esSeleccionado, esFinDeSemana, habil;
         private final Font fuente;
         private final int arc;
 
@@ -302,7 +294,7 @@ public class CalendarioUDLAP extends JPanel {
             this.esHoy = hoy;
             this.esSeleccionado = seleccionado;
             this.esFinDeSemana = finDeSemana;
-            this.habil = habilitado && !finDeSemana && dia != null;
+            this.habil = habilitado;
             setText(dia == null ? "" : String.valueOf(dia));
             setEnabled(habil);
             repaint();
@@ -337,12 +329,9 @@ public class CalendarioUDLAP extends JPanel {
 
             g2.setColor(colorFondo);
             g2.fillRoundRect(0, 0, getWidth(), getHeight(), arc, arc);
-
             setForeground(colorLetra);
             setFont(fuente);
-
             super.paintComponent(g);
-
             g2.dispose();
         }
     }

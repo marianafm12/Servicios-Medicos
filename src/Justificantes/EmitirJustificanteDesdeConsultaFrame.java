@@ -1,25 +1,34 @@
 package Justificantes;
 
 import Utilidades.ColoresUDLAP;
+import Utilidades.DatePickerUDLAP;
 import Utilidades.PanelManager;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.io.File;
-import java.sql.*;
-import java.time.LocalDate;
 
 import BaseDeDatos.ConexionSQLite;
 import Inicio.SesionUsuario;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.io.File;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.LocalDate;
+import java.awt.Desktop;
+import java.io.IOException;
 
 public class EmitirJustificanteDesdeConsultaFrame extends JPanel {
 
     private final PanelManager panelManager;
     private JButton guardarBtn;
-    private final JTextField idField, nombreField, motivoField;
-    private final JComboBox<String> diaInicio, mesInicio, anioInicio;
-    private final JComboBox<String> diaFin, mesFin, anioFin;
+    private final JTextField idField;
+    private final JTextField nombreField;
+    private final JTextField motivoField;
+    private DatePickerUDLAP inicioPicker;
+    private DatePickerUDLAP finPicker;
     private final JTextArea diagnosticoArea;
     private final JLabel mensajeError;
     private File archivoReceta;
@@ -47,14 +56,12 @@ public class EmitirJustificanteDesdeConsultaFrame extends JPanel {
         titulo.setFont(titleFont);
         titulo.setForeground(ColoresUDLAP.VERDE_OSCURO);
         add(titulo, gbc);
-
         gbc.gridwidth = 1;
 
         // ID
         gbc.gridy++;
         gbc.gridx = 0;
         add(label("ID del Paciente:", labelFont), gbc);
-
         gbc.gridx = 1;
         idField = campoTexto(fieldFont);
         add(idField, gbc);
@@ -63,48 +70,72 @@ public class EmitirJustificanteDesdeConsultaFrame extends JPanel {
         gbc.gridy++;
         gbc.gridx = 0;
         add(label("Nombre del Paciente:", labelFont), gbc);
-
         gbc.gridx = 1;
         nombreField = campoTexto(fieldFont);
         nombreField.setEditable(false);
         add(nombreField, gbc);
 
+        // Autocompletar nombre
+        idField.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                String input = idField.getText().trim();
+                if (input.matches("\\d{6}")) {
+                    int id = Integer.parseInt(input);
+                    try (Connection conn = ConexionSQLite.conectar();
+                            PreparedStatement pst = conn.prepareStatement(
+                                    "SELECT Nombre, ApellidoPaterno, ApellidoMaterno FROM InformacionAlumno WHERE ID = ?")) {
+                        pst.setInt(1, id);
+                        try (ResultSet rs = pst.executeQuery()) {
+                            if (rs.next()) {
+                                String full = rs.getString("Nombre") + " "
+                                        + rs.getString("ApellidoPaterno") + " "
+                                        + rs.getString("ApellidoMaterno");
+                                nombreField.setText(full);
+                                mensajeError.setText("");
+                            } else {
+                                nombreField.setText("");
+                                mensajeError.setText("⚠️ Paciente no registrado.");
+                            }
+                        }
+                    } catch (SQLException ex) {
+                        nombreField.setText("");
+                        mensajeError.setText("Error BD.");
+                    }
+                } else {
+                    nombreField.setText("");
+                }
+            }
+        });
+
         // Motivo
         gbc.gridy++;
         gbc.gridx = 0;
         add(label("Motivo:", labelFont), gbc);
-
         gbc.gridx = 1;
         motivoField = campoTexto(fieldFont);
         add(motivoField, gbc);
 
-        // Fecha Inicio
+        // Inicio de Reposo
         gbc.gridy++;
         gbc.gridx = 0;
         add(label("Inicio de Reposo:", labelFont), gbc);
-
         gbc.gridx = 1;
-        diaInicio = new JComboBox<>(generarDias());
-        mesInicio = new JComboBox<>(generarMeses());
-        anioInicio = new JComboBox<>(generarAnios());
-        add(panelFechas(diaInicio, mesInicio, anioInicio), gbc);
+        inicioPicker = new DatePickerUDLAP();
+        add(inicioPicker, gbc);
 
-        // Fecha Fin
+        // Fin de Reposo
         gbc.gridy++;
         gbc.gridx = 0;
         add(label("Fin de Reposo:", labelFont), gbc);
-
         gbc.gridx = 1;
-        diaFin = new JComboBox<>(generarDias());
-        mesFin = new JComboBox<>(generarMeses());
-        anioFin = new JComboBox<>(generarAnios());
-        add(panelFechas(diaFin, mesFin, anioFin), gbc);
+        finPicker = new DatePickerUDLAP();
+        add(finPicker, gbc);
 
         // Diagnóstico
         gbc.gridy++;
         gbc.gridx = 0;
         add(label("Diagnóstico:", labelFont), gbc);
-
         gbc.gridx = 1;
         diagnosticoArea = new JTextArea(4, 20);
         diagnosticoArea.setFont(fieldFont);
@@ -115,7 +146,7 @@ public class EmitirJustificanteDesdeConsultaFrame extends JPanel {
                 BorderFactory.createEmptyBorder(5, 5, 5, 5)));
         add(new JScrollPane(diagnosticoArea), gbc);
 
-        // Mensaje de error
+        // Mensaje error
         gbc.gridy++;
         gbc.gridx = 0;
         gbc.gridwidth = 2;
@@ -141,7 +172,6 @@ public class EmitirJustificanteDesdeConsultaFrame extends JPanel {
         });
 
         guardarBtn = botonTransparente("Emitir Justificante", ColoresUDLAP.VERDE_OSCURO, ColoresUDLAP.VERDE_OSCURO);
-
         guardarBtn.addActionListener(e -> guardar());
 
         JButton cancelarBtn = botonTransparente("Cancelar", ColoresUDLAP.ROJO, ColoresUDLAP.ROJO_HOVER);
@@ -151,70 +181,70 @@ public class EmitirJustificanteDesdeConsultaFrame extends JPanel {
         panelBotones.add(guardarBtn);
         panelBotones.add(cancelarBtn);
         add(panelBotones, gbc);
-
-        // Autocompletar nombre
-        idField.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyReleased(KeyEvent e) {
-                String input = idField.getText().trim();
-                if (input.matches("\\d{6}")) {
-                    int id = Integer.parseInt(input);
-                    if (id >= 180000 && id <= 999999) {
-                        try (Connection conn = ConexionSQLite.conectar();
-                                PreparedStatement pst = conn.prepareStatement(
-                                        "SELECT Nombre, ApellidoPaterno, ApellidoMaterno FROM InformacionAlumno WHERE ID = ?")) {
-                            pst.setInt(1, id);
-                            ResultSet rs = pst.executeQuery();
-                            if (rs.next()) {
-                                String nombreCompleto = rs.getString("Nombre") + " " +
-                                        rs.getString("ApellidoPaterno") + " " +
-                                        rs.getString("ApellidoMaterno");
-                                nombreField.setText(nombreCompleto);
-                                nombreField.setEditable(false);
-                                mensajeError.setText("");
-                            } else {
-                                nombreField.setText("");
-                                mensajeError.setText("⚠️ El paciente no se encuentra registrado.");
-                            }
-                        } catch (SQLException ex) {
-                            mensajeError.setText("Error al acceder a la base de datos.");
-                            ex.printStackTrace();
-                        }
-                    } else {
-                        nombreField.setText("");
-                        mensajeError.setText("⚠️ El ID debe estar entre 180000 y 999999.");
-                    }
-                } else {
-                    nombreField.setText("");
-                    mensajeError.setText("⚠️ El ID debe tener 6 dígitos.");
-                }
-            }
-        });
     }
 
-    private JLabel label(String texto, Font fuente) {
+    private void guardar() {
+        String id = idField.getText().trim();
+        String nombre = nombreField.getText().trim();
+        String motivo = motivoField.getText().trim();
+        String diagnostico = diagnosticoArea.getText().trim();
+        LocalDate inicio = inicioPicker.getDate();
+        LocalDate fin = finPicker.getDate();
+
+        if (id.isEmpty() || nombre.isEmpty() || motivo.isEmpty() || diagnostico.isEmpty()) {
+            mensajeError.setText("⚠️ Todos los campos son obligatorios.");
+            return;
+        }
+        if (inicio == null || !inicio.isAfter(LocalDate.now())) {
+            mensajeError.setText("⚠️ Fecha inicio debe ser futura.");
+            return;
+        }
+        if (fin == null || inicio.isAfter(fin)) {
+            mensajeError.setText("⚠️ Fecha fin inválida.");
+            return;
+        }
+
+        Justificante j = new Justificante(id, nombre, motivo, inicio, fin, diagnostico, archivoReceta);
+        j.setEstado("Aprobado");
+        j.setResueltoPor(SesionUsuario.getMedicoActual());
+        j.setFechaResolucion(LocalDate.now());
+
+        boolean ok = JustificanteDAO.guardarJustificante(j);
+        if (ok) {
+            mensajeError.setForeground(new Color(0, 153, 0));
+            mensajeError.setText("Justificante emitido correctamente.");
+            guardarBtn.setEnabled(false);
+            // Generar y abrir PDF
+            Justificante justi = JustificanteDAO.obtenerPorFolio(j.getFolio()).orElse(null);
+            if (justi != null) {
+                File pdf = GeneradorPDFJustificante.generar(justi);
+                if (pdf != null && pdf.exists()) {
+                    try {
+                        Desktop.getDesktop().open(pdf);
+                    } catch (IOException ex) {
+                        /* ignorar */ }
+                }
+            }
+        } else {
+            mensajeError.setForeground(Color.RED);
+            mensajeError.setText("Error al guardar justificante.");
+        }
+    }
+
+    private JLabel label(String texto, Font font) {
         JLabel lbl = new JLabel(texto);
-        lbl.setFont(fuente);
+        lbl.setFont(font);
         lbl.setForeground(ColoresUDLAP.NEGRO);
         return lbl;
     }
 
-    private JTextField campoTexto(Font fuente) {
+    private JTextField campoTexto(Font font) {
         JTextField t = new JTextField(20);
-        t.setFont(fuente);
+        t.setFont(font);
         t.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(ColoresUDLAP.GRIS_CLARO),
                 BorderFactory.createEmptyBorder(5, 5, 5, 5)));
         return t;
-    }
-
-    private JPanel panelFechas(JComboBox<String> d, JComboBox<String> m, JComboBox<String> a) {
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
-        panel.setBackground(ColoresUDLAP.BLANCO);
-        panel.add(d);
-        panel.add(m);
-        panel.add(a);
-        return panel;
     }
 
     private JButton botonTransparente(String texto, Color base, Color hover) {
@@ -237,80 +267,5 @@ public class EmitirJustificanteDesdeConsultaFrame extends JPanel {
         button.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         return button;
-    }
-
-    private void guardar() {
-        String id = idField.getText().trim();
-        String nombre = nombreField.getText().trim();
-        String motivo = motivoField.getText().trim();
-        String diagnostico = diagnosticoArea.getText().trim();
-        LocalDate inicio = construirFecha(diaInicio, mesInicio, anioInicio);
-        LocalDate fin = construirFecha(diaFin, mesFin, anioFin);
-
-        if (id.isEmpty() || motivo.isEmpty() || diagnostico.isEmpty()) {
-            mensajeError.setText("⚠️ Todos los campos son obligatorios.");
-            return;
-        }
-
-        if (!inicio.isAfter(LocalDate.now())) {
-            mensajeError.setText("⚠️ La fecha de inicio debe ser posterior a hoy.");
-            return;
-        }
-
-        if (inicio.isAfter(fin)) {
-            mensajeError.setText("⚠️ La fecha de inicio no puede ser posterior a la fecha de fin.");
-            return;
-        }
-
-        Justificante j = new Justificante(id, nombre, motivo, inicio, fin, diagnostico, archivoReceta);
-        j.setEstado("Aprobado");
-
-        String medicoFirmante = SesionUsuario.getMedicoActual();
-        j.setResueltoPor(medicoFirmante);
-        j.setFechaResolucion(LocalDate.now());
-
-        boolean ok = JustificanteDAO.guardarJustificante(j);
-        if (ok) {
-            mensajeError.setForeground(new Color(0, 153, 0));
-            mensajeError.setText("Justificante emitido correctamente.");
-            guardarBtn.setEnabled(false);
-        } else {
-            mensajeError.setForeground(Color.RED);
-            mensajeError.setText("Error al guardar justificante.");
-        }
-
-    }
-
-    private LocalDate construirFecha(JComboBox<String> dia, JComboBox<String> mes, JComboBox<String> anio) {
-        try {
-            int d = Integer.parseInt((String) dia.getSelectedItem());
-            int m = mes.getSelectedIndex() + 1;
-            int y = Integer.parseInt((String) anio.getSelectedItem());
-            return LocalDate.of(y, m, d);
-        } catch (Exception e) {
-            mensajeError.setForeground(Color.RED);
-            mensajeError.setText("Fecha inválida. Verifique el día, mes y año seleccionados.");
-            return null;
-        }
-    }
-
-    private String[] generarDias() {
-        String[] dias = new String[31];
-        for (int i = 1; i <= 31; i++)
-            dias[i - 1] = String.valueOf(i);
-        return dias;
-    }
-
-    private String[] generarMeses() {
-        return new String[] { "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-                "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre" };
-    }
-
-    private String[] generarAnios() {
-        String[] a = new String[6];
-        int base = LocalDate.now().getYear();
-        for (int i = 0; i < 6; i++)
-            a[i] = String.valueOf(base + i);
-        return a;
     }
 }
