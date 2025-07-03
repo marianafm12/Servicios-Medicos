@@ -56,11 +56,10 @@ public class PanelVerEmergencias extends JPanel {
 
         // --- Botones inferior ---
         panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 10));
-        btnRegresar = new JButton("Regresar");
-        btnRegresar.setFont(new Font("Arial", Font.BOLD, 15));
-        btnRegresar.setBackground(Color.GRAY);
-        btnRegresar.setForeground(Color.WHITE);
-        btnRegresar.setFocusPainted(false);
+        JButton btnRegresar = botonTransparente("Regresar",
+                    ColoresUDLAP.VERDE,    // color base
+                    ColoresUDLAP.VERDE_HOVER    // color hover
+                );
         btnRegresar.addActionListener(e ->
             panelManager.showPanel("menuEmergencias")
         );
@@ -68,12 +67,12 @@ public class PanelVerEmergencias extends JPanel {
         add(panelBotones, BorderLayout.SOUTH);
 
     // — después de crear btnRegresar —
-    btnVerInformacion = new JButton("Ver información");
-    btnVerInformacion.setFont(new Font("Arial", Font.BOLD, 15));
-    btnVerInformacion.setBackground(Color.GRAY);
-    btnVerInformacion.setForeground(Color.WHITE);
-    btnVerInformacion.setFocusPainted(false);
-    btnVerInformacion.setVisible(false);   // oculto por defecto
+        btnVerInformacion = botonTransparente(
+            "Ver información",
+            ColoresUDLAP.NARANJA,       // color base
+            ColoresUDLAP.NARANJA_HOVER  // color hover
+        );
+        btnVerInformacion.setVisible(false); 
 
     btnVerInformacion.addActionListener(e -> {
         int filaVista = tabla.getSelectedRow();
@@ -101,12 +100,12 @@ public class PanelVerEmergencias extends JPanel {
 
 
 
-    btnCambiarEstado = new JButton("Cambiar estado");
-    btnCambiarEstado.setFont(new Font("Arial", Font.BOLD, 15));
-    btnCambiarEstado.setBackground(Color.GRAY);
-    btnCambiarEstado.setForeground(Color.WHITE);
-    btnCambiarEstado.setFocusPainted(false);
-    btnCambiarEstado.setVisible(false);  // oculto por defecto
+    btnCambiarEstado = botonTransparente(
+        "Cambiar estado",
+        ColoresUDLAP.ROJO,       // color base
+        ColoresUDLAP.ROJO_HOVER  // color hover
+    );
+    btnCambiarEstado.setVisible(false);
     btnCambiarEstado.addActionListener(e -> {
         int filaVista = tabla.getSelectedRow();
         if (filaVista != -1) {
@@ -234,14 +233,22 @@ public class PanelVerEmergencias extends JPanel {
         }));
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         for (Emergencia e : lista) {
+            // aquí chequeamos null y mostramos "-" si no hay paciente
+            Object idPacCell = e.getIdPaciente() != null
+                            ? e.getIdPaciente()
+                            : "-";
+
             modelo.addRow(new Object[]{
-                e.getId(),
-                e.getIdPaciente(),
+                e.getId(),                                  // IDEmergencia
+                idPacCell,                                  // IDPaciente o "-"
                 e.getFechaIncidente().toLocalDateTime().format(fmt),
                 e.getEstado(),
-                e.getMedicoResponsable() != null ? e.getMedicoResponsable() : "-"
+                e.getMedicoResponsable() != null
+                    ? e.getMedicoResponsable()
+                    : "-"
             });
         }
+
 
         tabla.setModel(modelo);
         panelCentro.revalidate();
@@ -257,6 +264,28 @@ public class PanelVerEmergencias extends JPanel {
             btnCambiarEstado.setVisible(false);
             cargarDatosDesdeBD();
         }
+    }
+
+        private JButton botonTransparente(String texto, Color base, Color hover) {
+        JButton button = new JButton(texto) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(getModel().isRollover() ? hover : base);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 25, 25);
+                super.paintComponent(g);
+                g2.dispose();
+            }
+        };
+        button.setForeground(Color.WHITE);
+        button.setFont(new Font("Arial", Font.BOLD, 15));
+        button.setFocusPainted(false);
+        button.setContentAreaFilled(false);
+        button.setOpaque(false);
+        button.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
+        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        return button;
     }
 
 }

@@ -14,32 +14,36 @@ public class EmergenciaDAO {
         List<Emergencia> lista = new ArrayList<>();
         String sql = """
             SELECT e.IDEmergencia,
-                   e.IDPaciente,
-                   e.Ubicacion,
-                   e.TipoDeEmergencia,
-                   e.Gravedad,
-                   e.Descripcion,
-                   e.FechaIncidente,
-                   e.FechaRegistro,
-                   e.Estado,
-                   e.TelefonoContacto,
-                   COALESCE(m.Nombre || ' ' || m.ApellidoPaterno || ' ' || m.ApellidoMaterno, '-') AS Medico
-              FROM Emergencias e
-              LEFT JOIN InformacionMedico m ON e.IDResponsable = m.ID
-             ORDER BY CASE e.Estado
+                e.IDPaciente,
+                e.Ubicacion,
+                e.TipoDeEmergencia,
+                e.Gravedad,
+                e.Descripcion,
+                e.FechaIncidente,
+                e.FechaRegistro,
+                e.Estado,
+                e.TelefonoContacto,
+                COALESCE(m.Nombre || ' ' || m.ApellidoPaterno || ' ' || m.ApellidoMaterno, '-') AS Medico
+            FROM Emergencias e
+            LEFT JOIN InformacionMedico m ON e.IDResponsable = m.ID
+            ORDER BY CASE e.Estado
                         WHEN 'Pendiente'   THEN 1
                         WHEN 'Transferido' THEN 2
                         ELSE 3
-                      END
+                    END
             """;
         try (Connection c = ConexionSQLite.conectar();
-             PreparedStatement ps = c.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+            PreparedStatement ps = c.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
+                // leer el entero y chequear si fue NULL
+                int rawId = rs.getInt("IDPaciente");
+                Integer idPaciente = rs.wasNull() ? null : rawId;
+
                 lista.add(new Emergencia(
                     rs.getInt("IDEmergencia"),
-                    rs.getInt("IDPaciente"),
+                    idPaciente,                           // ahora Integer
                     rs.getString("Ubicacion"),
                     rs.getString("TipoDeEmergencia"),
                     rs.getString("Gravedad"),
@@ -56,6 +60,7 @@ public class EmergenciaDAO {
         }
         return lista;
     }
+
 
     /**
      * Lee una emergencia específica por su ID.
@@ -82,9 +87,11 @@ public class EmergenciaDAO {
             ps.setInt(1, idEmergencia);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
+                    int rawId = rs.getInt("IDPaciente");
+                    Integer idPaciente = rs.wasNull() ? null : rawId;
                     return new Emergencia(
                         rs.getInt("IDEmergencia"),
-                        rs.getInt("IDPaciente"),
+                        idPaciente,
                         rs.getString("Ubicacion"),
                         rs.getString("TipoDeEmergencia"),
                         rs.getString("Gravedad"),
