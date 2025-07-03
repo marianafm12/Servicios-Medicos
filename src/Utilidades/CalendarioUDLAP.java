@@ -68,10 +68,10 @@ public class CalendarioUDLAP extends JPanel {
         });
 
         lblMonth = new JLabel("", SwingConstants.CENTER);
-        lblMonth.setForeground(ColoresUDLAP.NARANJA_BARRA);
+        lblMonth.setForeground(ColoresUDLAP.NARANJA_SOLIDO);
         lblMonth.setFont(new Font("Arial", Font.BOLD, 15));
         lblYear = new JLabel("", SwingConstants.CENTER);
-        lblYear.setForeground(ColoresUDLAP.NARANJA_BARRA);
+        lblYear.setForeground(ColoresUDLAP.NARANJA_SOLIDO);
         lblYear.setFont(new Font("Arial", Font.BOLD, 15));
 
         c.insets = new Insets(2, 3, 2, 3);
@@ -105,7 +105,7 @@ public class CalendarioUDLAP extends JPanel {
                 text,
                 ColoresUDLAP.BLANCO,
                 ColoresUDLAP.NARANJA_HOVER,
-                ColoresUDLAP.NARANJA_BARRA,
+                ColoresUDLAP.NARANJA_SOLIDO,
                 ColoresUDLAP.BLANCO,
                 new Font("Arial", Font.BOLD, 17), 20) {
             {
@@ -125,7 +125,7 @@ public class CalendarioUDLAP extends JPanel {
         String[] days = { "Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sa" };
         for (String day : days) {
             JLabel lbl = new JLabel(day, SwingConstants.CENTER);
-            lbl.setForeground(ColoresUDLAP.VERDE_OSCURO);
+            lbl.setForeground(ColoresUDLAP.VERDE_SOLIDO);
             lbl.setFont(new Font("Arial", Font.BOLD, 12));
             lbl.setOpaque(true);
             lbl.setBackground(ColoresUDLAP.BLANCO);
@@ -317,10 +317,10 @@ public class CalendarioUDLAP extends JPanel {
             Color colorLetra = fgBase;
 
             if (esSeleccionado) {
-                colorFondo = ColoresUDLAP.NARANJA_BARRA;
+                colorFondo = ColoresUDLAP.NARANJA_SOLIDO;
                 colorLetra = ColoresUDLAP.BLANCO;
             } else if (esHoy) {
-                colorFondo = ColoresUDLAP.NARANJA;
+                colorFondo = ColoresUDLAP.NARANJA_SOLIDO;
                 colorLetra = ColoresUDLAP.NEGRO;
             } else if (getModel().isRollover() && isEnabled()) {
                 colorFondo = hoverColor;

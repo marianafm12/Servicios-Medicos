@@ -1,26 +1,13 @@
 package Inicio;
 
 import Utilidades.*;
-import BaseDeDatos.ConexionSQLite;
-import Consultas.PanelConsultaNueva;
-import Emergencias.PanelMenuEmergencias;
-import Emergencias.PanelReportarEmergencia;
-import Emergencias.PanelVerEmergencias;
-import GestionCitas.NotificacionDAO;
-import GestionCitas.PanelGestionCitas;
-import GestionCitas.AgendaCitaFrame;
-import GestionCitas.ModificarCitaFrame;
-import GestionCitas.NotificacionCitasFrame;
-import GestionEnfermedades.PanelHistorialMedico;
-import GestionEnfermedades.PanelHistorialMedicoEditable;
-import Justificantes.PanelMenuJustificantes;
-import Justificantes.JustificanteDAO;
-import Justificantes.PanelJustificantesPacienteMenu;
-import Registro.PanelRegistroPaciente;
-//import Emergencias.Emergencia;
+import BaseDeDatos.*;
+import Consultas.*;
 import Emergencias.*;
-//import Emergencias.PanelDetalleEmergencia;
-//import Inicio.*;
+import GestionCitas.*;
+import GestionEnfermedades.*;
+import Justificantes.*;
+import Registro.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -182,11 +169,11 @@ public class InterfazMedica extends JFrame {
             Color hoverColor;
 
             if (!esMedico && "Reportar Emergencia".equals(items[i])) {
-                baseColor = ColoresUDLAP.ROJO;
+                baseColor = ColoresUDLAP.ROJO_SOLIDO;
                 hoverColor = ColoresUDLAP.ROJO_HOVER;
             } else {
                 boolean par = (i % 2 == 0);
-                baseColor = par ? ColoresUDLAP.VERDE : ColoresUDLAP.NARANJA;
+                baseColor = par ? ColoresUDLAP.VERDE_SOLIDO : ColoresUDLAP.NARANJA_SOLIDO;
                 hoverColor = par ? ColoresUDLAP.VERDE_HOVER : ColoresUDLAP.NARANJA_HOVER;
             }
 
@@ -398,7 +385,7 @@ public class InterfazMedica extends JFrame {
         panel.setPreferredSize(new Dimension(0, 56));
 
         JLabel saludo = new JLabel("Hola, " + nombreUsuario);
-        saludo.setForeground(ColoresUDLAP.VERDE_OSCURO);
+        saludo.setForeground(ColoresUDLAP.VERDE_SOLIDO);
         saludo.setFont(new Font("Arial", Font.PLAIN, 18));
 
         JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 12));
@@ -426,7 +413,7 @@ public class InterfazMedica extends JFrame {
 
         JButton cerrarSesion = new JButton("Cerrar sesión");
         cerrarSesion.setFont(new Font("Arial", Font.BOLD, 15));
-        cerrarSesion.setBackground(ColoresUDLAP.NARANJA_BARRA);
+        cerrarSesion.setBackground(ColoresUDLAP.NARANJA_SOLIDO);
         cerrarSesion.setForeground(Color.WHITE);
         cerrarSesion.setFocusPainted(false);
         cerrarSesion.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));

@@ -25,24 +25,23 @@ public class PanelJustificantesPacienteMenu extends JPanel {
         titulo.setAlignmentX(Component.CENTER_ALIGNMENT);
         titulo.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
 
-        JButton btnSolicitar = crearBoton("Solicitar Justificante", ColoresUDLAP.VERDE, ColoresUDLAP.VERDE_HOVER);
-        JButton btnVerJustificantes = crearBoton("Mis Justificantes", ColoresUDLAP.NARANJA, ColoresUDLAP.NARANJA_HOVER);
+        JButton btnSolicitar = crearBoton("Solicitar Justificante", ColoresUDLAP.VERDE_SOLIDO,
+                ColoresUDLAP.VERDE_HOVER);
+        JButton btnVerJustificantes = crearBoton("Mis Justificantes", ColoresUDLAP.NARANJA_SOLIDO,
+                ColoresUDLAP.NARANJA_HOVER);
 
-btnSolicitar.addActionListener(e -> {
-    FormularioJustificanteFrame panel = new FormularioJustificanteFrame(panelManager);
-    panel.setValoresDesdeSesion();
-    panelManager.mostrarPanelPersonalizado(panel);
-});
+        btnSolicitar.addActionListener(e -> {
+            FormularioJustificanteFrame panel = new FormularioJustificanteFrame(panelManager);
+            panel.setValoresDesdeSesion();
+            panelManager.mostrarPanelPersonalizado(panel);
+        });
 
-
-btnVerJustificantes.addActionListener(e -> {
-    MisJustificantesPacientePanel panel = new MisJustificantesPacientePanel(
-            String.valueOf(SesionUsuario.getPacienteActual()),
-            panelManager
-    );
-    panelManager.mostrarPanelPersonalizado(panel);
-});
-
+        btnVerJustificantes.addActionListener(e -> {
+            MisJustificantesPacientePanel panel = new MisJustificantesPacientePanel(
+                    String.valueOf(SesionUsuario.getPacienteActual()),
+                    panelManager);
+            panelManager.mostrarPanelPersonalizado(panel);
+        });
 
         btnSolicitar.setMaximumSize(new Dimension(300, 50));
         btnVerJustificantes.setMaximumSize(new Dimension(300, 50));

@@ -13,7 +13,7 @@ import java.awt.event.MouseMotionAdapter;
  * JComboBox con estilo UDLAP:
  * - fondo blanco y borde gris claro
  * - placeholder en gris claro e itálica
- * - flecha blanca sobre NARANJA_BARRA
+ * - flecha blanca sobre NARANJA_SOLIDO
  * - hover en NARANJA_HOVER con texto blanco/negrita
  * - scroll de lista en VERDE_HOVER
  * - altura igual a un JTextField estándar
@@ -46,7 +46,7 @@ public class ComboBoxUDLAP<T> extends JComboBox<T> {
         }
         setBackground(Color.WHITE);
         setRenderer(renderer);
-        setUI(new CustomComboBoxUI(ColoresUDLAP.NARANJA_BARRA, renderer));
+        setUI(new CustomComboBoxUI(ColoresUDLAP.NARANJA_SOLIDO, renderer));
 
         addPopupMenuListener(new PopupMenuListener() {
             @Override
@@ -81,7 +81,7 @@ public class ComboBoxUDLAP<T> extends JComboBox<T> {
         int baseWidth = new JTextField().getPreferredSize().width;
         setPreferredSize(new Dimension(baseWidth + 60, baseHeight + 8));
 
-        Border line = BorderFactory.createLineBorder(ColoresUDLAP.GRIS_CLARO);
+        Border line = BorderFactory.createLineBorder(ColoresUDLAP.GRIS_HOVER);
         Border empty = BorderFactory.createEmptyBorder(5, 5, 5, 5);
         setBorder(BorderFactory.createCompoundBorder(line, empty));
     }

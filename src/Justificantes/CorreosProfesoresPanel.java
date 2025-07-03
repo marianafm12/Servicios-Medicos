@@ -61,11 +61,11 @@ public class CorreosProfesoresPanel extends JPanel {
         JPanel bot = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
         bot.setBackground(ColoresUDLAP.BLANCO);
 
-        enviarBtn.setBackground(ColoresUDLAP.VERDE_OSCURO);
+        enviarBtn.setBackground(ColoresUDLAP.VERDE_SOLIDO);
         enviarBtn.setForeground(Color.WHITE);
         enviarBtn.setFocusPainted(false);
 
-        menuBtn.setBackground(ColoresUDLAP.NARANJA);
+        menuBtn.setBackground(ColoresUDLAP.NARANJA_SOLIDO);
         menuBtn.setForeground(Color.WHITE);
         menuBtn.setFocusPainted(false);
 

@@ -16,23 +16,23 @@ public class PanelDetalleEmergencia extends JPanel {
 
     public PanelDetalleEmergencia(PanelManager panelManager, Emergencia emergencia) {
         this.panelManager = panelManager;
-        this.emergencia    = emergencia;
+        this.emergencia = emergencia;
         initUI();
     }
 
     private void initUI() {
-        setLayout(new BorderLayout(10,10));
+        setLayout(new BorderLayout(10, 10));
         setBackground(ColoresUDLAP.BLANCO);
 
         // --- Título ---
         JLabel titulo = new JLabel("Información de la Emergencia", SwingConstants.CENTER);
         titulo.setFont(new Font("Arial", Font.BOLD, 24));
-        titulo.setForeground(ColoresUDLAP.VERDE_OSCURO);
+        titulo.setForeground(ColoresUDLAP.VERDE_SOLIDO);
         titulo.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
         add(titulo, BorderLayout.NORTH);
 
         // --- Centro: datos en GridLayout ---
-        JPanel centro = new JPanel(new GridLayout(0,1,5,5));
+        JPanel centro = new JPanel(new GridLayout(0, 1, 5, 5));
         centro.setBackground(ColoresUDLAP.BLANCO);
         centro.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
 
@@ -50,18 +50,18 @@ public class PanelDetalleEmergencia extends JPanel {
         centro.add(makeRow("Gravedad: ", emergencia.getGravedad()));
         centro.add(makeRow("Descripción: ", emergencia.getDescripcion()));
         centro.add(makeRow("Fecha Incidente: ",
-            emergencia.getFechaIncidente().toLocalDateTime().format(fmt)));
+                emergencia.getFechaIncidente().toLocalDateTime().format(fmt)));
         centro.add(makeRow("Fecha Registro: ",
-            emergencia.getFechaRegistro().toLocalDateTime().format(fmt)));
+                emergencia.getFechaRegistro().toLocalDateTime().format(fmt)));
         centro.add(makeRow("Estado: ", emergencia.getEstado()));
         centro.add(makeRow("Teléfono Contacto: ",
-            emergencia.getTelefonoContacto() != null
-                ? emergencia.getTelefonoContacto()
-                : "-"));
+                emergencia.getTelefonoContacto() != null
+                        ? emergencia.getTelefonoContacto()
+                        : "-"));
         centro.add(makeRow("Paramédico Responsable: ",
-            emergencia.getMedicoResponsable() != null
-                ? emergencia.getMedicoResponsable()
-                : "-"));
+                emergencia.getMedicoResponsable() != null
+                        ? emergencia.getMedicoResponsable()
+                        : "-"));
 
         JScrollPane scroll = new JScrollPane(centro);
         scroll.setBorder(BorderFactory.createEmptyBorder());  // quita el marco
@@ -71,6 +71,7 @@ public class PanelDetalleEmergencia extends JPanel {
         // --- Botón Regresar ---
         JPanel botones = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         botones.setBackground(ColoresUDLAP.BLANCO);
+<<<<<<< Updated upstream
         JButton btnRegresar = botonTransparente("Regresar",
             ColoresUDLAP.VERDE,    // color base
             ColoresUDLAP.VERDE_HOVER    // color hover
@@ -80,12 +81,20 @@ public class PanelDetalleEmergencia extends JPanel {
         btnRegresar.addActionListener(e ->
             panelManager.showPanel("verEmergencias")
         );
+=======
+        JButton btnRegresar = new JButton("Regresar");
+        btnRegresar.setFont(new Font("Arial", Font.BOLD, 15));
+        btnRegresar.setBackground(Color.GRAY);
+        btnRegresar.setForeground(Color.WHITE);
+        btnRegresar.setFocusPainted(false);
+        btnRegresar.addActionListener(e -> panelManager.showPanel("verEmergencias"));
+>>>>>>> Stashed changes
         botones.add(btnRegresar);
         add(botones, BorderLayout.SOUTH);
     }
 
     private JPanel makeRow(String label, String value) {
-        JPanel row = new JPanel(new BorderLayout(5,0));
+        JPanel row = new JPanel(new BorderLayout(5, 0));
         row.setBackground(ColoresUDLAP.BLANCO);
 
         JLabel lbl = new JLabel(label);

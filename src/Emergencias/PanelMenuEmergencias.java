@@ -31,26 +31,23 @@ public class PanelMenuEmergencias extends JPanel {
         add(titulo);
         add(Box.createVerticalStrut(40));
 
-        // 1) Registrar llamada de emergencia (verde)
+        // 1) Registrar llamada de emergencia (VERDE_SOLIDO)
         JButton btnLlamada = crearBoton(
-            "Registrar llamada de emergencia",
-            ColoresUDLAP.VERDE,
-            ColoresUDLAP.VERDE_HOVER
-        );
+                "Registrar llamada de emergencia",
+                ColoresUDLAP.VERDE_SOLIDO,
+                ColoresUDLAP.VERDE_HOVER);
         btnLlamada.addActionListener(e -> {
-            FormularioLlamadaEmergencia panel =
-                new FormularioLlamadaEmergencia(esMedico, userId);
+            FormularioLlamadaEmergencia panel = new FormularioLlamadaEmergencia(esMedico, userId);
             panelManager.mostrarPanelPersonalizado(panel);
         });
         add(btnLlamada);
         add(Box.createVerticalStrut(30));
 
-        // 2) Llenar reporte de accidente (naranja)
+        // 2) Llenar reporte de accidente (NARANJA_SOLIDO)
         JButton btnAccidente = crearBoton(
-            "Llenar reporte de accidente",
-            ColoresUDLAP.NARANJA,
-            ColoresUDLAP.NARANJA_HOVER
-        );
+                "Llenar reporte de accidente",
+                ColoresUDLAP.NARANJA_SOLIDO,
+                ColoresUDLAP.NARANJA_HOVER);
         btnAccidente.addActionListener(e -> {
             FormularioAccidenteCompleto panel = new FormularioAccidenteCompleto();
             panelManager.mostrarPanelPersonalizado(panel);
@@ -58,15 +55,12 @@ public class PanelMenuEmergencias extends JPanel {
         add(btnAccidente);
         add(Box.createVerticalStrut(30));
 
-        // 3) Ver Emergencias (verde)
+        // 3) Ver Emergencias (VERDE_SOLIDO)
         JButton btnVerEmergencias = crearBoton(
-            "Ver Emergencias",
-            ColoresUDLAP.VERDE,
-            ColoresUDLAP.VERDE_HOVER
-        );
-        btnVerEmergencias.addActionListener(e ->
-            panelManager.showPanel("verEmergencias")
-        );
+                "Ver Emergencias",
+                ColoresUDLAP.VERDE_SOLIDO,
+                ColoresUDLAP.VERDE_HOVER);
+        btnVerEmergencias.addActionListener(e -> panelManager.showPanel("verEmergencias"));
         add(btnVerEmergencias);
     }
 
@@ -76,9 +70,8 @@ public class PanelMenuEmergencias extends JPanel {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(
-                    RenderingHints.KEY_ANTIALIASING,
-                    RenderingHints.VALUE_ANTIALIAS_ON
-                );
+                        RenderingHints.KEY_ANTIALIASING,
+                        RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(getModel().isRollover() ? hover : base);
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 25, 25);
                 super.paintComponent(g);
@@ -96,9 +89,14 @@ public class PanelMenuEmergencias extends JPanel {
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btn.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseEntered(MouseEvent e) { btn.repaint(); }
+            public void mouseEntered(MouseEvent e) {
+                btn.repaint();
+            }
+
             @Override
-            public void mouseExited(MouseEvent e) { btn.repaint(); }
+            public void mouseExited(MouseEvent e) {
+                btn.repaint();
+            }
         });
         return btn;
     }

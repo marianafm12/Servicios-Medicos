@@ -21,14 +21,14 @@ public class DatePickerUDLAP extends JPanel {
         campoFecha.setEditable(false);
         campoFecha.setBackground(ColoresUDLAP.BLANCO);
         campoFecha.setFont(new Font("Arial", Font.PLAIN, 14));
-        campoFecha.setBorder(BorderFactory.createLineBorder(ColoresUDLAP.GRIS_CLARO));
+        campoFecha.setBorder(BorderFactory.createLineBorder(ColoresUDLAP.GRIS_HOVER));
         campoFecha.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
         btnCalendario = new JButton("\uD83D\uDCC6"); // Icono calendario 📅 (puedes usar uno propio)
         btnCalendario.setFocusable(false);
         btnCalendario.setFont(new Font("JoyPixels", Font.PLAIN, 14));
         btnCalendario.setBackground(ColoresUDLAP.BLANCO);
-        btnCalendario.setBorder(BorderFactory.createLineBorder(ColoresUDLAP.NARANJA_BARRA));
+        btnCalendario.setBorder(BorderFactory.createLineBorder(ColoresUDLAP.NARANJA_SOLIDO));
         btnCalendario.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btnCalendario.setPreferredSize(new Dimension(38, 30));
 

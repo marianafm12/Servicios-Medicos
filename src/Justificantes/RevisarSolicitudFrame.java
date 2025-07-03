@@ -60,7 +60,7 @@ public class RevisarSolicitudFrame extends JPanel {
         gbc.gridwidth = 2;
         JLabel lblTitulo = new JLabel("Revisión de Solicitud de Justificante", SwingConstants.CENTER);
         lblTitulo.setFont(titleFont);
-        lblTitulo.setForeground(ColoresUDLAP.VERDE_OSCURO);
+        lblTitulo.setForeground(ColoresUDLAP.VERDE_SOLIDO);
         add(lblTitulo, gbc);
 
         gbc.gridwidth = 1;
@@ -86,7 +86,7 @@ public class RevisarSolicitudFrame extends JPanel {
         motivoField = new JTextField(justificante.getMotivo());
         motivoField.setFont(fieldFont);
         motivoField.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(ColoresUDLAP.GRIS_CLARO),
+                BorderFactory.createLineBorder(ColoresUDLAP.GRIS_HOVER),
                 BorderFactory.createEmptyBorder(5, 5, 5, 5)));
         add(motivoField, gbc);
 
@@ -123,7 +123,7 @@ public class RevisarSolicitudFrame extends JPanel {
         diagnosticoArea.setWrapStyleWord(true);
         diagnosticoArea.setLineWrap(true);
         diagnosticoArea.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(ColoresUDLAP.GRIS_CLARO),
+                BorderFactory.createLineBorder(ColoresUDLAP.GRIS_HOVER),
                 BorderFactory.createEmptyBorder(5, 5, 5, 5)));
         add(new JScrollPane(diagnosticoArea), gbc);
 
@@ -133,9 +133,9 @@ public class RevisarSolicitudFrame extends JPanel {
         gbc.gridwidth = 2;
         JPanel filaBotones1 = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
         filaBotones1.setBackground(ColoresUDLAP.BLANCO);
-        JButton btnAprobar = botonTransparente("Aprobar", ColoresUDLAP.VERDE, ColoresUDLAP.VERDE_HOVER);
-        JButton btnRechazar = botonTransparente("Rechazar", ColoresUDLAP.ROJO, ColoresUDLAP.ROJO_HOVER);
-        JButton limpiarBtn = botonTransparente("Limpiar", ColoresUDLAP.NARANJA, ColoresUDLAP.NARANJA_HOVER);
+        JButton btnAprobar = botonTransparente("Aprobar", ColoresUDLAP.VERDE_SOLIDO, ColoresUDLAP.VERDE_HOVER);
+        JButton btnRechazar = botonTransparente("Rechazar", ColoresUDLAP.ROJO_SOLIDO, ColoresUDLAP.ROJO_HOVER);
+        JButton limpiarBtn = botonTransparente("Limpiar", ColoresUDLAP.NARANJA_SOLIDO, ColoresUDLAP.NARANJA_HOVER);
         filaBotones1.add(btnAprobar);
         filaBotones1.add(btnRechazar);
         filaBotones1.add(limpiarBtn);
@@ -146,11 +146,11 @@ public class RevisarSolicitudFrame extends JPanel {
         JPanel filaBotones2 = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
         filaBotones2.setBackground(ColoresUDLAP.BLANCO);
         JButton abrirArchivoBtn = botonTransparente("Abrir Archivo",
-                ColoresUDLAP.AZUL, ColoresUDLAP.AZUL);
+                ColoresUDLAP.AZUL_HOVER, ColoresUDLAP.AZUL_SOLIDO);
         JButton vistaBtn = botonTransparente("Vista preliminar del Justificante",
-                ColoresUDLAP.VERDE_OSCURO, ColoresUDLAP.VERDE_OSCURO);
+                ColoresUDLAP.VERDE_HOVER, ColoresUDLAP.VERDE_SOLIDO);
         JButton volverBtn = botonTransparente("Volver",
-                ColoresUDLAP.GRIS_CLARO, ColoresUDLAP.GRIS_CLARO);
+                ColoresUDLAP.GRIS_HOVER, ColoresUDLAP.GRIS_SOLIDO);
         filaBotones2.add(abrirArchivoBtn);
         filaBotones2.add(vistaBtn);
         filaBotones2.add(volverBtn);

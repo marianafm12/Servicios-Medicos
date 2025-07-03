@@ -29,7 +29,7 @@ public class GeneradorPDFJustificante {
             doc.open();
 
             // Fuentes y estilos
-            Font titulo = new Font(Font.HELVETICA, 26, Font.BOLD, new Color(242, 140, 40)); // Naranja UDLAP
+            Font titulo = new Font(Font.HELVETICA, 26, Font.BOLD, new Color(242, 140, 40)); // NARANJA_SOLIDO UDLAP
             Font texto = new Font(Font.HELVETICA, 12);
             Font seccion = new Font(Font.HELVETICA, 14, Font.BOLD);
             Font firma = new Font(Font.HELVETICA, 12, Font.BOLD);

@@ -54,7 +54,7 @@ public class EmitirJustificanteDesdeConsultaFrame extends JPanel {
         gbc.gridwidth = 2;
         JLabel titulo = new JLabel("Emitir Justificante Médico", SwingConstants.CENTER);
         titulo.setFont(titleFont);
-        titulo.setForeground(ColoresUDLAP.VERDE_OSCURO);
+        titulo.setForeground(ColoresUDLAP.VERDE_SOLIDO);
         add(titulo, gbc);
         gbc.gridwidth = 1;
 
@@ -142,7 +142,7 @@ public class EmitirJustificanteDesdeConsultaFrame extends JPanel {
         diagnosticoArea.setLineWrap(true);
         diagnosticoArea.setWrapStyleWord(true);
         diagnosticoArea.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(ColoresUDLAP.GRIS_CLARO),
+                BorderFactory.createLineBorder(ColoresUDLAP.GRIS_HOVER),
                 BorderFactory.createEmptyBorder(5, 5, 5, 5)));
         add(new JScrollPane(diagnosticoArea), gbc);
 
@@ -163,7 +163,7 @@ public class EmitirJustificanteDesdeConsultaFrame extends JPanel {
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
         panelBotones.setBackground(ColoresUDLAP.BLANCO);
 
-        JButton subirArchivoBtn = botonTransparente("Subir Receta", ColoresUDLAP.AZUL, ColoresUDLAP.AZUL);
+        JButton subirArchivoBtn = botonTransparente("Subir Receta", ColoresUDLAP.AZUL_SOLIDO, ColoresUDLAP.AZUL_HOVER);
         subirArchivoBtn.addActionListener(e -> {
             JFileChooser fc = new JFileChooser();
             if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
@@ -171,10 +171,10 @@ public class EmitirJustificanteDesdeConsultaFrame extends JPanel {
             }
         });
 
-        guardarBtn = botonTransparente("Emitir Justificante", ColoresUDLAP.VERDE_OSCURO, ColoresUDLAP.VERDE_OSCURO);
+        guardarBtn = botonTransparente("Emitir Justificante", ColoresUDLAP.VERDE_SOLIDO, ColoresUDLAP.VERDE_SOLIDO);
         guardarBtn.addActionListener(e -> guardar());
 
-        JButton cancelarBtn = botonTransparente("Cancelar", ColoresUDLAP.ROJO, ColoresUDLAP.ROJO_HOVER);
+        JButton cancelarBtn = botonTransparente("Cancelar", ColoresUDLAP.ROJO_SOLIDO, ColoresUDLAP.ROJO_HOVER);
         cancelarBtn.addActionListener(e -> panelManager.showPanel("justificantes"));
 
         panelBotones.add(subirArchivoBtn);
@@ -242,7 +242,7 @@ public class EmitirJustificanteDesdeConsultaFrame extends JPanel {
         JTextField t = new JTextField(20);
         t.setFont(font);
         t.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(ColoresUDLAP.GRIS_CLARO),
+                BorderFactory.createLineBorder(ColoresUDLAP.GRIS_HOVER),
                 BorderFactory.createEmptyBorder(5, 5, 5, 5)));
         return t;
     }

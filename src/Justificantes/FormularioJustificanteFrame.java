@@ -44,7 +44,7 @@ public class FormularioJustificanteFrame extends JPanel {
         gbc.gridwidth = 2;
         JLabel titulo = new JLabel("Solicitud de Justificante Médico", SwingConstants.CENTER);
         titulo.setFont(new Font("Arial", Font.BOLD, 16));
-        titulo.setForeground(ColoresUDLAP.VERDE_OSCURO);
+        titulo.setForeground(ColoresUDLAP.VERDE_SOLIDO);
         add(titulo, gbc);
 
         gbc.gridwidth = 1;
@@ -112,8 +112,8 @@ public class FormularioJustificanteFrame extends JPanel {
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
         panelBotones.setBackground(ColoresUDLAP.BLANCO);
 
-        JButton subirPDF = botonTransparente("Subir Receta", ColoresUDLAP.VERDE, ColoresUDLAP.VERDE_HOVER);
-        JButton btnGuardar = botonTransparente("Guardar", ColoresUDLAP.NARANJA, ColoresUDLAP.NARANJA_HOVER);
+        JButton subirPDF = botonTransparente("Subir Receta", ColoresUDLAP.VERDE_SOLIDO, ColoresUDLAP.VERDE_HOVER);
+        JButton btnGuardar = botonTransparente("Guardar", ColoresUDLAP.NARANJA_SOLIDO, ColoresUDLAP.NARANJA_HOVER);
         JButton btnRegresar = botonTransparente("Regresar", new Color(150, 150, 150), new Color(120, 120, 120));
         btnRegresar.addActionListener(e -> regresarAMenuJustificantes());
 
@@ -200,7 +200,7 @@ public class FormularioJustificanteFrame extends JPanel {
 
     private Border getCampoBorde() {
         return BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(ColoresUDLAP.GRIS_CLARO),
+                BorderFactory.createLineBorder(ColoresUDLAP.GRIS_HOVER),
                 BorderFactory.createEmptyBorder(5, 5, 5, 5));
     }
 

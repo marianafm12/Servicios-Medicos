@@ -46,7 +46,7 @@ public class ModificarCitaFrame extends JPanel {
         gbc.gridwidth = 2;
         JLabel lblTitulo = new JLabel("Modificar Cita Médica", SwingConstants.CENTER);
         lblTitulo.setFont(new Font("Arial", Font.BOLD, 16));
-        lblTitulo.setForeground(ColoresUDLAP.VERDE_OSCURO);
+        lblTitulo.setForeground(ColoresUDLAP.VERDE_SOLIDO);
         add(lblTitulo, gbc);
         gbc.gridwidth = 1;
         gbc.gridy++;
@@ -156,11 +156,11 @@ public class ModificarCitaFrame extends JPanel {
         panelBotones.setBackground(ColoresUDLAP.BLANCO);
 
         JButton btnModificar = botonTransparente(
-                "Modificar Cita", ColoresUDLAP.VERDE, ColoresUDLAP.VERDE_HOVER);
+                "Modificar Cita", ColoresUDLAP.VERDE_SOLIDO, ColoresUDLAP.VERDE_HOVER);
         JButton btnCancelarCita = botonTransparente(
-                "Cancelar Cita", ColoresUDLAP.ROJO, ColoresUDLAP.ROJO_HOVER);
+                "Cancelar Cita", ColoresUDLAP.ROJO_SOLIDO, ColoresUDLAP.ROJO_HOVER);
         JButton btnVolver = botonTransparente(
-                "Volver", ColoresUDLAP.NARANJA, ColoresUDLAP.NARANJA_HOVER);
+                "Volver", ColoresUDLAP.NARANJA_SOLIDO, ColoresUDLAP.NARANJA_HOVER);
 
         btnModificar.addActionListener(e -> modificarCita());
         btnCancelarCita.addActionListener(e -> cancelarCita());
@@ -312,7 +312,7 @@ public class ModificarCitaFrame extends JPanel {
             ps.setInt(4, idCita);
             ps.executeUpdate();
 
-            errorLabel.setForeground(ColoresUDLAP.VERDE_OSCURO);
+            errorLabel.setForeground(ColoresUDLAP.VERDE_SOLIDO);
             errorLabel.setText("Cita modificada correctamente.");
             cargarCitas();
 
@@ -342,7 +342,7 @@ public class ModificarCitaFrame extends JPanel {
 
     private Border getCampoBorde() {
         return BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(ColoresUDLAP.GRIS_CLARO),
+                BorderFactory.createLineBorder(ColoresUDLAP.GRIS_HOVER),
                 BorderFactory.createEmptyBorder(5, 5, 5, 5));
     }
 

@@ -52,11 +52,11 @@ public class NotificacionCitasFrame extends JFrame {
 
         gbc.gridy = 1;
         gbc.gridwidth = 1;
-        aceptarCitaButton = botonTransparente("Aceptar", ColoresUDLAP.VERDE, ColoresUDLAP.VERDE_HOVER);
+        aceptarCitaButton = botonTransparente("Aceptar", ColoresUDLAP.VERDE_SOLIDO, ColoresUDLAP.VERDE_HOVER);
         add(aceptarCitaButton, gbc);
 
         gbc.gridx = 1;
-        rechazarCitaButton = botonTransparente("Rechazar", ColoresUDLAP.NARANJA, ColoresUDLAP.NARANJA_HOVER);
+        rechazarCitaButton = botonTransparente("Rechazar", ColoresUDLAP.NARANJA_SOLIDO, ColoresUDLAP.NARANJA_HOVER);
         add(rechazarCitaButton, gbc);
 
         gbc.gridx = 0;
