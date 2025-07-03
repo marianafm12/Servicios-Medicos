@@ -29,7 +29,7 @@ public class GeneradorPDFJustificante {
             doc.open();
 
             // Fuentes y estilos
-            Font titulo = new Font(Font.HELVETICA, 26, Font.BOLD, new Color(242, 140, 40)); // Naranja UDLAP
+            Font titulo = new Font(Font.HELVETICA, 26, Font.BOLD, new Color(242, 140, 40)); // NARANJA_SOLIDO UDLAP
             Font texto = new Font(Font.HELVETICA, 12);
             Font seccion = new Font(Font.HELVETICA, 14, Font.BOLD);
             Font firma = new Font(Font.HELVETICA, 12, Font.BOLD);
@@ -59,15 +59,14 @@ public class GeneradorPDFJustificante {
             cuerpo.append("por el motivo de ").append(j.getMotivo()).append(".\n\n");
 
             cuerpo.append("Se solicita reposo obligatorio desde el ")
-                  .append(j.getFechaInicio().format(fmt)).append(" hasta el ")
-                  .append(j.getFechaFin().format(fmt)).append(", ");
+                    .append(j.getFechaInicio().format(fmt)).append(" hasta el ")
+                    .append(j.getFechaFin().format(fmt)).append(", ");
 
             if (j.getResueltoPor() != null) {
-                cuerpo.append("con aprobación del médico ").append(j.getResueltoPor()).append(".\n\n");
+                cuerpo.append("con aprobación del Dr. ").append(j.getResueltoPor()).append(".\n\n");
             } else {
                 cuerpo.append("aún en espera de revisión médica.\n\n");
             }
-
 
             cuerpo.append("El diagnóstico emitido es: ").append(j.getDiagnostico()).append("\n\n");
 
@@ -83,15 +82,15 @@ public class GeneradorPDFJustificante {
             // Información de control
             doc.add(new Paragraph("Folio: " + j.getFolio(), texto));
             doc.add(new Paragraph("Estado del justificante: " + j.getEstado(), texto));
-            doc.add(new Paragraph("Resuelto por: " + (j.getResueltoPor() != null ? j.getResueltoPor() : "Pendiente"), texto));
-            doc.add(new Paragraph("Fecha de resolución: " + 
-                (j.getFechaResolucion() != null ? j.getFechaResolucion().format(fmt) : "Pendiente"), texto));
-
+            doc.add(new Paragraph("Resuelto por: Dr." + (j.getResueltoPor() != null ? j.getResueltoPor() : "Pendiente"),
+                    texto));
+            doc.add(new Paragraph("Fecha de resolución: " +
+                    (j.getFechaResolucion() != null ? j.getFechaResolucion().format(fmt) : "Pendiente"), texto));
 
             // Firma
             doc.add(new Paragraph("\n\n________________________", texto));
-            doc.add(new Paragraph(j.getResueltoPor() != null ? j.getResueltoPor() : "________________", firma));
-
+            doc.add(new Paragraph("Dr. " + (j.getResueltoPor() != null ? j.getResueltoPor() : "________________"),
+                    firma));
 
             doc.close();
             return file;

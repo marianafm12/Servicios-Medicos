@@ -1,6 +1,7 @@
 package Justificantes;
 
 import Utilidades.ColoresUDLAP;
+import Utilidades.ComboBoxUDLAP;
 import Utilidades.PanelManager;
 
 import javax.swing.*;
@@ -15,7 +16,7 @@ import BaseDeDatos.ConexionSQLite;
 
 public class CorreosProfesoresPanel extends JPanel {
 
-    private final JComboBox<Integer> countBox = new JComboBox<>();
+    private final ComboBoxUDLAP<Integer> countBox;
     private final JPanel correosPanel = new JPanel();
     private final JButton enviarBtn = new JButton("Enviar Justificante");
     private final JButton menuBtn = new JButton("Menú Principal");
@@ -36,18 +37,23 @@ public class CorreosProfesoresPanel extends JPanel {
         top.setBackground(ColoresUDLAP.BLANCO);
         top.add(new JLabel("Cantidad de profesores:"));
 
-        for (int i = 1; i <= 12; i++)
-            countBox.addItem(i);
-        countBox.setSelectedItem(3);
+        // Usar ComboBoxUDLAP con valores 1-12 (sin placeholder)
+        Integer[] valores = new Integer[12];
+        for (int i = 0; i < 12; i++) {
+            valores[i] = i + 1;
+        }
+        countBox = new ComboBoxUDLAP<>(valores);
+        countBox.setFont(new Font("Arial", Font.PLAIN, 14));
         countBox.setBackground(Color.WHITE);
+        countBox.setSelectedIndex(2); // por defecto 3
         top.add(countBox);
 
-        countBox.addActionListener(e -> actualizarCampos((int) countBox.getSelectedItem()));
+        countBox.addActionListener(e -> actualizarCampos(countBox.getSelectedItem()));
 
         // Center
         correosPanel.setLayout(new BoxLayout(correosPanel, BoxLayout.Y_AXIS));
         correosPanel.setBackground(ColoresUDLAP.BLANCO);
-        actualizarCampos(3);
+        actualizarCampos(countBox.getSelectedItem());
         JScrollPane scroll = new JScrollPane(correosPanel);
         scroll.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
 
@@ -55,11 +61,11 @@ public class CorreosProfesoresPanel extends JPanel {
         JPanel bot = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
         bot.setBackground(ColoresUDLAP.BLANCO);
 
-        enviarBtn.setBackground(ColoresUDLAP.VERDE_OSCURO);
+        enviarBtn.setBackground(ColoresUDLAP.VERDE_SOLIDO);
         enviarBtn.setForeground(Color.WHITE);
         enviarBtn.setFocusPainted(false);
 
-        menuBtn.setBackground(ColoresUDLAP.NARANJA);
+        menuBtn.setBackground(ColoresUDLAP.NARANJA_SOLIDO);
         menuBtn.setForeground(Color.WHITE);
         menuBtn.setFocusPainted(false);
 
@@ -92,7 +98,7 @@ public class CorreosProfesoresPanel extends JPanel {
         });
     }
 
-    private void actualizarCampos(int n) {
+    private void actualizarCampos(Integer n) {
         correosPanel.removeAll();
         for (int i = 1; i <= n; i++) {
             correosPanel.add(new JLabel("Correo profesor " + i + ":"));
@@ -113,7 +119,8 @@ public class CorreosProfesoresPanel extends JPanel {
                 String email = tf.getText().trim();
                 if (!email.isEmpty()) {
                     if (!email.endsWith("@udlap.mx")) {
-                        JOptionPane.showMessageDialog(this,
+                        JOptionPane.showMessageDialog(
+                                this,
                                 "El correo \"" + email + "\" no es válido. Solo se permiten correos @udlap.mx.",
                                 "Correo inválido",
                                 JOptionPane.WARNING_MESSAGE);
@@ -125,7 +132,8 @@ public class CorreosProfesoresPanel extends JPanel {
         }
 
         if (correos.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
+            JOptionPane.showMessageDialog(
+                    this,
                     "Debes ingresar al menos un correo válido.",
                     "Campo vacío",
                     JOptionPane.WARNING_MESSAGE);

@@ -52,7 +52,7 @@ public class FrameRegistro extends JPanel {
             campos[i] = new JTextField(25);
             campos[i].setFont(fieldFont);
             campos[i].setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(ColoresUDLAP.GRIS_CLARO),
+                    BorderFactory.createLineBorder(ColoresUDLAP.GRIS_HOVER),
                     BorderFactory.createEmptyBorder(5, 5, 5, 5)));
             add(campos[i], gbc);
         }

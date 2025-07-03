@@ -26,7 +26,7 @@ public class PanelReportarEmergencia extends JPanel implements PanelProvider {
         JButton btnMedicos = crearBotonEmergencia("Llamar a Servicios Médicos", ColoresUDLAP.VERDE_SOLIDO);
         btnMedicos.addActionListener(e -> mostrarLlamada("Servicios Médicos"));
 
-        JButton btnSeguridad = crearBotonEmergencia("Llamar a Seguridad UDLAP", ColoresUDLAP.NARANJA_BARRA);
+        JButton btnSeguridad = crearBotonEmergencia("Llamar a Seguridad UDLAP", ColoresUDLAP.NARANJA_SOLIDO);
         btnSeguridad.addActionListener(e -> mostrarLlamada("Seguridad UDLAP"));
 
         centro.add(btnMedicos);

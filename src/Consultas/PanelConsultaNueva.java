@@ -15,7 +15,7 @@ import java.util.Date;
 public class PanelConsultaNueva extends FormularioMedicoBase implements PanelProvider {
 
     /** Barra de botones reutilizable */
-    private final PanelBotonesFormulario barra;
+    private final PanelBotonesFormulario botones;
 
     public PanelConsultaNueva(int idMedico, String nombreMedico) {
         super("Consulta Médica – Dr. " + nombreMedico, new String[] {
@@ -52,8 +52,11 @@ public class PanelConsultaNueva extends FormularioMedicoBase implements PanelPro
         JTextArea taReceta = (JTextArea) campos[11];
 
         /* ─────────────────── 3. BARRA DE BOTONES ─────────────────────── */
-        barra = new PanelBotonesFormulario("Guardar", "Buscar", "Limpiar");
-        add(barra, BorderLayout.SOUTH);
+        botones = new PanelBotonesFormulario(
+                new PanelBotonesFormulario.BotonConfig("Guardar", PanelBotonesFormulario.BotonConfig.Tipo.PRIMARY),
+                new PanelBotonesFormulario.BotonConfig("Buscar", PanelBotonesFormulario.BotonConfig.Tipo.SECONDARY),
+                new PanelBotonesFormulario.BotonConfig("Limpiar", PanelBotonesFormulario.BotonConfig.Tipo.DANGER));
+        add(botones, BorderLayout.SOUTH);
 
         /* Acción Buscar: ahora SOLO por ID y rellena Edad-Altura-Peso-Medicación */
         BuscarPaciente buscarAccion = new BuscarPaciente(new JTextField[] {
@@ -61,7 +64,7 @@ public class PanelConsultaNueva extends FormularioMedicoBase implements PanelPro
         });
 
         /* ────────── 4. LISTENERS: se registran en bloque ─────────────── */
-        barra.setListeners(
+        botones.setListeners(
                 new GuardarConsulta(
                         idMedico, // ← se envía el ID del médico de la sesión
                         txtId, // ID Paciente

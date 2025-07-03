@@ -43,7 +43,7 @@ public class AgendaCitaFrame extends JPanel {
         gbc.gridwidth = 2;
         JLabel lblTitulo = new JLabel("Agendar Cita Médica", SwingConstants.CENTER);
         lblTitulo.setFont(new Font("Arial", Font.BOLD, 16));
-        lblTitulo.setForeground(ColoresUDLAP.VERDE_OSCURO);
+        lblTitulo.setForeground(ColoresUDLAP.VERDE_SOLIDO);
         add(lblTitulo, gbc);
         gbc.gridwidth = 1;
         gbc.gridy++;
@@ -109,6 +109,7 @@ public class AgendaCitaFrame extends JPanel {
         add(lblFecha, gbc);
         gbc.gridx = 1;
         datePickerUDLAP = new DatePickerUDLAP();
+        datePickerUDLAP.setBlockWeekends(true); // Bloquear fines de semana
         add(datePickerUDLAP, gbc);
 
         // — HORA — (dos ComboBoxUDLAP)
@@ -143,9 +144,9 @@ public class AgendaCitaFrame extends JPanel {
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
         panelBotones.setBackground(ColoresUDLAP.BLANCO);
         JButton btnConfirmar = botonTransparente("Confirmar",
-                ColoresUDLAP.VERDE, ColoresUDLAP.VERDE_HOVER);
+                ColoresUDLAP.VERDE_SOLIDO, ColoresUDLAP.VERDE_HOVER);
         JButton btnCancelar = botonTransparente("Volver",
-                ColoresUDLAP.NARANJA, ColoresUDLAP.NARANJA_HOVER);
+                ColoresUDLAP.NARANJA_SOLIDO, ColoresUDLAP.NARANJA_HOVER);
         btnConfirmar.addActionListener(e -> validarYConfirmarCita());
         btnCancelar.addActionListener(e -> panelManager.showPanel("panelGestionCitas"));
         panelBotones.add(btnConfirmar);
@@ -197,7 +198,7 @@ public class AgendaCitaFrame extends JPanel {
                             return null;
                         }
                     }.execute();
-                    errorLabel.setForeground(ColoresUDLAP.NARANJA);
+                    errorLabel.setForeground(ColoresUDLAP.NARANJA_SOLIDO);
                     errorLabel.setText("Registrado en lista de espera.");
                 }
                 return;
@@ -217,7 +218,7 @@ public class AgendaCitaFrame extends JPanel {
                 ps.setString(3, horaFinal);
                 ps.setString(4, servicio);
                 ps.executeUpdate();
-                errorLabel.setForeground(ColoresUDLAP.VERDE_OSCURO);
+                errorLabel.setForeground(ColoresUDLAP.VERDE_SOLIDO);
                 errorLabel.setText("Cita agendada exitosamente.");
             }
         } catch (SQLException ex) {
@@ -275,7 +276,7 @@ public class AgendaCitaFrame extends JPanel {
 
     private Border getCampoBorde() {
         return BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(ColoresUDLAP.GRIS_CLARO),
+                BorderFactory.createLineBorder(ColoresUDLAP.GRIS_HOVER),
                 BorderFactory.createEmptyBorder(5, 5, 5, 5));
     }
 }

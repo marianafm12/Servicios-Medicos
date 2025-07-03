@@ -23,7 +23,7 @@ public class PanelHistorialMedicoEditable extends JPanel {
         campoID = new JTextField(10);
         JButton botonBuscar = new JButton("Consultar");
 
-        // Color institucional NARANJA UDLAP
+        // Color institucional NARANJA_SOLIDO UDLAP
         botonBuscar.setBackground(new Color(255, 102, 0));
         botonBuscar.setForeground(Color.WHITE);
         botonBuscar.setFocusPainted(false);

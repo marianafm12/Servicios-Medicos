@@ -59,12 +59,16 @@ public class FormularioGestionEnfermedades extends FormularioMedicoBase {
             txtMedicacion.setEditable(false);
         }
 
-        botones = new PanelBotonesFormulario("Guardar", "Buscar", "Limpiar");
+        botones = new PanelBotonesFormulario(
+                new PanelBotonesFormulario.BotonConfig("Guardar", PanelBotonesFormulario.BotonConfig.Tipo.PRIMARY),
+                new PanelBotonesFormulario.BotonConfig("Buscar", PanelBotonesFormulario.BotonConfig.Tipo.SECONDARY),
+                new PanelBotonesFormulario.BotonConfig("Limpiar", PanelBotonesFormulario.BotonConfig.Tipo.DANGER));
+
         add(botones, BorderLayout.SOUTH);
 
         if (!esMedico) {
-            botones.btnGuardar.setEnabled(false);
-            botones.btnLimpiar.setEnabled(false);
+            botones.getBotones().get(0).setEnabled(false); // Guardar
+            botones.getBotones().get(2).setEnabled(false); // Limpiar
         }
 
         botones.setListeners(

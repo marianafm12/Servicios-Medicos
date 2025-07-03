@@ -1,6 +1,7 @@
 package Justificantes;
 
-import Utilidades.ColoresUDLAP;
+import Utilidades.*;
+
 import javax.swing.*;
 import javax.swing.border.Border;
 
@@ -20,8 +21,8 @@ public class FormularioJustificanteFrame extends JPanel {
 
     private final PanelManager panelManager;
     private JTextField idField, nombreField, motivoField;
-    private JComboBox<String> diaInicio, mesInicio, anioInicio;
-    private JComboBox<String> diaFin, mesFin, anioFin;
+    private DatePickerUDLAP inicioPicker;
+    private DatePickerUDLAP finPicker;
     private File archivoPDF = null;
     private JLabel mensajeLabel;
 
@@ -35,7 +36,6 @@ public class FormularioJustificanteFrame extends JPanel {
         gbc.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Font labelFont = new Font("Arial", Font.BOLD, 14);
         Font fieldFont = new Font("Arial", Font.PLAIN, 14);
 
         // Título
@@ -44,7 +44,7 @@ public class FormularioJustificanteFrame extends JPanel {
         gbc.gridwidth = 2;
         JLabel titulo = new JLabel("Solicitud de Justificante Médico", SwingConstants.CENTER);
         titulo.setFont(new Font("Arial", Font.BOLD, 16));
-        titulo.setForeground(ColoresUDLAP.VERDE_OSCURO);
+        titulo.setForeground(ColoresUDLAP.VERDE_SOLIDO);
         add(titulo, gbc);
 
         gbc.gridwidth = 1;
@@ -79,41 +79,21 @@ public class FormularioJustificanteFrame extends JPanel {
         motivoField.setBorder(getCampoBorde());
         add(motivoField, gbc);
 
-        // Fecha de inicio
+        // Fecha de inicio (DatePickerUDLAP)
         gbc.gridy++;
         gbc.gridx = 0;
         add(new JLabel("Inicio de Reposo:"), gbc);
         gbc.gridx = 1;
-        JPanel panelInicio = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
-        panelInicio.setBackground(ColoresUDLAP.BLANCO);
-        diaInicio = new JComboBox<>(generarDias());
-        mesInicio = new JComboBox<>(generarMeses());
-        anioInicio = new JComboBox<>(generarAnios());
-        diaInicio.setFont(fieldFont);
-        mesInicio.setFont(fieldFont);
-        anioInicio.setFont(fieldFont);
-        panelInicio.add(diaInicio);
-        panelInicio.add(mesInicio);
-        panelInicio.add(anioInicio);
-        add(panelInicio, gbc);
+        inicioPicker = new DatePickerUDLAP();
+        add(inicioPicker, gbc);
 
-        // Fecha de fin
+        // Fecha de fin (DatePickerUDLAP)
         gbc.gridy++;
         gbc.gridx = 0;
         add(new JLabel("Fin de Reposo:"), gbc);
         gbc.gridx = 1;
-        JPanel panelFin = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
-        panelFin.setBackground(ColoresUDLAP.BLANCO);
-        diaFin = new JComboBox<>(generarDias());
-        mesFin = new JComboBox<>(generarMeses());
-        anioFin = new JComboBox<>(generarAnios());
-        diaFin.setFont(fieldFont);
-        mesFin.setFont(fieldFont);
-        anioFin.setFont(fieldFont);
-        panelFin.add(diaFin);
-        panelFin.add(mesFin);
-        panelFin.add(anioFin);
-        add(panelFin, gbc);
+        finPicker = new DatePickerUDLAP();
+        add(finPicker, gbc);
 
         // Label de estado
         gbc.gridy++;
@@ -132,8 +112,8 @@ public class FormularioJustificanteFrame extends JPanel {
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
         panelBotones.setBackground(ColoresUDLAP.BLANCO);
 
-        JButton subirPDF = botonTransparente("Subir Receta", ColoresUDLAP.VERDE, ColoresUDLAP.VERDE_HOVER);
-        JButton btnGuardar = botonTransparente("Guardar", ColoresUDLAP.NARANJA, ColoresUDLAP.NARANJA_HOVER);
+        JButton subirPDF = botonTransparente("Subir Receta", ColoresUDLAP.VERDE_SOLIDO, ColoresUDLAP.VERDE_HOVER);
+        JButton btnGuardar = botonTransparente("Guardar", ColoresUDLAP.NARANJA_SOLIDO, ColoresUDLAP.NARANJA_HOVER);
         JButton btnRegresar = botonTransparente("Regresar", new Color(150, 150, 150), new Color(120, 120, 120));
         btnRegresar.addActionListener(e -> regresarAMenuJustificantes());
 
@@ -165,18 +145,12 @@ public class FormularioJustificanteFrame extends JPanel {
             return;
         }
 
-        LocalDate inicio = construirFecha(diaInicio, mesInicio, anioInicio);
-        LocalDate fin = construirFecha(diaFin, mesFin, anioFin);
+        LocalDate inicio = inicioPicker.getDate();
+        LocalDate fin = finPicker.getDate();
 
-        if (!inicio.isAfter(LocalDate.now())) {
+        if (fin == null || inicio.isAfter(fin)) {
             mensajeLabel.setForeground(Color.RED);
-            mensajeLabel.setText("La fecha de inicio debe ser posterior a hoy.");
-            return;
-        }
-
-        if (inicio.isAfter(fin)) {
-            mensajeLabel.setForeground(Color.RED);
-            mensajeLabel.setText("La fecha de inicio no puede ser posterior a la de fin.");
+            mensajeLabel.setText("La fecha de fin debe ser igual o posterior a la de inicio.");
             return;
         }
 
@@ -189,54 +163,16 @@ public class FormularioJustificanteFrame extends JPanel {
             limpiarFormulario();
 
             int folioNuevo = obtenerUltimoFolioInsertado();
-
             if (folioNuevo > 0) {
                 CorreosProfesoresPanel panelCorreos = new CorreosProfesoresPanel(folioNuevo, panelManager);
                 panelManager.mostrarPanelPersonalizado(panelCorreos);
-
             } else {
                 mensajeLabel.setForeground(Color.RED);
                 mensajeLabel.setText("No se pudo obtener el folio para agregar correos.");
             }
-
         } else {
             mensajeLabel.setForeground(Color.RED);
             mensajeLabel.setText("Error al guardar justificante.");
-        }
-    }
-
-    private String[] generarDias() {
-        String[] d = new String[31];
-        for (int i = 1; i <= 31; i++)
-            d[i - 1] = String.valueOf(i);
-        return d;
-    }
-
-    private String[] generarMeses() {
-        return new String[] {
-                "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-                "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
-        };
-    }
-
-    private String[] generarAnios() {
-        int base = LocalDate.now().getYear();
-        String[] a = new String[6];
-        for (int i = 0; i < 6; i++)
-            a[i] = String.valueOf(base + i);
-        return a;
-    }
-
-    private LocalDate construirFecha(JComboBox<String> dia, JComboBox<String> mes, JComboBox<String> anio) {
-        try {
-            int d = Integer.parseInt((String) dia.getSelectedItem());
-            int m = mes.getSelectedIndex() + 1;
-            int y = Integer.parseInt((String) anio.getSelectedItem());
-            return LocalDate.of(y, m, d);
-        } catch (Exception e) {
-            mensajeLabel.setForeground(Color.RED);
-            mensajeLabel.setText("Fecha inválida. Verifique el día, mes y año seleccionados.");
-            return null;
         }
     }
 
@@ -264,7 +200,7 @@ public class FormularioJustificanteFrame extends JPanel {
 
     private Border getCampoBorde() {
         return BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(ColoresUDLAP.GRIS_CLARO),
+                BorderFactory.createLineBorder(ColoresUDLAP.GRIS_HOVER),
                 BorderFactory.createEmptyBorder(5, 5, 5, 5));
     }
 
@@ -276,34 +212,28 @@ public class FormularioJustificanteFrame extends JPanel {
         try (Connection conn = ConexionSQLite.conectar();
                 PreparedStatement ps = conn.prepareStatement(
                         "SELECT Nombre, ApellidoPaterno, ApellidoMaterno FROM InformacionAlumno WHERE ID = ?")) {
-
             ps.setInt(1, idActual);
-            ResultSet rs = ps.executeQuery();
-
-            if (rs.next()) {
-                String nombreCompleto = rs.getString("Nombre") + " " +
-                        rs.getString("ApellidoPaterno") + " " +
-                        rs.getString("ApellidoMaterno");
-                nombreField.setText(nombreCompleto);
-                nombreField.setEditable(false);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    String nombreCompleto = rs.getString("Nombre") + " " +
+                            rs.getString("ApellidoPaterno") + " " + rs.getString("ApellidoMaterno");
+                    nombreField.setText(nombreCompleto);
+                    nombreField.setEditable(false);
+                }
             }
-
         } catch (SQLException ex) {
             ex.printStackTrace();
             nombreField.setText("Error al cargar nombre");
         }
     }
 
-    private void regresarAMenuJustificantes() {
-        panelManager.showPanel("justificantesPaciente");
-    }
-
     private int obtenerUltimoFolioInsertado() {
         try (Connection conn = ConexionSQLite.conectar();
                 PreparedStatement pst = conn.prepareStatement("SELECT MAX(folio) FROM JustificantePaciente")) {
-            ResultSet rs = pst.executeQuery();
-            if (rs.next()) {
-                return rs.getInt(1);
+            try (ResultSet rs = pst.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -315,5 +245,9 @@ public class FormularioJustificanteFrame extends JPanel {
         motivoField.setText("");
         archivoPDF = null;
         mensajeLabel.setText("");
+    }
+
+    private void regresarAMenuJustificantes() {
+        panelManager.showPanel("justificantesPaciente");
     }
 }

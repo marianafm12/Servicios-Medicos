@@ -27,8 +27,8 @@ public class PanelGestionCitas extends JPanel {
         // Botón para agendar cita
         JButton btnAgendarCita = botonTransparente(
                 "Agendar Cita",
-                new Color(0, 102, 0, 100), // Verde transparente
-                new Color(0, 102, 0, 170) // Verde más opaco al hover
+                new Color(0, 102, 0, 100), // VERDE_SOLIDO transparente
+                new Color(0, 102, 0, 170) // VERDE_SOLIDO más opaco al hover
         );
         btnAgendarCita.setMaximumSize(new Dimension(350, 60));
         btnAgendarCita.addActionListener(e -> {
@@ -38,8 +38,8 @@ public class PanelGestionCitas extends JPanel {
         // Botón para modificar cita
         JButton btnModificarCita = botonTransparente(
                 "Modificar Cita",
-                new Color(255, 102, 0, 100), // Naranja transparente
-                new Color(255, 102, 0, 170) // Naranja más opaco al hover
+                new Color(255, 102, 0, 100), // NARANJA_SOLIDO transparente
+                new Color(255, 102, 0, 170) // NARANJA_SOLIDO más opaco al hover
         );
         btnModificarCita.setMaximumSize(new Dimension(350, 60));
         btnModificarCita.addActionListener(e -> {
