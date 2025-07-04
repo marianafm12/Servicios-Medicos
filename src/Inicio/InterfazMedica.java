@@ -128,7 +128,7 @@ public class InterfazMedica extends JFrame {
 
         JPanel contenedorBarras = new JPanel();
         contenedorBarras.setLayout(new BoxLayout(contenedorBarras, BoxLayout.Y_AXIS));
-        contenedorBarras.add(new BarraVentanaUDLAP(this));
+        contenedorBarras.add(new BarraVentanaUDLAP(this, false));
         contenedorBarras.add(crearTopPanel());
         add(contenedorBarras, BorderLayout.NORTH);
 
