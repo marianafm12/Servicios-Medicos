@@ -48,8 +48,6 @@ public class PanelDetalleEmergencia extends JPanel {
         centro.add(makeRow("Tipo de Emergencia: ", emergencia.getTipoDeEmergencia()));
         centro.add(makeRow("Gravedad: ", emergencia.getGravedad()));
         centro.add(makeRow("Descripción: ", emergencia.getDescripcion()));
-        centro.add(makeRow("Fecha Incidente: ",
-                emergencia.getFechaIncidente().toLocalDateTime().format(fmt)));
         centro.add(makeRow("Fecha Registro: ",
                 emergencia.getFechaRegistro().toLocalDateTime().format(fmt)));
         centro.add(makeRow("Estado: ", emergencia.getEstado()));

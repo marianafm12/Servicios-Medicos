@@ -5,6 +5,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class EmergenciaDAO {
 
     /**
@@ -41,6 +42,11 @@ public class EmergenciaDAO {
                 int rawId = rs.getInt("IDPaciente");
                 Integer idPaciente = rs.wasNull() ? null : rawId;
 
+                Timestamp fechaIncidente = rs.getTimestamp("FechaIncidente");
+                Timestamp fechaRegistro  = rs.getTimestamp("FechaRegistro");
+
+
+
                 lista.add(new Emergencia(
                     rs.getInt("IDEmergencia"),
                     idPaciente,                           // ahora Integer
@@ -48,8 +54,8 @@ public class EmergenciaDAO {
                     rs.getString("TipoDeEmergencia"),
                     rs.getString("Gravedad"),
                     rs.getString("Descripcion"),
-                    rs.getTimestamp("FechaIncidente"),
-                    rs.getTimestamp("FechaRegistro"),
+                    fechaIncidente,
+                    fechaRegistro,
                     rs.getString("Estado"),
                     rs.getString("TelefonoContacto"),
                     rs.getString("Medico")
@@ -89,6 +95,9 @@ public class EmergenciaDAO {
                 if (rs.next()) {
                     int rawId = rs.getInt("IDPaciente");
                     Integer idPaciente = rs.wasNull() ? null : rawId;
+                    Timestamp fechaIncidente = rs.getTimestamp("FechaIncidente");
+                    Timestamp fechaRegistro  = rs.getTimestamp("FechaRegistro");
+
                     return new Emergencia(
                         rs.getInt("IDEmergencia"),
                         idPaciente,
@@ -96,8 +105,8 @@ public class EmergenciaDAO {
                         rs.getString("TipoDeEmergencia"),
                         rs.getString("Gravedad"),
                         rs.getString("Descripcion"),
-                        rs.getTimestamp("FechaIncidente"),
-                        rs.getTimestamp("FechaRegistro"),
+                        fechaIncidente,
+                        fechaRegistro,
                         rs.getString("Estado"),
                         rs.getString("TelefonoContacto"),
                         rs.getString("Medico")

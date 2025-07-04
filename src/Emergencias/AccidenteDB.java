@@ -147,31 +147,47 @@ public class AccidenteDB {
      * Recupera de BD un accidente por su IDEmergencia,
      * mapeándolo completamente a un objeto Accidente (incluyendo sus fotos).
      */
-    public static Accidente buscarAccidente(int idEmergencia) {
-        String sql = "SELECT * FROM Accidentes WHERE IDEmergencia = ?";
-        try (
-            Connection conn = ConexionSQLite.conectar();
-            PreparedStatement ps = conn.prepareStatement(sql)
-        ) {
-            ps.setInt(1, idEmergencia);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    // 1) Cargar las fotos asociadas
+        public static Accidente buscarAccidente(int idEmergencia) {
+            String sql = """
+                SELECT acc.*,
+                    e.FechaRegistro            AS FechaRegistro,
+                    COALESCE(m.Nombre || ' ' || m.ApellidoPaterno || ' ' || m.ApellidoMaterno, '-') 
+                        AS ParamedicoResponsable
+                FROM Accidentes acc
+                JOIN Emergencias e 
+                    ON acc.IDEmergencia = e.IDEmergencia
+                LEFT JOIN InformacionMedico m 
+                    ON e.IDResponsable = m.ID
+                WHERE acc.IDEmergencia = ?
+                """;
+            try (
+                Connection conn = ConexionSQLite.conectar();
+                PreparedStatement ps = conn.prepareStatement(sql)
+            ) {
+                ps.setInt(1, idEmergencia);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (!rs.next()) return null;
+
+                    // 1) fotos
                     List<byte[]> fotos = new ArrayList<>();
-                    String sqlFotos = "SELECT Foto FROM AccidenteFotos WHERE IDAccidente = ?";
                     int idAcc = rs.getInt("IDAccidente");
+                    String sqlFotos = "SELECT Foto FROM AccidenteFotos WHERE IDAccidente = ?";
                     try (PreparedStatement psF = conn.prepareStatement(sqlFotos)) {
                         psF.setInt(1, idAcc);
                         try (ResultSet rsF = psF.executeQuery()) {
-                            while (rsF.next()) {
-                                fotos.add(rsF.getBytes("Foto"));
-                            }
+                            while (rsF.next()) fotos.add(rsF.getBytes("Foto"));
                         }
                     }
 
-                    // 2) Construir y devolver el objeto Accidente (con fotos al final)
+                    // 2) leer los nuevos campos
+                    String fechaRegistro    = rs.getString("FechaRegistro");
+                    String paramedico       = rs.getString("ParamedicoResponsable");
+
+                    // 3) devolver Accidente con TODO + fechaRegistro + paramedico
                     return new Accidente(
                         rs.getInt("IDEmergencia"),
+                        fechaRegistro,            
+                        paramedico,  
                         rs.getInt("Matricula"),
                         rs.getString("NombreEstudiante"),
                         rs.getString("ApellidoPaterno"),
@@ -221,14 +237,14 @@ public class AccidenteDB {
                         rs.getString("Testigo1Nombre"),
                         rs.getString("Testigo1Telefono"),
                         rs.getString("NarrativaDetallada"),
-                        rs.getString("FechaElaboracion"),
+                        rs.getString("FechaElaboracion"),   
                         fotos
                     );
                 }
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+                return null;
             }
-        } catch (SQLException ex) {
-            ex.printStackTrace();
         }
-        return null;
-    }
+
 }
