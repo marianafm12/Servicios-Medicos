@@ -2,12 +2,10 @@ package Utilidades;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 /**
  * Componente para mostrar mensajes de error, advertencia o éxito inline,
- * y ventana modal de error/advertencia con estilo UDLAP.
+ * y lanzar un diálogo modal de error/advertencia con estilo UDLAP.
  */
 public class MensajeErrorUDLAP extends JLabel {
     private static final Icon ICON_ERROR = UIManager.getIcon("OptionPane.errorIcon");
@@ -41,43 +39,53 @@ public class MensajeErrorUDLAP extends JLabel {
         setForeground(ColoresUDLAP.VERDE_SOLIDO);
     }
 
-    /** Limpia texto e ícono. */
+    /** Limpia el texto y el ícono. */
     public void limpiar() {
         setText("");
         setIcon(null);
     }
 
     /**
-     * Lanza una ventana modal de error con barra y botón de cierre.
+     * Lanza un diálogo modal de error con barra roja, borde alrededor
+     * y botón de cierre.
      */
-    public static void mostrarVentanaError(Frame owner, String titulo, String mensaje) {
+    public static void mostrarVentanaError(Window owner, String titulo, String mensaje) {
         VentanaErrorUDLAP dialog = new VentanaErrorUDLAP(owner, titulo, mensaje);
         dialog.setVisible(true);
     }
 }
 
 /**
- * Diálogo modal con barra personalizada y botón estilo formulario.
+ * Diálogo modal con barra superior roja, borde exterior y botón de cierre.
  */
 class VentanaErrorUDLAP extends JDialog {
-    public VentanaErrorUDLAP(Frame owner, String titulo, String mensaje) {
-        super(owner, titulo, true);
+    public VentanaErrorUDLAP(Window owner, String titulo, String mensaje) {
+        super(owner, titulo, ModalityType.APPLICATION_MODAL);
         setUndecorated(true);
         setLayout(new BorderLayout());
-        // Barra superior
-        add(new BarraVentanaUDLAP(this), BorderLayout.NORTH);
 
-        // Contenido central
-        JPanel content = new JPanel(new BorderLayout());
-        content.setBackground(ColoresUDLAP.BLANCO);
-        content.setBorder(BorderFactory.createLineBorder(ColoresUDLAP.GRIS_HOVER));
+        // Barra superior personalizada (roja)
+        add(new BarraVentanaUDLAP(true), BorderLayout.NORTH);
 
+        // Borde rojo alrededor de toda la ventana
+        getRootPane().setBorder(BorderFactory.createLineBorder(ColoresUDLAP.ROJO_SOLIDO, 2));
+
+        // Mensaje central sin línea intermedia
         JLabel lblMsg = new JLabel(mensaje, SwingConstants.CENTER);
         lblMsg.setFont(new Font("Arial", Font.PLAIN, 14));
         lblMsg.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        content.add(lblMsg, BorderLayout.CENTER);
 
+        JPanel content = new JPanel(new BorderLayout());
+        content.setBackground(ColoresUDLAP.BLANCO);
+        content.add(lblMsg, BorderLayout.CENTER);
         add(content, BorderLayout.CENTER);
+
+        // Botón de cierre al pie
+        PanelBotonesFormulario panelBot = new PanelBotonesFormulario(
+                new PanelBotonesFormulario.BotonConfig("Cerrar", PanelBotonesFormulario.BotonConfig.Tipo.DANGER));
+        panelBot.setListeners(e -> dispose());
+        add(panelBot, BorderLayout.SOUTH);
+
         pack();
         setLocationRelativeTo(owner);
     }
