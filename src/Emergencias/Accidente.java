@@ -8,6 +8,8 @@ import java.util.Objects;
 public class Accidente {
     // I. Datos del Estudiante
     private final int idEmergencia;
+    private final String fechaRegistro;           // “YYYY-MM-DD HH:mm:ss”
+    private final String paramedicoResponsable;
     private final int matricula;
     private final String nombreEstudiante;
     private final String apellidoPaterno;
@@ -22,6 +24,7 @@ public class Accidente {
     private final String direccion;
 
     // II. Información del Accidente
+
     private final String fechaAccidente;       // "YYYY-MM-DD HH:MM:SS"
     private final String diaSemana;
     private final String lugarOcurrencia;
@@ -78,6 +81,8 @@ public class Accidente {
 
     public Accidente(
         int idEmergencia,
+        String fechaRegistro,
+        String paramedicoResponsable,
         int matricula,
         String nombreEstudiante,
         String apellidoPaterno,
@@ -131,6 +136,8 @@ public class Accidente {
         List<byte[]> fotos 
     ) {
         this.idEmergencia = idEmergencia;
+        this.fechaRegistro    = fechaRegistro;
+        this.paramedicoResponsable = paramedicoResponsable;
         this.matricula = matricula;
         this.nombreEstudiante = nombreEstudiante;
         this.apellidoPaterno = apellidoPaterno;
@@ -242,4 +249,6 @@ public class Accidente {
     public String getNarrativaDetallada() { return narrativaDetallada; }
     public String getFechaElaboracion() { return fechaElaboracion; }
     public List<byte[]> getFotos() { return fotos; }
+    public String getFechaRegistro() { return fechaRegistro; }
+    public String getParamedicoResponsable() { return paramedicoResponsable; }
 }

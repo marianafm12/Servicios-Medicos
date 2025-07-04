@@ -14,7 +14,9 @@ import java.nio.file.Files;
 //import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
-
+import Emergencias.Emergencia;
+import Emergencias.EmergenciaDAO;
+import java.time.format.DateTimeFormatter;
 /**
  * Formulario completo de reporte de accidente para estudiantes UDLAP.
  * Incluye todas las secciones I–VIII del PDF,
@@ -31,6 +33,8 @@ public class FormularioAccidenteCompleto extends JPanel {
             campoNombreContacto, campoRelacionContacto,
             campoTelefonoContacto, campoCorreoContacto,
             campoTestigo1Nombre, campoTestigo1Telefono;
+    
+    private JTextField campoFechaRegistro, campoParamedico;
 
     private JTextArea areaDireccion, areaDescripcion, areaPrimerosAuxilios,
             areaMedicamentos, areaTratamiento, areaDomicilioContacto,
@@ -75,6 +79,12 @@ public class FormularioAccidenteCompleto extends JPanel {
         // I. Datos del Estudiante
         addSeccion(contenido, gbc, row++, "I. Datos del Estudiante", fontLabel);
         campoIDEmergencia = crearCampo(contenido, gbc, row++, "ID Emergencia:", fontField);
+                //  — nueva fila para FechaRegistro Emergencia —
+        campoFechaRegistro = crearCampo(contenido, gbc, row++, "Fecha Registro Emergencia:", fontField);
+        campoFechaRegistro.setEditable(false);
+        //  — nueva fila para Paramédico Responsable —
+        campoParamedico   = crearCampo(contenido, gbc, row++, "Paramédico Responsable:", fontField);
+        campoParamedico.setEditable(false);
         campoMatricula = crearCampo(contenido, gbc, row++, "ID Estudiante:", fontField);
         campoNombre = crearCampo(contenido, gbc, row++, "Nombre(s):", fontField);
         campoApellidoPaterno = crearCampo(contenido, gbc, row++, "Apellido Paterno:", fontField);
@@ -186,6 +196,18 @@ public class FormularioAccidenteCompleto extends JPanel {
         panelFechaElaboracion = crearPanelFecha();
         addCustom(contenido, gbc, row++, "Fecha Elaboración*:", panelFechaElaboracion);
 
+
+        // (dentro de initComponentes, antes de añadir scroll y panelBotones)
+        panelFotos = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 8));
+        panelFotos.setBackground(ColoresUDLAP.BLANCO);
+        panelFotos.setBorder(BorderFactory.createTitledBorder("Fotos"));
+        gbc.gridx = 0;
+        gbc.gridy = row++;
+        gbc.gridwidth = 2;
+        contenido.add(panelFotos, gbc);
+        gbc.gridwidth = 1;
+            
+
         // Botones
         btnGuardar = botonTransparente("Guardar", ColoresUDLAP.NARANJA_SOLIDO, ColoresUDLAP.NARANJA_HOVER);
         btnLimpiar = botonTransparente("Limpiar", ColoresUDLAP.GRIS_SOLIDO, ColoresUDLAP.GRIS_HOVER);
@@ -206,8 +228,13 @@ public class FormularioAccidenteCompleto extends JPanel {
     }
 
     private void initListeners() {
+        // Limpiar formulario
         btnLimpiar.addActionListener(e -> limpiarCampos());
+
+        // Guardar accidente
         btnGuardar.addActionListener(e -> guardarAccidente());
+
+        // Agregar fotos
         btnAgregarFotos.addActionListener(e -> {
             JFileChooser fc = new JFileChooser();
             fc.setMultiSelectionEnabled(true);
@@ -224,6 +251,7 @@ public class FormularioAccidenteCompleto extends JPanel {
                         lbl.setBorder(BorderFactory.createLineBorder(Color.GRAY));
                         // al hacer clic, eliminar la foto
                         lbl.addMouseListener(new MouseAdapter() {
+                            @Override
                             public void mouseClicked(MouseEvent ev) {
                                 fotosAccidente.remove(img);
                                 panelFotos.remove(lbl);
@@ -241,7 +269,33 @@ public class FormularioAccidenteCompleto extends JPanel {
             }
         });
 
+        // Al perder foco en el campo de ID de Emergencia, cargar fecha de registro y paramédico
+        campoIDEmergencia.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusLost(FocusEvent e) {
+                String txt = campoIDEmergencia.getText().trim();
+                if (!txt.matches("\\d+")) {
+                    return;
+                }
+                int idEmergencia = Integer.parseInt(txt);
+                Emergencia em = EmergenciaDAO.obtenerPorId(idEmergencia);
+                if (em != null) {
+                    // Formateador para mostrar "yyyy-MM-dd HH:mm"
+                    DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+                    campoFechaRegistro.setText(
+                        em.getFechaRegistro().toLocalDateTime().format(fmt)
+                    );
+                    campoParamedico.setText(
+                        em.getMedicoResponsable() != null ? em.getMedicoResponsable() : "-"
+                    );
+                } else {
+                    campoFechaRegistro.setText("-");
+                    campoParamedico.setText("-");
+                }
+            }
+        });
     }
+
 
     // Auxiliares UI
     private void addSeccion(JPanel panel, GridBagConstraints gbc, int row, String texto, Font font) {
@@ -830,10 +884,13 @@ public class FormularioAccidenteCompleto extends JPanel {
         // 9) Extraer valores de VIII. Declaraciones y Firmas
         String narrativaDetallada = areaNarrativa.getText().trim();
         String fechaElaboracion = formatearFecha(panelFechaElaboracion);
-
+        String fechaRegistroEmergencia   = campoFechaRegistro.getText().trim();
+        String paramedicoResponsable = campoParamedico.getText().trim();
         // 10) Crear modelo y persistir
         Accidente acc = new Accidente(
                 idEmergencia,
+                fechaRegistroEmergencia,        // ← nuevo
+                paramedicoResponsable,
                 matricula,
                 nombreEstudiante,
                 apPaterno,

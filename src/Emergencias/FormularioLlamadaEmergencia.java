@@ -24,8 +24,6 @@ public class FormularioLlamadaEmergencia extends JPanel {
     private ButtonGroup grupoGravedad;
     private JTextArea areaDescripcion;
     private JLabel errorLabel;
-    private JSpinner spinnerFechaIncidente;
-
     private boolean esMedico;
     private int idUsuario;
 
@@ -186,17 +184,6 @@ public class FormularioLlamadaEmergencia extends JPanel {
 
         gbc.gridy++;
         gbc.gridx = 0;
-        JLabel lblFecha = new JLabel("Fecha del Incidente:");
-        lblFecha.setFont(labelFont);
-        add(lblFecha, gbc);
-
-        gbc.gridx = 1;
-        spinnerFechaIncidente = new JSpinner(new SpinnerDateModel());
-        spinnerFechaIncidente.setEditor(new JSpinner.DateEditor(spinnerFechaIncidente, "yyyy-MM-dd HH:mm:ss"));
-        add(spinnerFechaIncidente, gbc);
-
-        gbc.gridy++;
-        gbc.gridx = 0;
         JLabel lblTel = new JLabel("Teléfono de Contacto:");
         lblTel.setFont(labelFont);
         add(lblTel, gbc);
@@ -316,8 +303,7 @@ public class FormularioLlamadaEmergencia extends JPanel {
             }
 
             // 5) Fecha de incidente
-            Date fechaInc = (Date) spinnerFechaIncidente.getValue();
-            Timestamp timestamp = new Timestamp(fechaInc.getTime());
+            Timestamp timestamp = new Timestamp(System.currentTimeMillis());
 
             // 6) Descripción (opcional)
             String descripcion = areaDescripcion.getText().trim();
