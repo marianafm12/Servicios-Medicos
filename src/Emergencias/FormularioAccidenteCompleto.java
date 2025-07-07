@@ -1,5 +1,5 @@
 package Emergencias;
-
+import Utilidades.MensajeErrorUDLAP;
 import Utilidades.ColoresUDLAP;
 import Utilidades.ComboBoxUDLAP;
 //import BaseDeDatos.ConexionSQLite;
@@ -7,10 +7,17 @@ import Registro.ValidadorPaciente;
 import java.io.File;
 
 import javax.swing.*;
+
+import BaseDeDatos.ConexionSQLite;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 //import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -92,11 +99,10 @@ public class FormularioAccidenteCompleto extends JPanel {
         campoEdad = crearCampo(contenido, gbc, row++, "Edad:", fontField);
         comboSexo = new ComboBoxUDLAP<>("Seleccione", new String[] {
                 "Masculino", "Femenino", "No Binario", "Prefiero no decir" });
-        addCombo(contenido, gbc, row++, "Sexo*:", comboSexo);
+        addCombo(contenido, gbc, row++, "Sexo:", comboSexo);
         comboEscuela = new ComboBoxUDLAP<>("Seleccione", new String[] {
-                "Ingeniería", "Negocios y Economía", "Ciencias Sociales", "Humanidades",
-                "Arquitectura", "Artes y Diseño", "Ciencias", "Derecho", "Otro" });
-        addCombo(contenido, gbc, row++, "Escuela*:", comboEscuela);
+                "Ingeniería", "Negocios y Economía", "Ciencias Sociales", "Artes y Humanidades", "Ciencias" });
+        addCombo(contenido, gbc, row++, "Escuela:", comboEscuela);
         campoPrograma = crearCampo(contenido, gbc, row++, "Programa Académico:", fontField);
         campoSemestre = crearCampo(contenido, gbc, row++, "Semestre:", fontField);
         campoCorreoUDLAP = crearCampo(contenido, gbc, row++, "Correo UDLAP:", fontField);
@@ -110,15 +116,15 @@ public class FormularioAccidenteCompleto extends JPanel {
         addCustom(contenido, gbc, row++, "Fecha y Hora:", panelFechaAccidente);
         comboDiaSemana = new ComboBoxUDLAP<>("Seleccione", new String[] {
                 "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo" });
-        addCombo(contenido, gbc, row++, "Día*:", comboDiaSemana);
+        addCombo(contenido, gbc, row++, "Día:", comboDiaSemana);
         comboLugar = new ComboBoxUDLAP<>("Seleccione", new String[] {
                 "Aula", "Laboratorio", "Biblioteca", "Residencias", "Gimnasio",
                 "Estacionamiento", "Administrativa", "Escaleras", "Deportivas",
                 "Comedor", "Vía Pública", "Otro" });
-        addCombo(contenido, gbc, row++, "Lugar*:", comboLugar);
+        addCombo(contenido, gbc, row++, "Lugar:", comboLugar);
         campoUbicacionExacta = crearCampo(contenido, gbc, row++, "Ubicación Exacta:", fontField);
         comboEnHorario = new ComboBoxUDLAP<>("Seleccione", new String[] { "Si", "No" });
-        addCombo(contenido, gbc, row++, "En Clase*:", comboEnHorario);
+        addCombo(contenido, gbc, row++, "En Clase:", comboEnHorario);
         comboTrayecto = new ComboBoxUDLAP<>("Seleccione", new String[] {
                 "Dentro campus", "Entre edificios", "Campus-Residencias",
                 "Extra-campus", "Otro" });
@@ -130,20 +136,20 @@ public class FormularioAccidenteCompleto extends JPanel {
         comboLesionPrincipal = new ComboBoxUDLAP<>("Seleccione", new String[] {
                 "Fractura", "Esguince", "Luxación", "Quemadura", "Contusión", "Laceración",
                 "Asfixia", "Intoxicación", "Conmoción", "Otros" });
-        addCombo(contenido, gbc, row++, "Lesión Principal*:", comboLesionPrincipal);
+        addCombo(contenido, gbc, row++, "Lesión Principal:", comboLesionPrincipal);
         campoLesionSecundaria = crearCampo(contenido, gbc, row++, "Lesión Secundaria:", fontField);
         comboParteCuerpo = new ComboBoxUDLAP<>("Seleccione", new String[] {
-                "Cabeza", "Cuello", "Tronco", "Ext Sup Izq", "Ext Sup Der",
-                "Ext Inf Izq", "Ext Inf Der", "Múltiple", "Interno", "Otro" });
-        addCombo(contenido, gbc, row++, "Parte Cuerpo*:", comboParteCuerpo);
+                "Cabeza", "Cuello", "Tronco", "Extremidad Superior Izquierda", "Extremidad Superior Derecha",
+                "Extremidad Inferior Izquierda", "Extremidad Inferior Derecha", "Múltiple", "Interno", "Otro" });
+        addCombo(contenido, gbc, row++, "Parte Cuerpo:", comboParteCuerpo);
         comboTriage = new ComboBoxUDLAP<>("Seleccione",
                 new String[] { "Rojo", "Naranja", "Amarillo", "Verde", "Azul" });
-        addCombo(contenido, gbc, row++, "Triage*:", comboTriage);
+        addCombo(contenido, gbc, row++, "Gravedad:", comboTriage);
         comboConsciencia = new ComboBoxUDLAP<>("Seleccione", new String[] { "Alerta", "Consciente", "Inconsciente" });
-        addCombo(contenido, gbc, row++, "Consciencia*:", comboConsciencia);
+        addCombo(contenido, gbc, row++, "Consciencia:", comboConsciencia);
         campoSignosVitales = crearCampo(contenido, gbc, row++, "Signos Vitales:", fontField);
         areaDescripcion = new JTextArea(3, 20);
-        addArea(contenido, gbc, row++, "Descripción*:", areaDescripcion);
+        addArea(contenido, gbc, row++, "Descripción:", areaDescripcion);
         areaPrimerosAuxilios = new JTextArea(3, 20);
         addArea(contenido, gbc, row++, "Primeros Auxilios:", areaPrimerosAuxilios);
         areaMedicamentos = new JTextArea(3, 20);
@@ -153,18 +159,18 @@ public class FormularioAccidenteCompleto extends JPanel {
         // IV. Evaluación Médica
         addSeccion(contenido, gbc, row++, "IV. Evaluación Médica", fontLabel);
         comboLesionesAtribuibles = new ComboBoxUDLAP<>("Seleccione", new String[] { "Si", "No" });
-        addCombo(contenido, gbc, row++, "Lesiones Atribuibles*:", comboLesionesAtribuibles);
+        addCombo(contenido, gbc, row++, "Lesiones Atribuibles:", comboLesionesAtribuibles);
         comboRiesgoMuerte = new ComboBoxUDLAP<>("Seleccione", new String[] { "Si", "No" });
-        addCombo(contenido, gbc, row++, "Riesgo Muerte*:", comboRiesgoMuerte);
-        campoIncapacidad = crearCampo(contenido, gbc, row++, "Incapacidad (días)*:", fontField);
+        addCombo(contenido, gbc, row++, "Riesgo Muerte:", comboRiesgoMuerte);
+        campoIncapacidad = crearCampo(contenido, gbc, row++, "Incapacidad (días):", fontField);
         comboHospitalizacion = new ComboBoxUDLAP<>("Seleccione", new String[] { "Si", "No" });
-        addCombo(contenido, gbc, row++, "Hospitalización*:", comboHospitalizacion);
+        addCombo(contenido, gbc, row++, "Hospitalización:", comboHospitalizacion);
         areaTratamiento = new JTextArea(3, 20);
-        addArea(contenido, gbc, row++, "Tratamiento*:", areaTratamiento);
-        campoMedicoTratante = crearCampo(contenido, gbc, row++, "Médico Tratante*:", fontField);
-        campoCedula = crearCampo(contenido, gbc, row++, "Cédula*:", fontField);
+        addArea(contenido, gbc, row++, "Tratamiento:", areaTratamiento);
+        campoMedicoTratante = crearCampo(contenido, gbc, row++, "Médico Tratante:", fontField);
+        campoCedula = crearCampo(contenido, gbc, row++, "Cédula:", fontField);
         panelFechaInforme = crearPanelFecha();
-        addCustom(contenido, gbc, row++, "Fecha Informe*:", panelFechaInforme);
+        addCustom(contenido, gbc, row++, "Fecha Informe:", panelFechaInforme);
 
         // V. Traslado
         addSeccion(contenido, gbc, row++, "V. Traslado y Seguimiento", fontLabel);
@@ -177,28 +183,29 @@ public class FormularioAccidenteCompleto extends JPanel {
 
         // VI. Contacto Emergencia
         addSeccion(contenido, gbc, row++, "VI. Contacto de Emergencia", fontLabel);
-        campoNombreContacto = crearCampo(contenido, gbc, row++, "Nombre Contacto*:", fontField);
-        campoRelacionContacto = crearCampo(contenido, gbc, row++, "Relación*:", fontField);
-        campoTelefonoContacto = crearCampo(contenido, gbc, row++, "Teléfono*:", fontField);
-        campoCorreoContacto = crearCampo(contenido, gbc, row++, "Correo*:", fontField);
+        campoNombreContacto = crearCampo(contenido, gbc, row++, "Nombre Contacto:", fontField);
+        campoRelacionContacto = crearCampo(contenido, gbc, row++, "Relación:", fontField);
+        campoTelefonoContacto = crearCampo(contenido, gbc, row++, "Teléfono:", fontField);
+        campoCorreoContacto = crearCampo(contenido, gbc, row++, "Correo:", fontField);
         areaDomicilioContacto = new JTextArea(3, 20);
         addArea(contenido, gbc, row++, "Domicilio:", areaDomicilioContacto);
 
         // VII. Testigos
         addSeccion(contenido, gbc, row++, "VII. Testigos", fontLabel);
-        campoTestigo1Nombre = crearCampo(contenido, gbc, row++, "Testigo1 Nombre:", fontField);
-        campoTestigo1Telefono = crearCampo(contenido, gbc, row++, "Testigo1 Teléfono:", fontField);
+        campoTestigo1Nombre = crearCampo(contenido, gbc, row++, "Testigo 1 Nombre:", fontField);
+        campoTestigo1Telefono = crearCampo(contenido, gbc, row++, "Testigo 1 Teléfono:", fontField);
 
         // VIII. Declaraciones y Firmas
         addSeccion(contenido, gbc, row++, "VIII. Declaraciones y Firmas", fontLabel);
         areaNarrativa = new JTextArea(5, 20);
-        addArea(contenido, gbc, row++, "Narrativa*:", areaNarrativa);
+        addArea(contenido, gbc, row++, "Narrativa:", areaNarrativa);
         panelFechaElaboracion = crearPanelFecha();
-        addCustom(contenido, gbc, row++, "Fecha Elaboración*:", panelFechaElaboracion);
+        addCustom(contenido, gbc, row++, "Fecha Elaboración:", panelFechaElaboracion);
 
 
         // (dentro de initComponentes, antes de añadir scroll y panelBotones)
-        panelFotos = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 8));
+        panelFotos = new JPanel();
+        panelFotos.setLayout(new BoxLayout(panelFotos, BoxLayout.Y_AXIS));
         panelFotos.setBackground(ColoresUDLAP.BLANCO);
         panelFotos.setBorder(BorderFactory.createTitledBorder("Fotos"));
         gbc.gridx = 0;
@@ -218,9 +225,9 @@ public class FormularioAccidenteCompleto extends JPanel {
         panelBotones.add(btnAgregarFotos);
 
         JScrollPane scroll = new JScrollPane(contenido);
-        // Quita el border exterior:
+        scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         scroll.setBorder(BorderFactory.createEmptyBorder());
-        // (Opcional) Quita también cualquier border interno en el viewport:
         scroll.setViewportBorder(BorderFactory.createEmptyBorder());
         add(scroll, BorderLayout.CENTER);
 
@@ -294,6 +301,82 @@ public class FormularioAccidenteCompleto extends JPanel {
                 }
             }
         });
+
+    
+
+        campoMatricula.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusLost(FocusEvent e) {
+                String txt = campoMatricula.getText().trim();
+                if (!txt.matches("\\d+")) return;
+                int idAlumno = Integer.parseInt(txt);
+
+                // Primero limpio TODO
+                campoNombre           .setText("");
+                campoApellidoPaterno  .setText("");
+                campoApellidoMaterno  .setText("");
+                campoCorreoUDLAP      .setText("");
+                campoEdad             .setText("");
+                // y las dejo editables para poder volver a limpiar correctamente
+                campoNombre           .setEditable(true);
+                campoApellidoPaterno  .setEditable(true);
+                campoApellidoMaterno  .setEditable(true);
+                campoCorreoUDLAP      .setEditable(true);
+                campoEdad             .setEditable(true);
+
+                String sqlA = """
+                    SELECT Nombre, ApellidoPaterno, ApellidoMaterno, Correo
+                    FROM InformacionAlumno
+                    WHERE ID = ?
+                """;
+                String sqlR = """
+                    SELECT Edad
+                    FROM Registro
+                    WHERE ID = ?
+                """;
+
+                try (Connection conn = ConexionSQLite.conectar();
+                    PreparedStatement psA = conn.prepareStatement(sqlA);
+                    PreparedStatement psR = conn.prepareStatement(sqlR)) {
+
+                    // datos de InformacionAlumno
+                    psA.setInt(1, idAlumno);
+                    try (ResultSet rs = psA.executeQuery()) {
+                        if (rs.next()) {
+                            campoNombre          .setText(rs.getString("Nombre"));
+                            campoApellidoPaterno .setText(rs.getString("ApellidoPaterno"));
+                            campoApellidoMaterno .setText(rs.getString("ApellidoMaterno"));
+                            campoCorreoUDLAP     .setText(rs.getString("Correo"));
+
+                            // ¡Aquí deshabilitas la edición!
+                            campoNombre          .setEditable(false);
+                            campoApellidoPaterno .setEditable(false);
+                            campoApellidoMaterno .setEditable(false);
+                            campoCorreoUDLAP     .setEditable(false);
+                        }
+                    }
+
+                    // datos de Registro
+                    psR.setInt(1, idAlumno);
+                    try (ResultSet rs = psR.executeQuery()) {
+                        if (rs.next()) {
+                            campoEdad.setText(String.valueOf(rs.getInt("Edad")));
+                            campoEdad.setEditable(false);
+                        }
+                    }
+
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(
+                        FormularioAccidenteCompleto.this,
+                        "Error al cargar datos del estudiante:\n" + ex.getMessage(),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                }
+            }
+        });
+    
     }
 
 
@@ -474,285 +557,340 @@ public class FormularioAccidenteCompleto extends JPanel {
     /**
      * Valida todos los campos obligatorios del formulario.
      */
-    private boolean validarCampos() {
-        // I. Datos del Estudiante
-        String txt;
-        // ID Emergencia
-        txt = campoIDEmergencia.getText().trim();
-        if (txt.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                    "Debe ingresar el ID de Emergencia.",
-                    "Validación",
-                    JOptionPane.WARNING_MESSAGE);
-            campoIDEmergencia.requestFocus();
-            return false;
-        }
-        try {
-            Integer.parseInt(txt);
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this,
-                    "El ID de Emergencia debe ser numérico.",
-                    "Validación",
-                    JOptionPane.WARNING_MESSAGE);
-            campoIDEmergencia.requestFocus();
-            return false;
-        }
+   
+private boolean validarCampos() {
+    String txt;
+    String nombreContacto  = campoNombreContacto.getText().trim();
+    String relacionContacto = campoRelacionContacto.getText().trim();
+    // obtenemos la ventana padre para los diálogos
+    Window owner = SwingUtilities.getWindowAncestor(this);
 
-        // Matrícula: rango [180000–999999]
-        txt = campoMatricula.getText().trim();
-        if (!ValidadorPaciente.esIDValido(txt)) {
-            JOptionPane.showMessageDialog(this,
-                    "El ID de estudiante debe ser un número entre 180000 y 999999.",
-                    "Validación",
-                    JOptionPane.WARNING_MESSAGE);
-            campoMatricula.requestFocus();
-            return false;
-        }
-        // Nombre(s)
-        if (campoNombre.getText().trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Debe ingresar el nombre del estudiante.", "Validación",
-                    JOptionPane.WARNING_MESSAGE);
-            campoNombre.requestFocus();
-            return false;
-        }
-        // Apellidos
-        if (campoApellidoPaterno.getText().trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Debe ingresar el apellido paterno.", "Validación",
-                    JOptionPane.WARNING_MESSAGE);
-            campoApellidoPaterno.requestFocus();
-            return false;
-        }
-        if (campoApellidoMaterno.getText().trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Debe ingresar el apellido materno.", "Validación",
-                    JOptionPane.WARNING_MESSAGE);
-            campoApellidoMaterno.requestFocus();
-            return false;
-        }
-        // Edad
-        txt = campoEdad.getText().trim();
-        if (txt.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Debe ingresar la edad.", "Validación", JOptionPane.WARNING_MESSAGE);
-            campoEdad.requestFocus();
-            return false;
-        }
-        try {
-            int edad = Integer.parseInt(txt);
-            if (edad < 0 || edad > 120) {
-                throw new NumberFormatException();
-            }
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "La edad debe ser un número entre 0 y 120.", "Validación",
-                    JOptionPane.WARNING_MESSAGE);
-            campoEdad.requestFocus();
-            return false;
-        }
-        // Sexo y Escuela
-        if (comboSexo.getSelectedIndex() == 0) {
-            JOptionPane.showMessageDialog(this, "Debe seleccionar el sexo.", "Validación", JOptionPane.WARNING_MESSAGE);
-            comboSexo.requestFocus();
-            return false;
-        }
-        if (comboEscuela.getSelectedIndex() == 0) {
-            JOptionPane.showMessageDialog(this, "Debe seleccionar la escuela/departamento.", "Validación",
-                    JOptionPane.WARNING_MESSAGE);
-            comboEscuela.requestFocus();
-            return false;
-        }
-        // Programa y Semestre
-        if (campoPrograma.getText().trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Debe ingresar el programa académico.", "Validación",
-                    JOptionPane.WARNING_MESSAGE);
-            campoPrograma.requestFocus();
-            return false;
-        }
-        txt = campoSemestre.getText().trim();
-        if (txt.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Debe ingresar el semestre/cuatrimestre.", "Validación",
-                    JOptionPane.WARNING_MESSAGE);
-            campoSemestre.requestFocus();
-            return false;
-        }
-        try {
-            Integer.parseInt(txt);
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "El semestre/cuatrimestre debe ser numérico.", "Validación",
-                    JOptionPane.WARNING_MESSAGE);
-            campoSemestre.requestFocus();
-            return false;
-        }
-        // Correo UDLAP
-        txt = campoCorreoUDLAP.getText().trim();
-        if (txt.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Debe ingresar el correo institucional UDLAP.", "Validación",
-                    JOptionPane.WARNING_MESSAGE);
-            campoCorreoUDLAP.requestFocus();
-            return false;
-        }
-        if (!txt.matches("^[A-Za-z0-9._%+-]+@udlap\\.edu\\.mx$")) {
-            JOptionPane.showMessageDialog(this, "El correo debe pertenecer al dominio @udlap.edu.mx.", "Validación",
-                    JOptionPane.WARNING_MESSAGE);
-            campoCorreoUDLAP.requestFocus();
-            return false;
-        }
-        // Teléfono Estudiante
-        txt = campoTelefonoEst.getText().trim();
-        if (!txt.matches("^\\d{10}$")) {
-            JOptionPane.showMessageDialog(this, "El teléfono del estudiante debe tener 10 dígitos.", "Validación",
-                    JOptionPane.WARNING_MESSAGE);
-            campoTelefonoEst.requestFocus();
-            return false;
-        }
-
-        // II. Información del Accidente
-        if (comboDiaSemana.getSelectedIndex() == 0) {
-            JOptionPane.showMessageDialog(this, "Debe seleccionar el día de la semana.", "Validación",
-                    JOptionPane.WARNING_MESSAGE);
-            comboDiaSemana.requestFocus();
-            return false;
-        }
-        if (comboLugar.getSelectedIndex() == 0) {
-            JOptionPane.showMessageDialog(this, "Debe seleccionar el lugar de ocurrencia.", "Validación",
-                    JOptionPane.WARNING_MESSAGE);
-            comboLugar.requestFocus();
-            return false;
-        }
-        if (campoUbicacionExacta.getText().trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Debe ingresar la ubicación exacta.", "Validación",
-                    JOptionPane.WARNING_MESSAGE);
-            campoUbicacionExacta.requestFocus();
-            return false;
-        }
-        if (comboEnHorario.getSelectedIndex() == 0) {
-            JOptionPane.showMessageDialog(this, "Debe indicar si fue en horario de clase.", "Validación",
-                    JOptionPane.WARNING_MESSAGE);
-            comboEnHorario.requestFocus();
-            return false;
-        }
-        if (campoCentroAtencion.getText().trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Debe ingresar el centro de atención inicial.", "Validación",
-                    JOptionPane.WARNING_MESSAGE);
-            campoCentroAtencion.requestFocus();
-            return false;
-        }
-
-        // III. Lesiones y Daños
-        if (comboLesionPrincipal.getSelectedIndex() == 0) {
-            JOptionPane.showMessageDialog(this, "Debe seleccionar el tipo de lesión principal.", "Validación",
-                    JOptionPane.WARNING_MESSAGE);
-            comboLesionPrincipal.requestFocus();
-            return false;
-        }
-        if (comboParteCuerpo.getSelectedIndex() == 0) {
-            JOptionPane.showMessageDialog(this, "Debe seleccionar la parte del cuerpo afectada.", "Validación",
-                    JOptionPane.WARNING_MESSAGE);
-            comboParteCuerpo.requestFocus();
-            return false;
-        }
-        if (comboTriage.getSelectedIndex() == 0) {
-            JOptionPane.showMessageDialog(this, "Debe seleccionar la gravedad (triage).", "Validación",
-                    JOptionPane.WARNING_MESSAGE);
-            comboTriage.requestFocus();
-            return false;
-        }
-        if (comboConsciencia.getSelectedIndex() == 0) {
-            JOptionPane.showMessageDialog(this, "Debe seleccionar el nivel de consciencia.", "Validación",
-                    JOptionPane.WARNING_MESSAGE);
-            comboConsciencia.requestFocus();
-            return false;
-        }
-        if (areaDescripcion.getText().trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Debe ingresar la descripción detallada del accidente.", "Validación",
-                    JOptionPane.WARNING_MESSAGE);
-            areaDescripcion.requestFocus();
-            return false;
-        }
-
-        // IV. Evaluación Médica
-        if (comboLesionesAtribuibles.getSelectedIndex() == 0) {
-            JOptionPane.showMessageDialog(this, "Debe indicar si las lesiones son atribuibles al accidente.",
-                    "Validación", JOptionPane.WARNING_MESSAGE);
-            comboLesionesAtribuibles.requestFocus();
-            return false;
-        }
-        if (comboRiesgoMuerte.getSelectedIndex() == 0) {
-            JOptionPane.showMessageDialog(this, "Debe indicar el riesgo de muerte.", "Validación",
-                    JOptionPane.WARNING_MESSAGE);
-            comboRiesgoMuerte.requestFocus();
-            return false;
-        }
-        txt = campoIncapacidad.getText().trim();
-        if (txt.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Debe ingresar los días de incapacidad.", "Validación",
-                    JOptionPane.WARNING_MESSAGE);
-            campoIncapacidad.requestFocus();
-            return false;
-        }
-        try {
-            Integer.parseInt(txt);
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "La incapacidad debe ser un número entero.", "Validación",
-                    JOptionPane.WARNING_MESSAGE);
-            campoIncapacidad.requestFocus();
-            return false;
-        }
-        if (comboHospitalizacion.getSelectedIndex() == 0) {
-            JOptionPane.showMessageDialog(this, "Debe indicar si requiere hospitalización.", "Validación",
-                    JOptionPane.WARNING_MESSAGE);
-            comboHospitalizacion.requestFocus();
-            return false;
-        }
-        if (areaTratamiento.getText().trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Debe indicar el tratamiento recomendado.", "Validación",
-                    JOptionPane.WARNING_MESSAGE);
-            areaTratamiento.requestFocus();
-            return false;
-        }
-        if (campoMedicoTratante.getText().trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Debe ingresar el nombre del médico tratante.", "Validación",
-                    JOptionPane.WARNING_MESSAGE);
-            campoMedicoTratante.requestFocus();
-            return false;
-        }
-        if (campoCedula.getText().trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Debe ingresar la cédula profesional.", "Validación",
-                    JOptionPane.WARNING_MESSAGE);
-            campoCedula.requestFocus();
-            return false;
-        }
-
-        // V. Traslado y Seguimiento: ninguno obligatorio salvo condicional, se omite
-
-        // VI. Contacto de Emergencia
-        if (campoNombreContacto.getText().trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Debe ingresar el nombre del contacto de emergencia.", "Validación",
-                    JOptionPane.WARNING_MESSAGE);
-            campoNombreContacto.requestFocus();
-            return false;
-        }
-        if (campoRelacionContacto.getText().trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Debe ingresar la relación con el estudiante.", "Validación",
-                    JOptionPane.WARNING_MESSAGE);
-            campoRelacionContacto.requestFocus();
-            return false;
-        }
-        if (!campoTelefonoContacto.getText().trim().matches("\\d{10}")) {
-            JOptionPane.showMessageDialog(this, "El teléfono de contacto debe tener 10 dígitos.", "Validación",
-                    JOptionPane.WARNING_MESSAGE);
-            campoTelefonoContacto.requestFocus();
-            return false;
-        }
-
-        // VIII. Declaraciones y Firmas
-        if (areaNarrativa.getText().trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Debe ingresar la narrativa detallada del accidente.", "Validación",
-                    JOptionPane.WARNING_MESSAGE);
-            areaNarrativa.requestFocus();
-            return false;
-        }
-
-        // Todos los datos son válidos
-        return true;
+    // I. Datos del Estudiante
+    // ID Emergencia
+    txt = campoIDEmergencia.getText().trim();
+    if (txt.isEmpty()) {
+        MensajeErrorUDLAP.mostrarVentanaError(owner,
+            "Validación",
+            "Debe ingresar el ID de Emergencia.");
+        campoIDEmergencia.requestFocus();
+        return false;
     }
+    try {
+        Integer.parseInt(txt);
+    } catch (NumberFormatException e) {
+        MensajeErrorUDLAP.mostrarVentanaError(owner,
+            "Validación",
+            "El ID de Emergencia debe ser numérico.");
+        campoIDEmergencia.requestFocus();
+        return false;
+    }
+
+    // Matrícula: rango [180000–999999]
+    txt = campoMatricula.getText().trim();
+    if (!ValidadorPaciente.esIDValido(txt)) {
+        MensajeErrorUDLAP.mostrarVentanaError(owner,
+            "Validación",
+            "El ID de estudiante debe ser un número entre 180000 y 999999.");
+        campoMatricula.requestFocus();
+        return false;
+    }
+    // Nombre(s)
+    if (campoNombre.getText().trim().isEmpty()) {
+        MensajeErrorUDLAP.mostrarVentanaError(owner,
+            "Validación",
+            "Debe ingresar el nombre del estudiante.");
+        campoNombre.requestFocus();
+        return false;
+    }
+    // Apellidos
+    if (campoApellidoPaterno.getText().trim().isEmpty()) {
+        MensajeErrorUDLAP.mostrarVentanaError(owner,
+            "Validación",
+            "Debe ingresar el apellido paterno.");
+        campoApellidoPaterno.requestFocus();
+        return false;
+    }
+    if (campoApellidoMaterno.getText().trim().isEmpty()) {
+        MensajeErrorUDLAP.mostrarVentanaError(owner,
+            "Validación",
+            "Debe ingresar el apellido materno.");
+        campoApellidoMaterno.requestFocus();
+        return false;
+    }
+    // Edad
+    txt = campoEdad.getText().trim();
+    if (txt.isEmpty()) {
+        MensajeErrorUDLAP.mostrarVentanaError(owner,
+            "Validación",
+            "Debe ingresar la edad.");
+        campoEdad.requestFocus();
+        return false;
+    }
+    try {
+        int edad = Integer.parseInt(txt);
+        if (edad < 0 || edad > 120) {
+            throw new NumberFormatException();
+        }
+    } catch (NumberFormatException e) {
+        MensajeErrorUDLAP.mostrarVentanaError(owner,
+            "Validación",
+            "La edad debe ser un número entre 0 y 120.");
+        campoEdad.requestFocus();
+        return false;
+    }
+    // Sexo y Escuela
+    if (comboSexo.getSelectedIndex() == 0) {
+        MensajeErrorUDLAP.mostrarVentanaError(owner,
+            "Validación",
+            "Debe seleccionar el sexo.");
+        comboSexo.requestFocus();
+        return false;
+    }
+    if (comboEscuela.getSelectedIndex() == 0) {
+        MensajeErrorUDLAP.mostrarVentanaError(owner,
+            "Validación",
+            "Debe seleccionar la escuela.");
+        comboEscuela.requestFocus();
+        return false;
+    }
+    // Programa y Semestre
+    if (campoPrograma.getText().trim().isEmpty()) {
+        MensajeErrorUDLAP.mostrarVentanaError(owner,
+            "Validación",
+            "Debe ingresar el programa académico.");
+        campoPrograma.requestFocus();
+        return false;
+    }
+    txt = campoSemestre.getText().trim();
+    if (txt.isEmpty()) {
+        MensajeErrorUDLAP.mostrarVentanaError(owner,
+            "Validación",
+            "Debe ingresar el semestre.");
+        campoSemestre.requestFocus();
+        return false;
+    }
+    try {
+        Integer.parseInt(txt);
+    } catch (NumberFormatException e) {
+        MensajeErrorUDLAP.mostrarVentanaError(owner,
+            "Validación",
+            "El semestre/cuatrimestre debe ser numérico.");
+        campoSemestre.requestFocus();
+        return false;
+    }
+    // Correo UDLAP
+    txt = campoCorreoUDLAP.getText().trim();
+    if (txt.isEmpty()) {
+        MensajeErrorUDLAP.mostrarVentanaError(owner,
+            "Validación",
+            "Debe ingresar el correo institucional UDLAP.");
+        campoCorreoUDLAP.requestFocus();
+        return false;
+    }
+    if (!txt.matches("^[A-Za-z0-9._%+-]+@udlap\\.mx$")) {
+        MensajeErrorUDLAP.mostrarVentanaError(owner,
+            "Validación",
+            "El correo debe pertenecer al dominio @udlap.mx.");
+        campoCorreoUDLAP.requestFocus();
+        return false;
+    }
+    // Teléfono Estudiante
+    txt = campoTelefonoEst.getText().trim();
+    if (!txt.matches("^\\d{10}$")) {
+        MensajeErrorUDLAP.mostrarVentanaError(owner,
+            "Validación",
+            "El teléfono del estudiante debe tener 10 dígitos.");
+        campoTelefonoEst.requestFocus();
+        return false;
+    }
+
+    // II. Información del Accidente
+    if (comboDiaSemana.getSelectedIndex() == 0) {
+        MensajeErrorUDLAP.mostrarVentanaError(owner,
+            "Validación",
+            "Debe seleccionar el día de la semana.");
+        comboDiaSemana.requestFocus();
+        return false;
+    }
+    if (comboLugar.getSelectedIndex() == 0) {
+        MensajeErrorUDLAP.mostrarVentanaError(owner,
+            "Validación",
+            "Debe seleccionar el lugar de ocurrencia.");
+        comboLugar.requestFocus();
+        return false;
+    }
+    if (campoUbicacionExacta.getText().trim().isEmpty()) {
+        MensajeErrorUDLAP.mostrarVentanaError(owner,
+            "Validación",
+            "Debe ingresar la ubicación exacta.");
+        campoUbicacionExacta.requestFocus();
+        return false;
+    }
+    if (comboEnHorario.getSelectedIndex() == 0) {
+        MensajeErrorUDLAP.mostrarVentanaError(owner,
+            "Validación",
+            "Debe indicar si fue en horario de clase.");
+        comboEnHorario.requestFocus();
+        return false;
+    }
+    if (campoCentroAtencion.getText().trim().isEmpty()) {
+        MensajeErrorUDLAP.mostrarVentanaError(owner,
+            "Validación",
+            "Debe ingresar el centro de atención inicial.");
+        campoCentroAtencion.requestFocus();
+        return false;
+    }
+
+    // III. Lesiones y Daños
+    if (comboLesionPrincipal.getSelectedIndex() == 0) {
+        MensajeErrorUDLAP.mostrarVentanaError(owner,
+            "Validación",
+            "Debe seleccionar el tipo de lesión principal.");
+        comboLesionPrincipal.requestFocus();
+        return false;
+    }
+    if (comboParteCuerpo.getSelectedIndex() == 0) {
+        MensajeErrorUDLAP.mostrarVentanaError(owner,
+            "Validación",
+            "Debe seleccionar la parte del cuerpo afectada.");
+        comboParteCuerpo.requestFocus();
+        return false;
+    }
+    if (comboTriage.getSelectedIndex() == 0) {
+        MensajeErrorUDLAP.mostrarVentanaError(owner,
+            "Validación",
+            "Debe seleccionar la gravedad.");
+        comboTriage.requestFocus();
+        return false;
+    }
+    if (comboConsciencia.getSelectedIndex() == 0) {
+        MensajeErrorUDLAP.mostrarVentanaError(owner,
+            "Validación",
+            "Debe seleccionar el nivel de consciencia.");
+        comboConsciencia.requestFocus();
+        return false;
+    }
+    if (areaDescripcion.getText().trim().isEmpty()) {
+        MensajeErrorUDLAP.mostrarVentanaError(owner,
+            "Validación",
+            "Debe ingresar la descripción detallada del accidente.");
+        areaDescripcion.requestFocus();
+        return false;
+    }
+
+    // IV. Evaluación Médica
+    if (comboLesionesAtribuibles.getSelectedIndex() == 0) {
+        MensajeErrorUDLAP.mostrarVentanaError(owner,
+            "Validación",
+            "Debe indicar si las lesiones son atribuibles al accidente.");
+        comboLesionesAtribuibles.requestFocus();
+        return false;
+    }
+    if (comboRiesgoMuerte.getSelectedIndex() == 0) {
+        MensajeErrorUDLAP.mostrarVentanaError(owner,
+            "Validación",
+            "Debe indicar el riesgo de muerte.");
+        comboRiesgoMuerte.requestFocus();
+        return false;
+    }
+    txt = campoIncapacidad.getText().trim();
+    if (txt.isEmpty()) {
+        MensajeErrorUDLAP.mostrarVentanaError(owner,
+            "Validación",
+            "Debe ingresar los días de incapacidad.");
+        campoIncapacidad.requestFocus();
+        return false;
+    }
+    try {
+        Integer.parseInt(txt);
+    } catch (NumberFormatException e) {
+        MensajeErrorUDLAP.mostrarVentanaError(owner,
+            "Validación",
+            "Los días de incapacidad deben de ser un valor númerico entero.");
+        campoIncapacidad.requestFocus();
+        return false;
+    }
+    if (comboHospitalizacion.getSelectedIndex() == 0) {
+        MensajeErrorUDLAP.mostrarVentanaError(owner,
+            "Validación",
+            "Debe indicar si requiere hospitalización.");
+        comboHospitalizacion.requestFocus();
+        return false;
+    }
+    if (areaTratamiento.getText().trim().isEmpty()) {
+        MensajeErrorUDLAP.mostrarVentanaError(owner,
+            "Validación",
+            "Debe indicar el tratamiento recomendado.");
+        areaTratamiento.requestFocus();
+        return false;
+    }
+    if (campoMedicoTratante.getText().trim().isEmpty()) {
+        MensajeErrorUDLAP.mostrarVentanaError(owner,
+            "Validación",
+            "Debe ingresar el nombre del médico tratante.");
+        campoMedicoTratante.requestFocus();
+        return false;
+    }
+    if (campoCedula.getText().trim().isEmpty()) {
+        MensajeErrorUDLAP.mostrarVentanaError(owner,
+            "Validación",
+            "Debe ingresar la cédula profesional.");
+        campoCedula.requestFocus();
+        return false;
+    }
+
+    // V. Traslado y Seguimiento: ninguno obligatorio salvo condicional
+
+    // VI. Contacto de Emergencia
+    if (campoNombreContacto.getText().trim().isEmpty()) {
+        MensajeErrorUDLAP.mostrarVentanaError(owner,
+            "Validación",
+            "Debe ingresar el nombre del contacto de emergencia.");
+        campoNombreContacto.requestFocus();
+        return false;
+    }
+    if (campoRelacionContacto.getText().trim().isEmpty()) {
+        MensajeErrorUDLAP.mostrarVentanaError(owner,
+            "Validación",
+            "Debe ingresar la relación con el estudiante.");
+        campoRelacionContacto.requestFocus();
+        return false;
+    }
+    if (!nombreContacto.matches("[A-Za-zÁÉÍÓÚáéíóúÑñ ]+")) {
+        MensajeErrorUDLAP.mostrarVentanaError(owner,
+            "Validación",
+            "El nombre del contacto sólo debe contener letras y espacios.");
+        campoNombreContacto.requestFocus();
+        return false;
+    }
+    if (!relacionContacto.matches("[A-Za-zÁÉÍÓÚáéíóúÑñ ]+")) {
+        MensajeErrorUDLAP.mostrarVentanaError(owner,
+            "Validación",
+            "La relación sólo debe contener letras y espacios.");
+        campoRelacionContacto.requestFocus();
+        return false;
+    }
+    if (!campoTelefonoContacto.getText().trim().matches("\\d{10}")) {
+        MensajeErrorUDLAP.mostrarVentanaError(owner,
+            "Validación",
+            "El teléfono de contacto debe tener 10 dígitos.");
+        campoTelefonoContacto.requestFocus();
+        return false;
+    }
+
+    // VIII. Declaraciones y Firmas
+    if (areaNarrativa.getText().trim().isEmpty()) {
+        MensajeErrorUDLAP.mostrarVentanaError(owner,
+            "Validación",
+            "Debe ingresar la narrativa detallada del accidente.");
+        areaNarrativa.requestFocus();
+        return false;
+    }
+
+    // Todos los datos son válidos
+    return true;
+}
+
 
     /**
      * Extrae día, mes, año, hora y minuto de un panel creado con
