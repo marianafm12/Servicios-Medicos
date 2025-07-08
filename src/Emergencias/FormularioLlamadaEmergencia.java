@@ -7,7 +7,6 @@ import Utilidades.ComboBoxUDLAP;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.Date;
 import javax.swing.border.Border;
 import BaseDeDatos.ConexionSQLite;
 

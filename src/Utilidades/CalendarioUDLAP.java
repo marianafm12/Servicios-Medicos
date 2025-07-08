@@ -320,7 +320,7 @@ public class CalendarioUDLAP extends JPanel {
                 colorFondo = ColoresUDLAP.NARANJA_SOLIDO;
                 colorLetra = ColoresUDLAP.BLANCO;
             } else if (esHoy) {
-                colorFondo = ColoresUDLAP.NARANJA_SOLIDO;
+                colorFondo = ColoresUDLAP.NARANJA_HOVER;
                 colorLetra = ColoresUDLAP.NEGRO;
             } else if (getModel().isRollover() && isEnabled()) {
                 colorFondo = hoverColor;
