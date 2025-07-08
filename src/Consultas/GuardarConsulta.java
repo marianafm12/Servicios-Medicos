@@ -1,7 +1,10 @@
 package Consultas;
 
 import BaseDeDatos.ConexionSQLite;
+import Utilidades.MensajeErrorUDLAP;
 import javax.swing.*;
+
+import java.awt.Window;
 import java.awt.event.*;
 import java.sql.*;
 
@@ -21,6 +24,8 @@ public class GuardarConsulta implements ActionListener {
     private final JTextArea taSintomas, taMedicamentosRec,
             taDiagnostico, taReceta;
 
+    private final MensajeErrorUDLAP mensaje;
+
     public GuardarConsulta(
             int idMedicoSesion,
             JTextField txtIdPaciente,
@@ -28,7 +33,7 @@ public class GuardarConsulta implements ActionListener {
             JTextField txtMedicacion,
             JTextArea taSintomas, JTextArea taMedicamentosRec,
             JTextArea taDiagnostico, JTextField txtFechaConsulta,
-            JTextArea taReceta) {
+            JTextArea taReceta, MensajeErrorUDLAP mensaje) {
 
         this.idMedico = idMedicoSesion; // ← valor que viene del login
         this.txtIdPaciente = txtIdPaciente;
@@ -41,10 +46,12 @@ public class GuardarConsulta implements ActionListener {
         this.taDiagnostico = taDiagnostico;
         this.txtFechaConsulta = txtFechaConsulta;
         this.taReceta = taReceta;
+        this.mensaje = mensaje;
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
+        mensaje.limpiar(); // Limpiar mensajes previos
 
         /* 1. Validar ID Paciente */
         String idTxt = txtIdPaciente.getText().trim();
@@ -99,15 +106,15 @@ public class GuardarConsulta implements ActionListener {
             }
 
             conn.commit();
-            JOptionPane.showMessageDialog(null,
-                    "Consulta guardada exitosamente.",
-                    "Éxito", JOptionPane.INFORMATION_MESSAGE);
+            // Mensaje inline de éxito
+            mensaje.mostrarExito("Consulta guardada exitosamente.");
             limpiarCampos();
 
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(null,
-                    "Error al guardar consulta:\n" + ex.getMessage(),
-                    "Error de BD", JOptionPane.ERROR_MESSAGE);
+            Window owner = SwingUtilities.getWindowAncestor(txtIdPaciente);
+            MensajeErrorUDLAP.mostrarVentanaError(
+                    owner, "Error de Base de Datos",
+                    "No se pudo guardar la consulta. \nError: " + ex.getMessage());
         }
     }
 
@@ -120,5 +127,6 @@ public class GuardarConsulta implements ActionListener {
         taMedicamentosRec.setText("");
         taDiagnostico.setText("");
         taReceta.setText("");
+        mensaje.limpiar();
     }
 }

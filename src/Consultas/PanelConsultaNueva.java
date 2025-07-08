@@ -16,6 +16,7 @@ public class PanelConsultaNueva extends FormularioMedicoBase implements PanelPro
 
     /** Barra de botones reutilizable */
     private final PanelBotonesFormulario botones;
+    private final MensajeErrorUDLAP mensaje;
 
     public PanelConsultaNueva(int idMedico, String nombreMedico) {
         super("Consulta Médica – Dr. " + nombreMedico, new String[] {
@@ -51,12 +52,20 @@ public class PanelConsultaNueva extends FormularioMedicoBase implements PanelPro
         JTextArea taDiag = (JTextArea) campos[9];
         JTextArea taReceta = (JTextArea) campos[11];
 
+        /* ──────────────── 2.1. Mensaje de error inline ───────────────── */
+        mensaje = new MensajeErrorUDLAP();
+
         /* ─────────────────── 3. BARRA DE BOTONES ─────────────────────── */
         botones = new PanelBotonesFormulario(
                 new PanelBotonesFormulario.BotonConfig("Guardar", PanelBotonesFormulario.BotonConfig.Tipo.PRIMARY),
                 new PanelBotonesFormulario.BotonConfig("Buscar", PanelBotonesFormulario.BotonConfig.Tipo.SECONDARY),
                 new PanelBotonesFormulario.BotonConfig("Limpiar", PanelBotonesFormulario.BotonConfig.Tipo.DANGER));
-        add(botones, BorderLayout.SOUTH);
+
+        // Añadir mensaje de error inline en un panel nuevo
+        JPanel panelSur = new JPanel(new BorderLayout());
+        panelSur.add(mensaje, BorderLayout.NORTH);
+        panelSur.add(botones, BorderLayout.SOUTH);
+        add(panelSur, BorderLayout.SOUTH);
 
         /* Acción Buscar: ahora SOLO por ID y rellena Edad-Altura-Peso-Medicación */
         BuscarPaciente buscarAccion = new BuscarPaciente(new JTextField[] {
@@ -71,9 +80,13 @@ public class PanelConsultaNueva extends FormularioMedicoBase implements PanelPro
                         txtEdad, txtAltura, txtPeso,
                         txtMedica,
                         taSintomas, taMedRec, taDiag,
-                        txtFecha, taReceta),
+                        txtFecha, taReceta,
+                        mensaje),
                 buscarAccion,
-                e -> limpiarCampos());
+                e -> {
+                    limpiarCampos();
+                    mensaje.limpiar(); // Limpiar mensajes previos
+                });
 
         /* ─────────────────── 5. CAMPOS SOLO LECTURA ──────────────────── */
         txtNombre.setEditable(false);

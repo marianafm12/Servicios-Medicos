@@ -1,14 +1,14 @@
 package Emergencias;
-import Utilidades.MensajeErrorUDLAP;
-import Utilidades.ColoresUDLAP;
-import Utilidades.ComboBoxUDLAP;
-//import BaseDeDatos.ConexionSQLite;
-import Registro.ValidadorPaciente;
-import java.io.File;
 
+import Utilidades.*;
+import BaseDeDatos.ConexionSQLite;
+
+import java.io.File;
 import javax.swing.*;
 
-import BaseDeDatos.ConexionSQLite;
+import org.w3c.dom.events.MouseEvent;
+
+import com.lowagie.text.Image;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -18,12 +18,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-//import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import Emergencias.Emergencia;
-import Emergencias.EmergenciaDAO;
 import java.time.format.DateTimeFormatter;
+
 /**
  * Formulario completo de reporte de accidente para estudiantes UDLAP.
  * Incluye todas las secciones I–VIII del PDF,
@@ -31,6 +29,7 @@ import java.time.format.DateTimeFormatter;
  */
 public class FormularioAccidenteCompleto extends JPanel {
     // Componentes del formulario (I–VIII)
+
     private JTextField campoIDEmergencia, campoMatricula, campoNombre, campoApellidoPaterno,
             campoApellidoMaterno, campoEdad, campoPrograma, campoSemestre,
             campoCorreoUDLAP, campoTelefonoEst, campoUbicacionExacta, campoCentroAtencion,
@@ -40,7 +39,7 @@ public class FormularioAccidenteCompleto extends JPanel {
             campoNombreContacto, campoRelacionContacto,
             campoTelefonoContacto, campoCorreoContacto,
             campoTestigo1Nombre, campoTestigo1Telefono;
-    
+
     private JTextField campoFechaRegistro, campoParamedico;
 
     private JTextArea areaDireccion, areaDescripcion, areaPrimerosAuxilios,
@@ -54,14 +53,18 @@ public class FormularioAccidenteCompleto extends JPanel {
             comboRiesgoMuerte, comboHospitalizacion,
             comboHospitalDestino;
 
-    private JPanel panelFechaAccidente, panelFechaIngreso,
-            panelFechaInforme, panelFechaElaboracion;
-
-    private JButton btnGuardar, btnLimpiar;
+    private MensajeErrorUDLAP mensajeEstado;
     // PARA FOTOS
-    private JButton btnAgregarFotos;
     private JPanel panelFotos;
     private java.util.List<byte[]> fotosAccidente = new ArrayList<>();
+
+    private DatePickerUDLAP datePickerAccidente;
+    private ComboBoxUDLAP<String> comboHoraAccidente, comboMinutoAccidente;
+    private DatePickerUDLAP datePickerIngreso;
+    private ComboBoxUDLAP<String> comboHoraIngreso, comboMinutoIngreso;
+
+    private DatePickerUDLAP datePickerInforme;
+    private DatePickerUDLAP datePickerElaboracion;
 
     public FormularioAccidenteCompleto() {
         initComponentes();
@@ -86,11 +89,11 @@ public class FormularioAccidenteCompleto extends JPanel {
         // I. Datos del Estudiante
         addSeccion(contenido, gbc, row++, "I. Datos del Estudiante", fontLabel);
         campoIDEmergencia = crearCampo(contenido, gbc, row++, "ID Emergencia:", fontField);
-                //  — nueva fila para FechaRegistro Emergencia —
+        // — nueva fila para FechaRegistro Emergencia —
         campoFechaRegistro = crearCampo(contenido, gbc, row++, "Fecha Registro Emergencia:", fontField);
         campoFechaRegistro.setEditable(false);
-        //  — nueva fila para Paramédico Responsable —
-        campoParamedico   = crearCampo(contenido, gbc, row++, "Paramédico Responsable:", fontField);
+        // — nueva fila para Paramédico Responsable —
+        campoParamedico = crearCampo(contenido, gbc, row++, "Paramédico Responsable:", fontField);
         campoParamedico.setEditable(false);
         campoMatricula = crearCampo(contenido, gbc, row++, "ID Estudiante:", fontField);
         campoNombre = crearCampo(contenido, gbc, row++, "Nombre(s):", fontField);
@@ -112,8 +115,22 @@ public class FormularioAccidenteCompleto extends JPanel {
 
         // II. Info del Accidente
         addSeccion(contenido, gbc, row++, "II. Información del Accidente", fontLabel);
-        panelFechaAccidente = crearPanelFechaTime();
-        addCustom(contenido, gbc, row++, "Fecha y Hora:", panelFechaAccidente);
+        // Implementación de DatePickerUDLAP para seleccionar fecha y hora
+        datePickerAccidente = new DatePickerUDLAP();
+        datePickerAccidente.setBlockWeekends(false);
+        comboHoraAccidente = new ComboBoxUDLAP<>("HH", new String[] {
+                "00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16",
+                "17", "18", "19", "20", "21", "22", "23" });
+        comboMinutoAccidente = new ComboBoxUDLAP<>("MM", new String[] {
+                "00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55" });
+        JPanel panelAcc = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        panelAcc.setBackground(ColoresUDLAP.BLANCO);
+        panelAcc.add(datePickerAccidente);
+        panelAcc.add(comboHoraAccidente);
+        panelAcc.add(new JLabel(":"));
+        panelAcc.add(comboMinutoAccidente);
+        addCustom(contenido, gbc, row++, "Fecha y Hora del Accidente:", panelAcc);
+
         comboDiaSemana = new ComboBoxUDLAP<>("Seleccione", new String[] {
                 "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo" });
         addCombo(contenido, gbc, row++, "Día:", comboDiaSemana);
@@ -169,8 +186,11 @@ public class FormularioAccidenteCompleto extends JPanel {
         addArea(contenido, gbc, row++, "Tratamiento:", areaTratamiento);
         campoMedicoTratante = crearCampo(contenido, gbc, row++, "Médico Tratante:", fontField);
         campoCedula = crearCampo(contenido, gbc, row++, "Cédula:", fontField);
-        panelFechaInforme = crearPanelFecha();
-        addCustom(contenido, gbc, row++, "Fecha Informe:", panelFechaInforme);
+
+        // Fecha informe médico con DatePickerUDLAP
+        datePickerInforme = new DatePickerUDLAP();
+        datePickerInforme.setBlockWeekends(false);
+        addCustom(contenido, gbc, row++, "Fecha Informe Médico:", datePickerInforme);
 
         // V. Traslado
         addSeccion(contenido, gbc, row++, "V. Traslado y Seguimiento", fontLabel);
@@ -178,8 +198,22 @@ public class FormularioAccidenteCompleto extends JPanel {
         addCombo(contenido, gbc, row++, "Hospital Destino:", comboHospitalDestino);
         campoResponsableTraslado = crearCampo(contenido, gbc, row++, "Responsable:", fontField);
         campoMedioTransporte = crearCampo(contenido, gbc, row++, "Medio Transporte:", fontField);
-        panelFechaIngreso = crearPanelFechaTime();
-        addCustom(contenido, gbc, row++, "Fecha Ingreso:", panelFechaIngreso);
+
+        // Fecha de ingreso al hospital con DatePickerUDLAP
+        datePickerIngreso = new DatePickerUDLAP();
+        datePickerIngreso.setBlockWeekends(false);
+        comboHoraIngreso = new ComboBoxUDLAP<>("HH", new String[] {
+                "00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12",
+                "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23" });
+        comboMinutoIngreso = new ComboBoxUDLAP<>("MM", new String[] {
+                "00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55" });
+        JPanel panelIng = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        panelIng.setBackground(ColoresUDLAP.BLANCO);
+        panelIng.add(datePickerIngreso);
+        panelIng.add(comboHoraIngreso);
+        panelIng.add(new JLabel(":"));
+        panelIng.add(comboMinutoIngreso);
+        addCustom(contenido, gbc, row++, "Fecha y Hora Ingreso Hospital:", panelIng);
 
         // VI. Contacto Emergencia
         addSeccion(contenido, gbc, row++, "VI. Contacto de Emergencia", fontLabel);
@@ -199,9 +233,11 @@ public class FormularioAccidenteCompleto extends JPanel {
         addSeccion(contenido, gbc, row++, "VIII. Declaraciones y Firmas", fontLabel);
         areaNarrativa = new JTextArea(5, 20);
         addArea(contenido, gbc, row++, "Narrativa:", areaNarrativa);
-        panelFechaElaboracion = crearPanelFecha();
-        addCustom(contenido, gbc, row++, "Fecha Elaboración:", panelFechaElaboracion);
 
+        // Fecha de elaboración del informe con DatePickerUDLAP
+        datePickerElaboracion = new DatePickerUDLAP();
+        datePickerElaboracion.setBlockWeekends(false);
+        addCustom(contenido, gbc, row++, "Fecha Elaboración Informe:", datePickerElaboracion);
 
         // (dentro de initComponentes, antes de añadir scroll y panelBotones)
         panelFotos = new JPanel();
@@ -213,17 +249,9 @@ public class FormularioAccidenteCompleto extends JPanel {
         gbc.gridwidth = 2;
         contenido.add(panelFotos, gbc);
         gbc.gridwidth = 1;
-            
 
         // Botones
-        btnGuardar = botonTransparente("Guardar", ColoresUDLAP.NARANJA_SOLIDO, ColoresUDLAP.NARANJA_HOVER);
-        btnLimpiar = botonTransparente("Limpiar", ColoresUDLAP.GRIS_SOLIDO, ColoresUDLAP.GRIS_HOVER);
-        btnAgregarFotos = botonTransparente("Agregar Fotos", ColoresUDLAP.VERDE_SOLIDO, ColoresUDLAP.VERDE_HOVER);
-        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
-        panelBotones.add(btnGuardar);
-        panelBotones.add(btnLimpiar);
-        panelBotones.add(btnAgregarFotos);
-
+        // 1) Envolvemos 'contenido' en un scroll y lo agregamos al centro:
         JScrollPane scroll = new JScrollPane(contenido);
         scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
@@ -231,53 +259,34 @@ public class FormularioAccidenteCompleto extends JPanel {
         scroll.setViewportBorder(BorderFactory.createEmptyBorder());
         add(scroll, BorderLayout.CENTER);
 
-        add(panelBotones, BorderLayout.SOUTH);
+        // 2) Luego construimos y agregamos el panelInferior con botones y mensaje:
+        PanelBotonesFormulario panelBotones = new PanelBotonesFormulario(
+                new PanelBotonesFormulario.BotonConfig("Guardar", PanelBotonesFormulario.BotonConfig.Tipo.SECONDARY),
+                new PanelBotonesFormulario.BotonConfig("Limpiar", PanelBotonesFormulario.BotonConfig.Tipo.BACK),
+                new PanelBotonesFormulario.BotonConfig("Foto(s)",
+                        PanelBotonesFormulario.BotonConfig.Tipo.PRIMARY));
+        mensajeEstado = new MensajeErrorUDLAP();
+
+        JPanel panelInferior = new JPanel(new BorderLayout());
+        panelInferior.setBackground(ColoresUDLAP.BLANCO);
+        panelInferior.add(mensajeEstado, BorderLayout.NORTH);
+        panelInferior.add(panelBotones, BorderLayout.SOUTH);
+
+        add(panelInferior, BorderLayout.SOUTH);
+
+        panelBotones.setListeners(
+                e -> guardarAccidente(),
+                e -> limpiarCampos(),
+                e -> abrirSelectorFotos());
+
     }
 
     private void initListeners() {
-        // Limpiar formulario
-        btnLimpiar.addActionListener(e -> limpiarCampos());
 
-        // Guardar accidente
-        btnGuardar.addActionListener(e -> guardarAccidente());
-
-        // Agregar fotos
-        btnAgregarFotos.addActionListener(e -> {
-            JFileChooser fc = new JFileChooser();
-            fc.setMultiSelectionEnabled(true);
-            fc.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Imágenes", "jpg", "png", "jpeg"));
-            if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-                for (File f : fc.getSelectedFiles()) {
-                    try {
-                        byte[] img = Files.readAllBytes(f.toPath());
-                        fotosAccidente.add(img);
-                        // vista previa
-                        ImageIcon ico = new ImageIcon(img);
-                        Image imgScale = ico.getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
-                        JLabel lbl = new JLabel(new ImageIcon(imgScale));
-                        lbl.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-                        // al hacer clic, eliminar la foto
-                        lbl.addMouseListener(new MouseAdapter() {
-                            @Override
-                            public void mouseClicked(MouseEvent ev) {
-                                fotosAccidente.remove(img);
-                                panelFotos.remove(lbl);
-                                panelFotos.revalidate();
-                                panelFotos.repaint();
-                            }
-                        });
-                        panelFotos.add(lbl);
-                    } catch (IOException ex) {
-                        ex.printStackTrace();
-                    }
-                }
-                panelFotos.revalidate();
-                panelFotos.repaint();
-            }
-        });
-
-        // Al perder foco en el campo de ID de Emergencia, cargar fecha de registro y paramédico
+        // Al perder foco en el campo de ID de Emergencia, cargar fecha de registro y
+        // paramédico
         campoIDEmergencia.addFocusListener(new FocusAdapter() {
+
             @Override
             public void focusLost(FocusEvent e) {
                 String txt = campoIDEmergencia.getText().trim();
@@ -290,11 +299,9 @@ public class FormularioAccidenteCompleto extends JPanel {
                     // Formateador para mostrar "yyyy-MM-dd HH:mm"
                     DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
                     campoFechaRegistro.setText(
-                        em.getFechaRegistro().toLocalDateTime().format(fmt)
-                    );
+                            em.getFechaRegistro().toLocalDateTime().format(fmt));
                     campoParamedico.setText(
-                        em.getMedicoResponsable() != null ? em.getMedicoResponsable() : "-"
-                    );
+                            em.getMedicoResponsable() != null ? em.getMedicoResponsable() : "-");
                 } else {
                     campoFechaRegistro.setText("-");
                     campoParamedico.setText("-");
@@ -302,57 +309,56 @@ public class FormularioAccidenteCompleto extends JPanel {
             }
         });
 
-    
-
         campoMatricula.addFocusListener(new FocusAdapter() {
             @Override
             public void focusLost(FocusEvent e) {
                 String txt = campoMatricula.getText().trim();
-                if (!txt.matches("\\d+")) return;
+                if (!txt.matches("\\d+"))
+                    return;
                 int idAlumno = Integer.parseInt(txt);
 
-                // Primero limpio TODO
-                campoNombre           .setText("");
-                campoApellidoPaterno  .setText("");
-                campoApellidoMaterno  .setText("");
-                campoCorreoUDLAP      .setText("");
-                campoEdad             .setText("");
+                // Primero limpio todo
+                campoNombre.setText("");
+                campoApellidoPaterno.setText("");
+                campoApellidoMaterno.setText("");
+                campoCorreoUDLAP.setText("");
+                campoEdad.setText("");
                 // y las dejo editables para poder volver a limpiar correctamente
-                campoNombre           .setEditable(true);
-                campoApellidoPaterno  .setEditable(true);
-                campoApellidoMaterno  .setEditable(true);
-                campoCorreoUDLAP      .setEditable(true);
-                campoEdad             .setEditable(true);
+                campoNombre.setEditable(true);
+                campoApellidoPaterno.setEditable(true);
+                campoApellidoMaterno.setEditable(true);
+                campoCorreoUDLAP.setEditable(true);
+                campoEdad.setEditable(true);
 
                 String sqlA = """
-                    SELECT Nombre, ApellidoPaterno, ApellidoMaterno, Correo
-                    FROM InformacionAlumno
-                    WHERE ID = ?
-                """;
+                            SELECT Nombre, ApellidoPaterno, ApellidoMaterno, Correo
+                            FROM InformacionAlumno
+                            WHERE ID = ?
+                        """;
                 String sqlR = """
-                    SELECT Edad
-                    FROM Registro
-                    WHERE ID = ?
-                """;
+                            SELECT Edad
+                            FROM Registro
+                            WHERE ID = ?
+                        """;
 
                 try (Connection conn = ConexionSQLite.conectar();
-                    PreparedStatement psA = conn.prepareStatement(sqlA);
-                    PreparedStatement psR = conn.prepareStatement(sqlR)) {
+                        PreparedStatement psA = conn.prepareStatement(sqlA);
+                        PreparedStatement psR = conn.prepareStatement(sqlR)) {
 
                     // datos de InformacionAlumno
                     psA.setInt(1, idAlumno);
                     try (ResultSet rs = psA.executeQuery()) {
                         if (rs.next()) {
-                            campoNombre          .setText(rs.getString("Nombre"));
-                            campoApellidoPaterno .setText(rs.getString("ApellidoPaterno"));
-                            campoApellidoMaterno .setText(rs.getString("ApellidoMaterno"));
-                            campoCorreoUDLAP     .setText(rs.getString("Correo"));
+                            campoNombre.setText(rs.getString("Nombre"));
+                            campoApellidoPaterno.setText(rs.getString("ApellidoPaterno"));
+                            campoApellidoMaterno.setText(rs.getString("ApellidoMaterno"));
+                            campoCorreoUDLAP.setText(rs.getString("Correo"));
 
                             // ¡Aquí deshabilitas la edición!
-                            campoNombre          .setEditable(false);
-                            campoApellidoPaterno .setEditable(false);
-                            campoApellidoMaterno .setEditable(false);
-                            campoCorreoUDLAP     .setEditable(false);
+                            campoNombre.setEditable(false);
+                            campoApellidoPaterno.setEditable(false);
+                            campoApellidoMaterno.setEditable(false);
+                            campoCorreoUDLAP.setEditable(false);
                         }
                     }
 
@@ -368,17 +374,15 @@ public class FormularioAccidenteCompleto extends JPanel {
                 } catch (SQLException ex) {
                     ex.printStackTrace();
                     JOptionPane.showMessageDialog(
-                        FormularioAccidenteCompleto.this,
-                        "Error al cargar datos del estudiante:\n" + ex.getMessage(),
-                        "Error",
-                        JOptionPane.ERROR_MESSAGE
-                    );
+                            FormularioAccidenteCompleto.this,
+                            "Error al cargar datos del estudiante:\n" + ex.getMessage(),
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
-    
-    }
 
+    }
 
     // Auxiliares UI
     private void addSeccion(JPanel panel, GridBagConstraints gbc, int row, String texto, Font font) {
@@ -480,11 +484,9 @@ public class FormularioAccidenteCompleto extends JPanel {
 
         // II. Información del Accidente
         // Fecha y hora
-        for (Component c : panelFechaAccidente.getComponents()) {
-            if (c instanceof JComboBox<?>) {
-                ((JComboBox<?>) c).setSelectedIndex(0);
-            }
-        }
+        datePickerAccidente.setDate(null);
+        comboHoraAccidente.setSelectedIndex(0);
+        comboMinutoAccidente.setSelectedIndex(0);
         comboDiaSemana.setSelectedIndex(0);
         comboLugar.setSelectedIndex(0);
         campoUbicacionExacta.setText("");
@@ -512,21 +514,15 @@ public class FormularioAccidenteCompleto extends JPanel {
         areaTratamiento.setText("");
         campoMedicoTratante.setText("");
         campoCedula.setText("");
-        for (Component c : panelFechaInforme.getComponents()) {
-            if (c instanceof JComboBox<?>) {
-                ((JComboBox<?>) c).setSelectedIndex(0);
-            }
-        }
+        datePickerInforme.setDate(null);
 
         // V. Traslado y Seguimiento
         comboHospitalDestino.setSelectedIndex(0);
         campoResponsableTraslado.setText("");
         campoMedioTransporte.setText("");
-        for (Component c : panelFechaIngreso.getComponents()) {
-            if (c instanceof JComboBox<?>) {
-                ((JComboBox<?>) c).setSelectedIndex(0);
-            }
-        }
+        datePickerIngreso.setDate(null);
+        comboHoraIngreso.setSelectedIndex(0);
+        comboMinutoIngreso.setSelectedIndex(0);
 
         // VI. Contacto de Emergencia
         campoNombreContacto.setText("");
@@ -541,11 +537,7 @@ public class FormularioAccidenteCompleto extends JPanel {
 
         // VIII. Declaraciones y Firmas
         areaNarrativa.setText("");
-        for (Component c : panelFechaElaboracion.getComponents()) {
-            if (c instanceof JComboBox<?>) {
-                ((JComboBox<?>) c).setSelectedIndex(0);
-            }
-        }
+        datePickerElaboracion.setDate(null);
 
         // —————— LIMPIAR LAS FOTOS ——————
         fotosAccidente.clear();
@@ -555,386 +547,64 @@ public class FormularioAccidenteCompleto extends JPanel {
     }
 
     /**
-     * Valida todos los campos obligatorios del formulario.
+     * Abre el JFileChooser para agregar fotos y las muestra en panelFotos.
      */
-   
-private boolean validarCampos() {
-    String txt;
-    String nombreContacto  = campoNombreContacto.getText().trim();
-    String relacionContacto = campoRelacionContacto.getText().trim();
-    // obtenemos la ventana padre para los diálogos
-    Window owner = SwingUtilities.getWindowAncestor(this);
-
-    // I. Datos del Estudiante
-    // ID Emergencia
-    txt = campoIDEmergencia.getText().trim();
-    if (txt.isEmpty()) {
-        MensajeErrorUDLAP.mostrarVentanaError(owner,
-            "Validación",
-            "Debe ingresar el ID de Emergencia.");
-        campoIDEmergencia.requestFocus();
-        return false;
-    }
-    try {
-        Integer.parseInt(txt);
-    } catch (NumberFormatException e) {
-        MensajeErrorUDLAP.mostrarVentanaError(owner,
-            "Validación",
-            "El ID de Emergencia debe ser numérico.");
-        campoIDEmergencia.requestFocus();
-        return false;
-    }
-
-    // Matrícula: rango [180000–999999]
-    txt = campoMatricula.getText().trim();
-    if (!ValidadorPaciente.esIDValido(txt)) {
-        MensajeErrorUDLAP.mostrarVentanaError(owner,
-            "Validación",
-            "El ID de estudiante debe ser un número entre 180000 y 999999.");
-        campoMatricula.requestFocus();
-        return false;
-    }
-    // Nombre(s)
-    if (campoNombre.getText().trim().isEmpty()) {
-        MensajeErrorUDLAP.mostrarVentanaError(owner,
-            "Validación",
-            "Debe ingresar el nombre del estudiante.");
-        campoNombre.requestFocus();
-        return false;
-    }
-    // Apellidos
-    if (campoApellidoPaterno.getText().trim().isEmpty()) {
-        MensajeErrorUDLAP.mostrarVentanaError(owner,
-            "Validación",
-            "Debe ingresar el apellido paterno.");
-        campoApellidoPaterno.requestFocus();
-        return false;
-    }
-    if (campoApellidoMaterno.getText().trim().isEmpty()) {
-        MensajeErrorUDLAP.mostrarVentanaError(owner,
-            "Validación",
-            "Debe ingresar el apellido materno.");
-        campoApellidoMaterno.requestFocus();
-        return false;
-    }
-    // Edad
-    txt = campoEdad.getText().trim();
-    if (txt.isEmpty()) {
-        MensajeErrorUDLAP.mostrarVentanaError(owner,
-            "Validación",
-            "Debe ingresar la edad.");
-        campoEdad.requestFocus();
-        return false;
-    }
-    try {
-        int edad = Integer.parseInt(txt);
-        if (edad < 0 || edad > 120) {
-            throw new NumberFormatException();
+    private void abrirSelectorFotos() {
+        JFileChooser fc = new JFileChooser();
+        fc.setMultiSelectionEnabled(true);
+        fc.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Imágenes", "jpg", "png", "jpeg"));
+        if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+            for (File f : fc.getSelectedFiles()) {
+                try {
+                    // ---- Reemplázalo por esto ----
+                    byte[] img = Files.readAllBytes(f.toPath());
+                    fotosAccidente.add(img);
+                    // vista previa
+                    javax.swing.ImageIcon ico = new javax.swing.ImageIcon(img);
+                    // Usa java.awt.Image y su constante completamente cualificada
+                    java.awt.Image imgScale = ico.getImage()
+                            .getScaledInstance(100, 100, java.awt.Image.SCALE_SMOOTH);
+                    // Construye el JLabel con el ImageIcon plenamente cualificado
+                    JLabel lbl = new JLabel(new javax.swing.ImageIcon(imgScale));
+                    // Usa la fábrica de bordes de Swing y Color de AWT plenamente cualificados
+                    lbl.setBorder(javax.swing.BorderFactory.createLineBorder(java.awt.Color.GRAY));
+                    // al hacer clic, eliminar la foto
+                    lbl.addMouseListener(new MouseAdapter() {
+                        // Quita @Override si recibes error de compatibilidad
+                        public void mouseClicked(java.awt.event.MouseEvent ev) {
+                            fotosAccidente.remove(img);
+                            panelFotos.remove(lbl);
+                            panelFotos.revalidate();
+                            panelFotos.repaint();
+                        }
+                    });
+                    panelFotos.add(lbl);
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+            panelFotos.revalidate();
+            panelFotos.repaint();
         }
-    } catch (NumberFormatException e) {
-        MensajeErrorUDLAP.mostrarVentanaError(owner,
-            "Validación",
-            "La edad debe ser un número entre 0 y 120.");
-        campoEdad.requestFocus();
-        return false;
     }
-    // Sexo y Escuela
-    if (comboSexo.getSelectedIndex() == 0) {
-        MensajeErrorUDLAP.mostrarVentanaError(owner,
-            "Validación",
-            "Debe seleccionar el sexo.");
-        comboSexo.requestFocus();
-        return false;
-    }
-    if (comboEscuela.getSelectedIndex() == 0) {
-        MensajeErrorUDLAP.mostrarVentanaError(owner,
-            "Validación",
-            "Debe seleccionar la escuela.");
-        comboEscuela.requestFocus();
-        return false;
-    }
-    // Programa y Semestre
-    if (campoPrograma.getText().trim().isEmpty()) {
-        MensajeErrorUDLAP.mostrarVentanaError(owner,
-            "Validación",
-            "Debe ingresar el programa académico.");
-        campoPrograma.requestFocus();
-        return false;
-    }
-    txt = campoSemestre.getText().trim();
-    if (txt.isEmpty()) {
-        MensajeErrorUDLAP.mostrarVentanaError(owner,
-            "Validación",
-            "Debe ingresar el semestre.");
-        campoSemestre.requestFocus();
-        return false;
-    }
-    try {
-        Integer.parseInt(txt);
-    } catch (NumberFormatException e) {
-        MensajeErrorUDLAP.mostrarVentanaError(owner,
-            "Validación",
-            "El semestre/cuatrimestre debe ser numérico.");
-        campoSemestre.requestFocus();
-        return false;
-    }
-    // Correo UDLAP
-    txt = campoCorreoUDLAP.getText().trim();
-    if (txt.isEmpty()) {
-        MensajeErrorUDLAP.mostrarVentanaError(owner,
-            "Validación",
-            "Debe ingresar el correo institucional UDLAP.");
-        campoCorreoUDLAP.requestFocus();
-        return false;
-    }
-    if (!txt.matches("^[A-Za-z0-9._%+-]+@udlap\\.mx$")) {
-        MensajeErrorUDLAP.mostrarVentanaError(owner,
-            "Validación",
-            "El correo debe pertenecer al dominio @udlap.mx.");
-        campoCorreoUDLAP.requestFocus();
-        return false;
-    }
-    // Teléfono Estudiante
-    txt = campoTelefonoEst.getText().trim();
-    if (!txt.matches("^\\d{10}$")) {
-        MensajeErrorUDLAP.mostrarVentanaError(owner,
-            "Validación",
-            "El teléfono del estudiante debe tener 10 dígitos.");
-        campoTelefonoEst.requestFocus();
-        return false;
-    }
-
-    // II. Información del Accidente
-    if (comboDiaSemana.getSelectedIndex() == 0) {
-        MensajeErrorUDLAP.mostrarVentanaError(owner,
-            "Validación",
-            "Debe seleccionar el día de la semana.");
-        comboDiaSemana.requestFocus();
-        return false;
-    }
-    if (comboLugar.getSelectedIndex() == 0) {
-        MensajeErrorUDLAP.mostrarVentanaError(owner,
-            "Validación",
-            "Debe seleccionar el lugar de ocurrencia.");
-        comboLugar.requestFocus();
-        return false;
-    }
-    if (campoUbicacionExacta.getText().trim().isEmpty()) {
-        MensajeErrorUDLAP.mostrarVentanaError(owner,
-            "Validación",
-            "Debe ingresar la ubicación exacta.");
-        campoUbicacionExacta.requestFocus();
-        return false;
-    }
-    if (comboEnHorario.getSelectedIndex() == 0) {
-        MensajeErrorUDLAP.mostrarVentanaError(owner,
-            "Validación",
-            "Debe indicar si fue en horario de clase.");
-        comboEnHorario.requestFocus();
-        return false;
-    }
-    if (campoCentroAtencion.getText().trim().isEmpty()) {
-        MensajeErrorUDLAP.mostrarVentanaError(owner,
-            "Validación",
-            "Debe ingresar el centro de atención inicial.");
-        campoCentroAtencion.requestFocus();
-        return false;
-    }
-
-    // III. Lesiones y Daños
-    if (comboLesionPrincipal.getSelectedIndex() == 0) {
-        MensajeErrorUDLAP.mostrarVentanaError(owner,
-            "Validación",
-            "Debe seleccionar el tipo de lesión principal.");
-        comboLesionPrincipal.requestFocus();
-        return false;
-    }
-    if (comboParteCuerpo.getSelectedIndex() == 0) {
-        MensajeErrorUDLAP.mostrarVentanaError(owner,
-            "Validación",
-            "Debe seleccionar la parte del cuerpo afectada.");
-        comboParteCuerpo.requestFocus();
-        return false;
-    }
-    if (comboTriage.getSelectedIndex() == 0) {
-        MensajeErrorUDLAP.mostrarVentanaError(owner,
-            "Validación",
-            "Debe seleccionar la gravedad.");
-        comboTriage.requestFocus();
-        return false;
-    }
-    if (comboConsciencia.getSelectedIndex() == 0) {
-        MensajeErrorUDLAP.mostrarVentanaError(owner,
-            "Validación",
-            "Debe seleccionar el nivel de consciencia.");
-        comboConsciencia.requestFocus();
-        return false;
-    }
-    if (areaDescripcion.getText().trim().isEmpty()) {
-        MensajeErrorUDLAP.mostrarVentanaError(owner,
-            "Validación",
-            "Debe ingresar la descripción detallada del accidente.");
-        areaDescripcion.requestFocus();
-        return false;
-    }
-
-    // IV. Evaluación Médica
-    if (comboLesionesAtribuibles.getSelectedIndex() == 0) {
-        MensajeErrorUDLAP.mostrarVentanaError(owner,
-            "Validación",
-            "Debe indicar si las lesiones son atribuibles al accidente.");
-        comboLesionesAtribuibles.requestFocus();
-        return false;
-    }
-    if (comboRiesgoMuerte.getSelectedIndex() == 0) {
-        MensajeErrorUDLAP.mostrarVentanaError(owner,
-            "Validación",
-            "Debe indicar el riesgo de muerte.");
-        comboRiesgoMuerte.requestFocus();
-        return false;
-    }
-    txt = campoIncapacidad.getText().trim();
-    if (txt.isEmpty()) {
-        MensajeErrorUDLAP.mostrarVentanaError(owner,
-            "Validación",
-            "Debe ingresar los días de incapacidad.");
-        campoIncapacidad.requestFocus();
-        return false;
-    }
-    try {
-        Integer.parseInt(txt);
-    } catch (NumberFormatException e) {
-        MensajeErrorUDLAP.mostrarVentanaError(owner,
-            "Validación",
-            "Los días de incapacidad deben de ser un valor númerico entero.");
-        campoIncapacidad.requestFocus();
-        return false;
-    }
-    if (comboHospitalizacion.getSelectedIndex() == 0) {
-        MensajeErrorUDLAP.mostrarVentanaError(owner,
-            "Validación",
-            "Debe indicar si requiere hospitalización.");
-        comboHospitalizacion.requestFocus();
-        return false;
-    }
-    if (areaTratamiento.getText().trim().isEmpty()) {
-        MensajeErrorUDLAP.mostrarVentanaError(owner,
-            "Validación",
-            "Debe indicar el tratamiento recomendado.");
-        areaTratamiento.requestFocus();
-        return false;
-    }
-    if (campoMedicoTratante.getText().trim().isEmpty()) {
-        MensajeErrorUDLAP.mostrarVentanaError(owner,
-            "Validación",
-            "Debe ingresar el nombre del médico tratante.");
-        campoMedicoTratante.requestFocus();
-        return false;
-    }
-    if (campoCedula.getText().trim().isEmpty()) {
-        MensajeErrorUDLAP.mostrarVentanaError(owner,
-            "Validación",
-            "Debe ingresar la cédula profesional.");
-        campoCedula.requestFocus();
-        return false;
-    }
-
-    // V. Traslado y Seguimiento: ninguno obligatorio salvo condicional
-
-    // VI. Contacto de Emergencia
-    if (campoNombreContacto.getText().trim().isEmpty()) {
-        MensajeErrorUDLAP.mostrarVentanaError(owner,
-            "Validación",
-            "Debe ingresar el nombre del contacto de emergencia.");
-        campoNombreContacto.requestFocus();
-        return false;
-    }
-    if (campoRelacionContacto.getText().trim().isEmpty()) {
-        MensajeErrorUDLAP.mostrarVentanaError(owner,
-            "Validación",
-            "Debe ingresar la relación con el estudiante.");
-        campoRelacionContacto.requestFocus();
-        return false;
-    }
-    if (!nombreContacto.matches("[A-Za-zÁÉÍÓÚáéíóúÑñ ]+")) {
-        MensajeErrorUDLAP.mostrarVentanaError(owner,
-            "Validación",
-            "El nombre del contacto sólo debe contener letras y espacios.");
-        campoNombreContacto.requestFocus();
-        return false;
-    }
-    if (!relacionContacto.matches("[A-Za-zÁÉÍÓÚáéíóúÑñ ]+")) {
-        MensajeErrorUDLAP.mostrarVentanaError(owner,
-            "Validación",
-            "La relación sólo debe contener letras y espacios.");
-        campoRelacionContacto.requestFocus();
-        return false;
-    }
-    if (!campoTelefonoContacto.getText().trim().matches("\\d{10}")) {
-        MensajeErrorUDLAP.mostrarVentanaError(owner,
-            "Validación",
-            "El teléfono de contacto debe tener 10 dígitos.");
-        campoTelefonoContacto.requestFocus();
-        return false;
-    }
-
-    // VIII. Declaraciones y Firmas
-    if (areaNarrativa.getText().trim().isEmpty()) {
-        MensajeErrorUDLAP.mostrarVentanaError(owner,
-            "Validación",
-            "Debe ingresar la narrativa detallada del accidente.");
-        areaNarrativa.requestFocus();
-        return false;
-    }
-
-    // Todos los datos son válidos
-    return true;
-}
-
 
     /**
      * Extrae día, mes, año, hora y minuto de un panel creado con
      * crearPanelFechaTime()
      * y devuelve una cadena en formato "YYYY-MM-DD HH:mm:00".
      */
-    @SuppressWarnings("unchecked")
-    private String formatearFechaHora(JPanel p) {
-        Component[] comps = p.getComponents();
-        JComboBox<String> cbDia = (JComboBox<String>) comps[0];
-        JComboBox<String> cbMes = (JComboBox<String>) comps[1];
-        JComboBox<String> cbAnio = (JComboBox<String>) comps[2];
-        JComboBox<String> cbHora = (JComboBox<String>) comps[3];
-        JComboBox<String> cbMin = (JComboBox<String>) comps[4];
-
-        int dia = Integer.parseInt(cbDia.getSelectedItem().toString());
-        int mes = cbMes.getSelectedIndex() + 1; // índices 0–11
-        String anio = cbAnio.getSelectedItem().toString();
-        String hora = cbHora.getSelectedItem().toString();
-        String minuto = cbMin.getSelectedItem().toString();
-
-        return String.format(
-                "%s-%02d-%02d %s:%s:00",
-                anio, mes, dia, hora, minuto);
+    private String formatearFechaHoraUDLAP(DatePickerUDLAP dp, ComboBoxUDLAP<String> ch, ComboBoxUDLAP<String> cm) {
+        LocalDate fecha = dp.getDate();
+        String hora = (String) ch.getSelectedItem();
+        String minuto = (String) cm.getSelectedItem();
+        if (fecha == null || hora == null || minuto == null)
+            return null;
+        return fecha.toString() + " " + hora + ":" + minuto + ":00";
     }
 
-    /**
-     * Extrae día, mes y año de un panel creado con crearPanelFecha()
-     * y devuelve una cadena en formato "YYYY-MM-DD".
-     */
-    @SuppressWarnings("unchecked")
-    private String formatearFecha(JPanel p) {
-        Component[] comps = p.getComponents();
-        JComboBox<String> cbDia = (JComboBox<String>) comps[0];
-        JComboBox<String> cbMes = (JComboBox<String>) comps[1];
-        JComboBox<String> cbAnio = (JComboBox<String>) comps[2];
-
-        int dia = Integer.parseInt(cbDia.getSelectedItem().toString());
-        int mes = cbMes.getSelectedIndex() + 1; // índices 0–11
-        String anio = cbAnio.getSelectedItem().toString();
-
-        return String.format(
-                "%s-%02d-%02d",
-                anio, mes, dia);
+    private String formatearFechaUDLAP(DatePickerUDLAP dp) {
+        LocalDate fecha = dp.getDate();
+        return (fecha != null) ? fecha.toString() : null;
     }
 
     /**
@@ -943,16 +613,79 @@ private boolean validarCampos() {
      * y lo persiste en la base de datos.
      */
     private void guardarAccidente() {
-        // 1) Validar
-        if (!validarCampos()) {
-            return;
-        }
+        // 1) Validación externa UDLAP
+        Window owner = SwingUtilities.getWindowAncestor(this);
+        if (!ValidacionesAccidente.validarCampos(
+                owner,
+                // I. Datos del Estudiante
+                campoIDEmergencia.getText().trim(),
+                campoMatricula.getText().trim(),
+                campoNombre.getText().trim(),
+                campoApellidoPaterno.getText().trim(),
+                campoApellidoMaterno.getText().trim(),
+                campoEdad.getText().trim(),
+                (String) comboSexo.getSelectedItem(),
+                (String) comboEscuela.getSelectedItem(),
+                campoPrograma.getText().trim(),
+                campoSemestre.getText().trim(),
+                campoCorreoUDLAP.getText().trim(),
+                campoTelefonoEst.getText().trim(),
 
-        if (fotosAccidente.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                    "Debes agregar al menos una foto.",
-                    "Validación",
-                    JOptionPane.WARNING_MESSAGE);
+                // II. Información del Accidente
+                datePickerAccidente.getDate(),
+                (String) comboHoraAccidente.getSelectedItem(),
+                (String) comboMinutoAccidente.getSelectedItem(),
+                (String) comboDiaSemana.getSelectedItem(),
+                (String) comboLugar.getSelectedItem(),
+                campoUbicacionExacta.getText().trim(),
+                (String) comboEnHorario.getSelectedItem(),
+                (String) comboTrayecto.getSelectedItem(),
+                campoCentroAtencion.getText().trim(),
+
+                // III. Lesiones y Daños
+                (String) comboLesionPrincipal.getSelectedItem(),
+                campoLesionSecundaria.getText().trim(),
+                (String) comboParteCuerpo.getSelectedItem(),
+                (String) comboTriage.getSelectedItem(),
+                (String) comboConsciencia.getSelectedItem(),
+                areaDescripcion.getText().trim(),
+                areaPrimerosAuxilios.getText().trim(),
+                areaMedicamentos.getText().trim(),
+                campoDiagnostico.getText().trim(),
+
+                // IV. Evaluación Médica
+                (String) comboLesionesAtribuibles.getSelectedItem(),
+                (String) comboRiesgoMuerte.getSelectedItem(),
+                campoIncapacidad.getText().trim(),
+                (String) comboHospitalizacion.getSelectedItem(),
+                areaTratamiento.getText().trim(),
+                campoMedicoTratante.getText().trim(),
+                campoCedula.getText().trim(),
+
+                // Fechas UDLAP
+                datePickerInforme.getDate(),
+                datePickerIngreso.getDate(),
+                (String) comboHoraIngreso.getSelectedItem(),
+                (String) comboMinutoIngreso.getSelectedItem(),
+
+                // VI. Contacto de Emergencia
+                campoNombreContacto.getText().trim(),
+                campoRelacionContacto.getText().trim(),
+                campoTelefonoContacto.getText().trim(),
+                campoCorreoContacto.getText().trim(),
+                areaDomicilioContacto.getText().trim(),
+
+                // VII. Testigos
+                campoTestigo1Nombre.getText().trim(),
+                campoTestigo1Telefono.getText().trim(),
+
+                // VIII. Narrativa y elaboración
+                areaNarrativa.getText().trim(),
+                datePickerElaboracion.getDate(),
+
+                // Fotos
+                fotosAccidente)) {
+            // Si falla la validación, ya se mostró el diálogo; salimos
             return;
         }
 
@@ -972,7 +705,7 @@ private boolean validarCampos() {
         String direccion = areaDireccion.getText().trim();
 
         // 3) Extraer valores de II. Información del Accidente
-        String fechaAccidente = formatearFechaHora(panelFechaAccidente);
+        String fechaAccidente = formatearFechaHoraUDLAP(datePickerAccidente, comboHoraAccidente, comboMinutoAccidente);
         String diaSemana = comboDiaSemana.getSelectedItem().toString();
         String lugarOcurrencia = comboLugar.getSelectedItem().toString();
         String ubicacionExacta = campoUbicacionExacta.getText().trim();
@@ -1000,13 +733,13 @@ private boolean validarCampos() {
         String tratamientoRec = areaTratamiento.getText().trim();
         String medicoTratante = campoMedicoTratante.getText().trim();
         String cedulaProfesional = campoCedula.getText().trim();
-        String fechaInformeMedico = formatearFecha(panelFechaInforme);
+        String fechaInformeMedico = formatearFechaUDLAP(datePickerInforme);
 
         // 6) Extraer valores de V. Traslado y Seguimiento
         String hospitalDestino = comboHospitalDestino.getSelectedItem().toString();
         String responsableTraslado = campoResponsableTraslado.getText().trim();
         String medioTransporte = campoMedioTransporte.getText().trim();
-        String fechaHoraIngreso = formatearFechaHora(panelFechaIngreso);
+        String fechaHoraIngreso = formatearFechaHoraUDLAP(datePickerIngreso, comboHoraIngreso, comboMinutoIngreso);
 
         // 7) Extraer valores de VI. Contacto de Emergencia
         String nombreContacto = campoNombreContacto.getText().trim();
@@ -1021,13 +754,13 @@ private boolean validarCampos() {
 
         // 9) Extraer valores de VIII. Declaraciones y Firmas
         String narrativaDetallada = areaNarrativa.getText().trim();
-        String fechaElaboracion = formatearFecha(panelFechaElaboracion);
-        String fechaRegistroEmergencia   = campoFechaRegistro.getText().trim();
+        String fechaElaboracion = formatearFechaUDLAP(datePickerElaboracion);
+        String fechaRegistro = campoFechaRegistro.getText().trim();
         String paramedicoResponsable = campoParamedico.getText().trim();
         // 10) Crear modelo y persistir
         Accidente acc = new Accidente(
                 idEmergencia,
-                fechaRegistroEmergencia,        // ← nuevo
+                fechaRegistro, // ← nuevo
                 paramedicoResponsable,
                 matricula,
                 nombreEstudiante,
@@ -1081,16 +814,24 @@ private boolean validarCampos() {
                 fechaElaboracion,
                 fotosAccidente);
 
-        boolean ok = AccidenteDB.guardarAccidenteCompleto(acc);
-        JOptionPane.showMessageDialog(
-                this,
-                ok ? "Accidente guardado con éxito." : "Error al guardar el accidente.",
-                "Resultado",
-                ok ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE);
+        try {
+            boolean ok = AccidenteDB.guardarAccidenteCompleto(acc);
+            if (!ok) {
+                MensajeErrorUDLAP.mostrarVentanaError(owner,
+                        "Error",
+                        "Error al guardar el accidente.");
+            } else {
+                mensajeEstado.mostrarExito("Accidente guardado con éxito.");
+                limpiarCampos();
+            }
 
-        if (ok) {
-            limpiarCampos();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            MensajeErrorUDLAP.mostrarVentanaError(owner,
+                    "Error SQL",
+                    "Error al guardar: " + ex.getMessage());
         }
+
     }
 
     /**

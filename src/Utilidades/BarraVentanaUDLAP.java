@@ -72,7 +72,7 @@ public class BarraVentanaUDLAP extends JPanel {
     }
 
     /**
-     * Crea un JButton que pinta TODO su fondo con colorHover en rollover,
+     * Crea un JButton que pinta todo su fondo con colorHover en rollover,
      * y transparente en estado normal.
      */
     private JButton crearBoton(String simbolo) {
@@ -83,7 +83,7 @@ public class BarraVentanaUDLAP extends JPanel {
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                         RenderingHints.VALUE_ANTIALIAS_ON);
 
-                // si el modelo está en rollover, pintamos TODO el fondo
+                // si el modelo está en rollover, pintamos todo el fondo
                 if (getModel().isRollover()) {
                     g2.setColor(colorHover);
                     g2.fillRoundRect(0, 0, getWidth(), getHeight(),
