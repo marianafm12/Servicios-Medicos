@@ -2,10 +2,11 @@ package Registro;
 
 import javax.swing.*;
 import java.awt.*;
-import Utilidades.ColoresUDLAP;
+import Utilidades.*;
 
 public class FrameRegistro extends JPanel {
     private final JTextField[] campos;
+    private final MensajeErrorUDLAP mensajeGeneral;
     private final String[] etiquetas = {
             "ID:", "Nombre:", "Apellido Paterno:", "Apellido Materno:", "Correo:",
             "Edad:", "Altura (cm):", "Peso (kg):",
@@ -49,7 +50,7 @@ public class FrameRegistro extends JPanel {
             gbc.gridx = 1;
             gbc.weightx = 0.7;
 
-            campos[i] = new JTextField(25);
+            campos[i] = new JTextField(20);
             campos[i].setFont(fieldFont);
             campos[i].setBorder(BorderFactory.createCompoundBorder(
                     BorderFactory.createLineBorder(ColoresUDLAP.GRIS_HOVER),
@@ -57,10 +58,32 @@ public class FrameRegistro extends JPanel {
             add(campos[i], gbc);
         }
 
-        // Espacio adicional al final
-        gbc.gridy = etiquetas.length;
-        gbc.weighty = 0.2;
-        add(Box.createGlue(), gbc);
+        GridBagConstraints gbcMsg = new GridBagConstraints();
+        gbcMsg.gridx = 0;
+        gbcMsg.gridy = etiquetas.length + 1; // fila siguiente a los JTextFields
+        gbcMsg.gridwidth = 2;
+        gbcMsg.fill = GridBagConstraints.HORIZONTAL;
+        gbcMsg.weightx = 1.0; // ocupa ambas columnas
+        gbcMsg.weighty = 0.0; // no quiere expandirse verticalmente
+
+        mensajeGeneral = new MensajeErrorUDLAP();
+        mensajeGeneral.setHorizontalAlignment(SwingConstants.CENTER);
+        add(mensajeGeneral, gbcMsg);
+
+        // 2) (Opcional) si quieres empujar todo hacia arriba,
+        // añade un glue después de la fila de mensaje:
+        GridBagConstraints gbcGlue = new GridBagConstraints();
+        gbcGlue.gridx = 0;
+        gbcGlue.gridy = etiquetas.length + 2;
+        gbcGlue.gridwidth = 2;
+        gbcGlue.weighty = 1.0; // toma todo el espacio sobrante
+        gbcGlue.fill = GridBagConstraints.BOTH;
+        add(Box.createVerticalGlue(), gbcGlue);
+    }
+
+    /* Permite al controlador actualizar el mensaje inline */
+    public MensajeErrorUDLAP getMensajeGeneral() {
+        return mensajeGeneral;
     }
 
     public JTextField[] obtenerCampos() {

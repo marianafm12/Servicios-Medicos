@@ -12,7 +12,7 @@ import javax.swing.border.EmptyBorder;
  * • Esquinas superiores redondeadas (solo en estado no-maximizado)
  * • Rectangular al maximizar
  * • Botones de minimizar, maximizar/restaurar y cerrar
- * • Hover completo: el fondo del botón se vuelve colorHover
+ * • Transición suave entre color sólido y color hover
  * • Arrastre de la ventana al pulsar la barra
  */
 public class BarraVentanaUDLAP extends JPanel {
@@ -29,6 +29,7 @@ public class BarraVentanaUDLAP extends JPanel {
 
     /** Constructor “solo colores” */
     public BarraVentanaUDLAP(boolean esError) {
+        // Selección de paleta
         if (esError) {
             colorFondo = ColoresUDLAP.ROJO_SOLIDO;
             colorHover = ColoresUDLAP.ROJO_HOVER;
@@ -42,13 +43,25 @@ public class BarraVentanaUDLAP extends JPanel {
         setBorder(new EmptyBorder(0, 8, 0, 8));
         setPreferredSize(new Dimension(0, ALTURA));
 
+        // Creación de los botones con animación
         btnMinimizar = crearBoton("_");
         btnMaximizar = crearBoton("□");
         btnCerrar = crearBoton("X");
 
-        add(btnMinimizar);
-        add(btnMaximizar);
-        add(btnCerrar);
+        // Si es modo error, solo agregamos cerrar; si no, los tres
+        if (esError) {
+            add(btnCerrar);
+        } else {
+            add(btnMinimizar);
+            add(btnMaximizar);
+            add(btnCerrar);
+        }
+        btnCerrar.addActionListener(e -> {
+            Window ventana = SwingUtilities.getWindowAncestor(BarraVentanaUDLAP.this);
+            if (ventana != null) {
+                ventana.dispose();
+            }
+        });
     }
 
     /** Constructor “completo”: colores + integración con Window */
@@ -71,46 +84,78 @@ public class BarraVentanaUDLAP extends JPanel {
         }
     }
 
-    /**
-     * Crea un JButton que pinta todo su fondo con colorHover en rollover,
-     * y transparente en estado normal.
-     */
+    /** Crea un JButton animado que interpola entre colorFondo y colorHover */
     private JButton crearBoton(String simbolo) {
-        JButton b = new JButton(simbolo) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-                        RenderingHints.VALUE_ANTIALIAS_ON);
+        return new AnimatedButton(simbolo);
+    }
 
-                // si el modelo está en rollover, pintamos todo el fondo
-                if (getModel().isRollover()) {
-                    g2.setColor(colorHover);
-                    g2.fillRoundRect(0, 0, getWidth(), getHeight(),
-                            ARC_BTN, ARC_BTN);
+    /** Botón con transición suave entre colorFondo y colorHover */
+    private class AnimatedButton extends JButton {
+        private Timer hoverTimer;
+        private float progress = 0f; // 0 = colorFondo, 1 = colorHover
+        private boolean hovering = false;
+
+        public AnimatedButton(String simbolo) {
+            super(simbolo);
+            setFont(getFont().deriveFont(Font.BOLD, 14f));
+            setForeground(ColoresUDLAP.BLANCO);
+            setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            setOpaque(false);
+            setContentAreaFilled(false);
+            setBorderPainted(false);
+            setFocusPainted(false);
+            setBorder(new EmptyBorder(4, 8, 4, 8));
+            setRolloverEnabled(true);
+
+            addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseEntered(MouseEvent e) {
+                    hovering = true;
+                    startHoverAnimation();
                 }
-                g2.dispose();
-                super.paintComponent(g);
+
+                @Override
+                public void mouseExited(MouseEvent e) {
+                    hovering = false;
+                    startHoverAnimation();
+                }
+            });
+        }
+
+        private void startHoverAnimation() {
+            if (hoverTimer != null && hoverTimer.isRunning()) {
+                hoverTimer.stop();
             }
-        };
+            hoverTimer = new Timer(40, evt -> {
+                float step = 0.1f;
+                if (hovering) {
+                    progress = Math.min(1f, progress + step);
+                } else {
+                    progress = Math.max(0f, progress - step);
+                }
+                repaint();
+                if (progress == 0f || progress == 1f) {
+                    hoverTimer.stop();
+                }
+            });
+            hoverTimer.start();
+        }
 
-        b.setFont(b.getFont().deriveFont(Font.BOLD, 14f));
-        b.setForeground(ColoresUDLAP.BLANCO);
-        b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-
-        // Importante: asegurar que el L&F no pinte el botón por debajo
-        b.setOpaque(false);
-        b.setContentAreaFilled(false);
-        b.setBorderPainted(false);
-        b.setFocusPainted(false);
-
-        // Margen interno para darle tamaño uniforme
-        b.setBorder(new EmptyBorder(4, 8, 4, 8));
-
-        // Habilitamos rollover (por defecto ya suele ser true, pero por si acaso)
-        b.setRolloverEnabled(true);
-
-        return b;
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                    RenderingHints.VALUE_ANTIALIAS_ON);
+            // Interpolación lineal entre colorFondo y colorHover
+            int r = (int) (colorFondo.getRed() + (colorHover.getRed() - colorFondo.getRed()) * progress);
+            int g_ = (int) (colorFondo.getGreen() + (colorHover.getGreen() - colorFondo.getGreen()) * progress);
+            int b = (int) (colorFondo.getBlue() + (colorHover.getBlue() - colorFondo.getBlue()) * progress);
+            Color curr = new Color(r, g_, b);
+            g2.setColor(curr);
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), ARC_BTN, ARC_BTN);
+            g2.dispose();
+            super.paintComponent(g);
+        }
     }
 
     @Override
@@ -122,8 +167,7 @@ public class BarraVentanaUDLAP extends JPanel {
 
         int w = getWidth(), h = getHeight();
         // esquinas superiores redondeadas sólo cuando no está maximizado
-        RoundRectangle2D top = new RoundRectangle2D.Float(
-                0, 0, w, ARC * 2, ARC * 2, ARC * 2);
+        RoundRectangle2D top = new RoundRectangle2D.Float(0, 0, w, ARC * 2, ARC * 2, ARC * 2);
         Rectangle rect = new Rectangle(0, ARC, w, h - ARC);
         Area shape = new Area(top);
         shape.add(new Area(rect));
@@ -149,7 +193,6 @@ public class BarraVentanaUDLAP extends JPanel {
         }
     }
 
-    // Aplica el recorte de ventana (redondeo vs. rectangular)
     private void aplicarShape(Frame f) {
         boolean maximizado = (f.getExtendedState() & Frame.MAXIMIZED_BOTH) != 0;
         if (maximizado) {
@@ -195,4 +238,5 @@ public class BarraVentanaUDLAP extends JPanel {
     public JButton getBtnCerrar() {
         return btnCerrar;
     }
+
 }

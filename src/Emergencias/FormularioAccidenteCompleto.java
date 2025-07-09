@@ -6,10 +6,6 @@ import BaseDeDatos.ConexionSQLite;
 import java.io.File;
 import javax.swing.*;
 
-import org.w3c.dom.events.MouseEvent;
-
-import com.lowagie.text.Image;
-
 import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
