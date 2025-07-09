@@ -1,3 +1,4 @@
+// src/Registro/PanelControl.java
 package Registro;
 
 import javax.swing.*;
@@ -7,32 +8,42 @@ import Utilidades.*;
 /**
  * Panel de control para registro de pacientes, usando PanelBotonesFormulario
  * UDLAP.
+ * Ahora ancla los botones al borde inferior.
  */
 public class PanelControl extends JPanel {
 
-    public PanelControl(JTextField[] campos) {
-        // Layout y estilo del panel
-        setLayout(new FlowLayout(FlowLayout.CENTER, 20, 10));
+    /**
+     * @param campos        Array de JTextField que maneja el formulario de
+     *                      registro.
+     * @param mensajeInline Componente donde se mostrarán los mensajes de
+     *                      validación.
+     * @param owner         Ventana propietaria (para diálogos, etc.).
+     */
+    public PanelControl(JTextField[] campos,
+            MensajeErrorUDLAP mensajeInline,
+            Window owner) {
+        // Usamos BorderLayout para posicionar el panel de botones al SOUTH:
+        super(new BorderLayout());
         setBackground(ColoresUDLAP.BLANCO);
+        // Margen interior: 10px arriba y abajo
         setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
 
-        // Configuración de los botones: Agregar (VERDE_SOLIDO), Buscar
-        // (NARANJA_SOLIDO),
-        // Limpiar
-        // (ROJO_SOLIDO)
+        // Creamos el panel estándar de botones:
         PanelBotonesFormulario botones = new PanelBotonesFormulario(
-                new PanelBotonesFormulario.BotonConfig("Agregar", PanelBotonesFormulario.BotonConfig.Tipo.PRIMARY),
-                new PanelBotonesFormulario.BotonConfig("Buscar", PanelBotonesFormulario.BotonConfig.Tipo.SECONDARY),
-                new PanelBotonesFormulario.BotonConfig("Limpiar", PanelBotonesFormulario.BotonConfig.Tipo.DANGER));
+                new PanelBotonesFormulario.BotonConfig("Agregar",
+                        PanelBotonesFormulario.BotonConfig.Tipo.PRIMARY),
+                new PanelBotonesFormulario.BotonConfig("Buscar",
+                        PanelBotonesFormulario.BotonConfig.Tipo.SECONDARY),
+                new PanelBotonesFormulario.BotonConfig("Limpiar",
+                        PanelBotonesFormulario.BotonConfig.Tipo.DANGER));
 
-        // Asignar listeners a cada botón de acuerdo a su orden
+        // Inyectamos los listeners:
         botones.setListeners(
-                new AgregarRegistro(campos), // Primer botón -> Agregar
-                new Buscar(campos), // Segundo botón -> Buscar
-                new LimpiarCampos(campos) // Tercer botón -> Limpiar
-        );
+                new AgregarRegistro(campos, mensajeInline, owner),
+                new Buscar(campos),
+                new LimpiarCampos(campos, mensajeInline));
 
-        // Agregar el panel de botones al panel de control
-        add(botones);
+        // Y lo añadimos al sur, para que quede siempre abajo:
+        add(botones, BorderLayout.SOUTH);
     }
 }

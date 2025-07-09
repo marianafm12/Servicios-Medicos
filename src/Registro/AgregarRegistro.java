@@ -4,11 +4,21 @@ import java.awt.event.*;
 import java.sql.*;
 import javax.swing.*;
 
+import Utilidades.*;
+import java.awt.Window;
+
 public class AgregarRegistro implements ActionListener {
     private final JTextField[] campos;
+    private final MensajeErrorUDLAP mensajeInline;
+    private final Window owner;
 
-    public AgregarRegistro(JTextField[] campos) {
+    public AgregarRegistro(JTextField[] campos, MensajeErrorUDLAP mensajeInline, Window owner) {
         this.campos = campos;
+        this.mensajeInline = mensajeInline;
+        this.owner = owner;
+
+        // Se limpia cualquier mensaje previo
+        this.mensajeInline.limpiar();
 
         FocusAdapter cargaListener = new FocusAdapter() {
             @Override
@@ -82,30 +92,30 @@ public class AgregarRegistro implements ActionListener {
 
         if (!ValidadorPaciente.estanTodosLlenos(id, nombre, apellidoP, apellidoM, correo, edad, altura, peso,
                 enfermedades, medicacion, alergias)) {
-            JOptionPane.showMessageDialog(null, "Todos los campos deben estar llenos.");
+            mensajeInline.mostrarError("Todos los campos son obligatorios.");
             return;
         }
 
         if (!ValidadorPaciente.esIDValido(id)) {
-            JOptionPane.showMessageDialog(null, "El ID debe estar entre 180000 y 999999.");
+            mensajeInline.mostrarError("El ID debe estar entre 180000 y 999999.");
             return;
         }
 
         if (!ValidadorPaciente.esTextoAlfabetico(nombre) ||
                 !ValidadorPaciente.esTextoAlfabetico(apellidoP) ||
                 !ValidadorPaciente.esTextoAlfabetico(apellidoM)) {
-            JOptionPane.showMessageDialog(null, "Nombre y apellidos solo deben contener letras.");
+            mensajeInline.mostrarAdvertencia("Nombre y apellidos solo deben contener letras.");
             return;
         }
 
         if (!ValidadorPaciente.esCorreoValido(correo)) {
-            JOptionPane.showMessageDialog(null, "El formato del correo no es válido.");
+            mensajeInline.mostrarAdvertencia("El formato del correo no es válido.");
             return;
         }
 
         if (!ValidadorPaciente.esNumerico(edad) || !ValidadorPaciente.esNumerico(altura)
                 || !ValidadorPaciente.esNumerico(peso)) {
-            JOptionPane.showMessageDialog(null, "Edad, altura y peso deben ser valores numéricos.");
+            mensajeInline.mostrarAdvertencia("Edad, altura y peso deben ser valores numéricos.");
             return;
         }
 
@@ -166,12 +176,12 @@ public class AgregarRegistro implements ActionListener {
                 insertRegistro.executeUpdate();
             }
 
-            JOptionPane.showMessageDialog(null, "Datos guardados correctamente.");
+            mensajeInline.mostrarExito("Datos guardados correctamente.");
 
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(null,
-                    "Error al guardar en la base de datos:\n" + ex.getMessage(),
-                    "Error de Base de Datos", JOptionPane.ERROR_MESSAGE);
+            MensajeErrorUDLAP.mostrarVentanaError(owner,
+                    "Error de Base de Datos:\n" + ex.getMessage(),
+                    "\nNo se pudo guardar");
         }
     }
 }

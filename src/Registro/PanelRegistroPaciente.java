@@ -1,37 +1,62 @@
+// src/Registro/PanelRegistroPaciente.java
 package Registro;
 
 import javax.swing.*;
-import Utilidades.*;
 import java.awt.*;
+import Utilidades.*;
 
-public class PanelRegistroPaciente extends JPanel implements PanelProvider {
-    private FrameRegistro panelDatos;
-    private PanelControl panelBotones;
+/**
+ * Panel que combina el formulario de registro y su panel de control.
+ */
+public class PanelRegistroPaciente extends JPanel {
 
-    public PanelRegistroPaciente() {
-        setLayout(new BorderLayout());
+    /**
+     * @param owner Ventana propietaria (normalmente el JFrame que contiene este
+     *              panel).
+     */
+    public PanelRegistroPaciente(Window owner) {
+        super(new GridBagLayout());
+        setOpaque(true);
         setBackground(ColoresUDLAP.BLANCO);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.weightx = 1;
 
-        panelDatos = new FrameRegistro();
-        JScrollPane scrollPane = new JScrollPane(panelDatos);
-        scrollPane.setBorder(BorderFactory.createEmptyBorder());
-        add(scrollPane, BorderLayout.CENTER);
+        // 1) Creamos el formulario
+        FrameRegistro form = new FrameRegistro();
 
-        panelBotones = new PanelControl(panelDatos.obtenerCampos());
-        add(panelBotones, BorderLayout.SOUTH);
+        // 2) Obtenemos los campos y el componente de mensaje inline
+        JTextField[] campos = form.obtenerCampos();
+        MensajeErrorUDLAP mensaje = form.getMensajeGeneral();
+
+        // 3) Creamos el panel de control, inyectando las dependencias
+        PanelControl control = new PanelControl(campos, mensaje, owner);
+
+        // 4) Añadimos ambos al GridBagLayout
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weighty = 0.9;
+        add(form, gbc);
+
+        gbc.gridy = 1;
+        gbc.weighty = 0.1;
+        add(control, gbc);
+
     }
 
-    public JTextField[] obtenerCampos() {
-        return panelDatos.obtenerCampos();
-    }
-
-    @Override
-    public JPanel getPanel() {
-        return this;
-    }
-
-    @Override
-    public String getPanelName() {
-        return "formularioRegistro";
+    /**
+     * Método main opcional para pruebas unitarias de este panel de forma
+     * independiente
+     */
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            JFrame ventana = new JFrame("Registro de Pacientes");
+            ventana.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            ventana.getContentPane().add(new PanelRegistroPaciente(ventana));
+            ventana.pack();
+            ventana.setLocationRelativeTo(null);
+            ventana.setVisible(true);
+        });
     }
 }

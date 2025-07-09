@@ -168,7 +168,7 @@ public class InterfazMedica extends JFrame {
             Color baseColor;
             Color hoverColor;
 
-            if (!esMedico && "Reportar Emergencia".equals(items[i])) {
+            if (!esMedico && "Reportar Emergencia".equals(items[i]) || esMedico && "Emergencias".equals(items[i])) {
                 baseColor = ColoresUDLAP.ROJO_SOLIDO;
                 hoverColor = ColoresUDLAP.ROJO_HOVER;
             } else {
@@ -216,7 +216,7 @@ public class InterfazMedica extends JFrame {
             panelManager.registerPanel(new PanelProvider() {
                 @Override
                 public JPanel getPanel() {
-                    return new PanelRegistroPaciente();
+                    return new PanelRegistroPaciente(InterfazMedica.this);
                 }
 
                 @Override
