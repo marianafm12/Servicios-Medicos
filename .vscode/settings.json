@@ -4,7 +4,12 @@
         "resources"
     ],
     "java.project.outputPath": "bin",
-    "java.project.referencedLibraries": [
-        "lib/**/*.jar"
-    ]
+    "java.project.referencedLibraries": {
+        "include": [
+            "lib/**/*.jar"
+        ],
+        "exclude": [
+            "lib/LGoodDatePicker-11.2.1.jar"
+        ]
+    }
 }

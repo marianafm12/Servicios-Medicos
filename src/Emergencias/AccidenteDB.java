@@ -39,8 +39,6 @@ public class AccidenteDB {
                 LugarOcurrencia,
                 UbicacionExacta,
                 EnHorarioClase,
-                TipoTrayecto,
-                CentroAtencionInicial,
                 LesionPrincipal,
                 LesionSecundaria,
                 ParteCuerpo,
@@ -58,7 +56,6 @@ public class AccidenteDB {
                 TratamientoRecomendado,
                 MedicoTratante,
                 CedulaProfesional,
-                FechaInformeMedico,
                 HospitalDestino,
                 ResponsableTraslado,
                 MedioTransporte,
@@ -73,12 +70,12 @@ public class AccidenteDB {
                 NarrativaDetallada,
                 FechaElaboracion
                 ) VALUES (
+                    ?, ?, ?, ?, ?, ?, ?, ?,
                     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
                     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
                     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
                     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-                    ?, ?, ?
+                    ?, ?
                 )
                 """;
 
@@ -109,8 +106,6 @@ public class AccidenteDB {
             ps.setString(i++, a.getLugarOcurrencia());
             ps.setString(i++, a.getUbicacionExacta());
             ps.setString(i++, a.getEnHorarioClase());
-            ps.setString(i++, a.getTipoTrayecto());
-            ps.setString(i++, a.getCentroAtencionInicial());
 
             // III. Lesiones y Daños
             ps.setString(i++, a.getLesionPrincipal());
@@ -132,7 +127,6 @@ public class AccidenteDB {
             ps.setString(i++, a.getTratamientoRecomendado());
             ps.setString(i++, a.getMedicoTratante());
             ps.setString(i++, a.getCedulaProfesional());
-            ps.setString(i++, a.getFechaInformeMedico());
 
             // V. Traslado y Seguimiento
             ps.setString(i++, a.getHospitalDestino());
@@ -241,8 +235,6 @@ public class AccidenteDB {
                         rs.getString("LugarOcurrencia"),
                         rs.getString("UbicacionExacta"),
                         rs.getString("EnHorarioClase"),
-                        rs.getString("TipoTrayecto"),
-                        rs.getString("CentroAtencionInicial"),
                         rs.getString("LesionPrincipal"),
                         rs.getString("LesionSecundaria"),
                         rs.getString("ParteCuerpo"),
@@ -260,7 +252,6 @@ public class AccidenteDB {
                         rs.getString("TratamientoRecomendado"),
                         rs.getString("MedicoTratante"),
                         rs.getString("CedulaProfesional"),
-                        rs.getString("FechaInformeMedico"),
                         rs.getString("HospitalDestino"),
                         rs.getString("ResponsableTraslado"),
                         rs.getString("MedioTransporte"),

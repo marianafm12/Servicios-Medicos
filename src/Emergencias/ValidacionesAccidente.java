@@ -6,7 +6,7 @@ import Registro.ValidadorPaciente;
 import java.awt.*;
 import java.time.LocalDate;
 import java.util.List;
-
+import java.util.regex.Pattern;
 /**
  * Todas las validaciones para el FormularioAccidenteCompleto.
  * Devuelve false y muestra un diálogo en el primer error encontrado.
@@ -36,8 +36,6 @@ public class ValidacionesAccidente {
      * @param lugarOcurrencia     valor de comboLugar
      * @param ubicacionExacta     texto del campo Ubicación Exacta
      * @param enHorario           valor de comboEnHorario
-     * @param trayecto            valor de comboTrayecto
-     * @param centroAtencion      texto del campo Centro de Atención
      * @param lesionPrincipal     valor de comboLesionPrincipal
      * @param lesionSecundaria    texto del campo Lesión Secundaria
      * @param parteCuerpo         valor de comboParteCuerpo
@@ -54,7 +52,6 @@ public class ValidacionesAccidente {
      * @param tratamientoRec      texto del área Tratamiento
      * @param medicoTratante      texto del campo Médico tratante
      * @param cedulaProfesional   texto del campo Cédula profesional
-     * @param fechaInformeMedico  fecha elegida en DatePickerUDLAP informe
      * @param fechaIngreso        fecha elegida en DatePickerUDLAP ingreso
      * @param horaIngreso         hora seleccionada en comboHoraIngreso
      * @param minutoIngreso       minuto seleccionado en comboMinutoIngreso
@@ -70,6 +67,14 @@ public class ValidacionesAccidente {
      * @param fotosAccidente      lista de fotos (byte[])
      * @return true si todo es válido, false en el primer error (muestra diálogo)
      */
+
+
+
+private static final Pattern PATRON_SIGNOS = Pattern.compile(
+    "^FC:\\s*\\d{1,3}\\s*LPM;\\s*PA:\\s*\\d{2,3}/\\d{2,3}\\s*mmHg;\\s*FR:\\s*\\d{1,2}\\s*RPM;\\s*T:\\s*\\d{1,2}°C;\\s*SpO2:\\s*\\d{1,3}%$"
+);
+
+
     public static boolean validarCampos(
             Window owner,
             String txtIDEmergencia,
@@ -91,13 +96,12 @@ public class ValidacionesAccidente {
             String lugarOcurrencia,
             String ubicacionExacta,
             String enHorario,
-            String trayecto,
-            String centroAtencion,
             String lesionPrincipal,
             String lesionSecundaria,
             String parteCuerpo,
             String gravedadTriage,
             String nivelConsciencia,
+            String signosVitales,
             String descripcion,
             String primerosAuxilios,
             String medicamentos,
@@ -109,7 +113,9 @@ public class ValidacionesAccidente {
             String tratamientoRec,
             String medicoTratante,
             String cedulaProfesional,
-            LocalDate fechaInformeMedico,
+            String hospitalDestino,
+            String responsableTraslado,
+            String medioTransporte,
             LocalDate fechaIngreso,
             String horaIngreso,
             String minutoIngreso,
@@ -182,7 +188,7 @@ public class ValidacionesAccidente {
         try {
             Integer.parseInt(txtSemestre);
         } catch (NumberFormatException e) {
-            MensajeErrorUDLAP.mostrarVentanaError(owner, "Validación", "El semestre/cuatrimestre debe ser numérico.");
+            MensajeErrorUDLAP.mostrarVentanaError(owner, "Validación", "El semestre debe ser numérico.");
             return false;
         }
         if (correoUDLAP == null || correoUDLAP.trim().isEmpty()) {
@@ -225,14 +231,6 @@ public class ValidacionesAccidente {
             MensajeErrorUDLAP.mostrarVentanaError(owner, "Validación", "Debe indicar si fue en horario de clase.");
             return false;
         }
-        if (trayecto == null) {
-            MensajeErrorUDLAP.mostrarVentanaError(owner, "Validación", "Debe seleccionar el tipo de trayecto.");
-            return false;
-        }
-        if (centroAtencion == null || centroAtencion.trim().isEmpty()) {
-            MensajeErrorUDLAP.mostrarVentanaError(owner, "Validación", "Debe ingresar el centro de atención inicial.");
-            return false;
-        }
 
         // III. Lesiones y Daños
         if (lesionPrincipal == null) {
@@ -250,6 +248,21 @@ public class ValidacionesAccidente {
         }
         if (nivelConsciencia == null) {
             MensajeErrorUDLAP.mostrarVentanaError(owner, "Validación", "Debe seleccionar el nivel de consciencia.");
+            return false;
+        }
+        String placeholder = "FC:75 LPM; PA:120/80 mmHg; FR:16 RPM; T:37°C; SpO2:98%";
+        if (signosVitales == null
+            || signosVitales.trim().isEmpty()
+            || signosVitales.equals(placeholder)) {
+            MensajeErrorUDLAP.mostrarVentanaError(owner, "Validación", "Debe ingresar los signos vitales.");
+            return false;
+        }
+        // 2) Formato de llenado
+        if (!PATRON_SIGNOS.matcher(signosVitales).matches()) {
+            MensajeErrorUDLAP.mostrarVentanaError(owner,
+                "Validación",
+                "El campo Signos Vitales debe seguir este formato:\n" +
+                "FC:75 LPM; PA:120/80 mmHg; FR:16 RPM; T:37°C; SpO2:98%");
             return false;
         }
         if (descripcion == null || descripcion.trim().isEmpty()) {
@@ -280,7 +293,7 @@ public class ValidacionesAccidente {
             return false;
         }
         if (requiereHosp == null) {
-            MensajeErrorUDLAP.mostrarVentanaError(owner, "Validación", "Debe indicar si requiere hospitalización.");
+            MensajeErrorUDLAP.mostrarVentanaError(owner, "Validación", "Debe indicar el lugar de tratamiento.");
             return false;
         }
         if (tratamientoRec == null || tratamientoRec.trim().isEmpty()) {
@@ -295,12 +308,31 @@ public class ValidacionesAccidente {
             MensajeErrorUDLAP.mostrarVentanaError(owner, "Validación", "Debe ingresar la cédula profesional.");
             return false;
         }
-        if (fechaInformeMedico == null) {
-            MensajeErrorUDLAP.mostrarVentanaError(owner, "Validación", "Debe seleccionar la fecha del informe médico.");
-            return false;
-        }
+        if (!cedulaProfesional.matches("\\d+")) {
+        MensajeErrorUDLAP.mostrarVentanaError(owner, "Validación",
+            "La cédula profesional debe contener solo números.");
+        return false;
+}
 
         // V. Traslado y Seguimiento
+        // V. Traslado y Seguimiento (parte adicional)
+        if ("Hospital".equals(requiereHosp)) {
+            if (hospitalDestino == null || hospitalDestino.trim().isEmpty()) {
+                MensajeErrorUDLAP.mostrarVentanaError(owner, "Validación",
+                    "Debe seleccionar el hospital destino.");
+                return false;
+            }
+            if (responsableTraslado == null || responsableTraslado.trim().isEmpty()) {
+                MensajeErrorUDLAP.mostrarVentanaError(owner, "Validación",
+                    "Debe ingresar el responsable de traslado.");
+                return false;
+            }
+            if (medioTransporte == null || medioTransporte.trim().isEmpty()) {
+                MensajeErrorUDLAP.mostrarVentanaError(owner, "Validación",
+                    "Debe ingresar el medio de transporte.");
+                return false;
+            }
+        }
         if (fechaIngreso == null) {
             MensajeErrorUDLAP.mostrarVentanaError(owner, "Validación", "Debe seleccionar la fecha de ingreso.");
             return false;

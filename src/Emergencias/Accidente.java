@@ -30,8 +30,6 @@ public class Accidente {
     private final String lugarOcurrencia;
     private final String ubicacionExacta;
     private final String enHorarioClase;
-    private final String tipoTrayecto;
-    private final String centroAtencionInicial;
 
     // III. Lesiones y Daños
     private final String lesionPrincipal;
@@ -53,7 +51,6 @@ public class Accidente {
     private final String tratamientoRecomendado;
     private final String medicoTratante;
     private final String cedulaProfesional;
-    private final String fechaInformeMedico;   // "YYYY-MM-DD"
 
     // V. Traslado y Seguimiento
     private final String hospitalDestino;
@@ -100,8 +97,6 @@ public class Accidente {
         String lugarOcurrencia,
         String ubicacionExacta,
         String enHorarioClase,
-        String tipoTrayecto,
-        String centroAtencionInicial,
         String lesionPrincipal,
         String lesionSecundaria,
         String parteCuerpo,
@@ -119,7 +114,6 @@ public class Accidente {
         String tratamientoRecomendado,
         String medicoTratante,
         String cedulaProfesional,
-        String fechaInformeMedico,
         String hospitalDestino,
         String responsableTraslado,
         String medioTransporte,
@@ -155,8 +149,6 @@ public class Accidente {
         this.lugarOcurrencia = lugarOcurrencia;
         this.ubicacionExacta = ubicacionExacta;
         this.enHorarioClase = enHorarioClase;
-        this.tipoTrayecto = tipoTrayecto;
-        this.centroAtencionInicial = centroAtencionInicial;
         this.lesionPrincipal = lesionPrincipal;
         this.lesionSecundaria = lesionSecundaria;
         this.parteCuerpo = parteCuerpo;
@@ -174,7 +166,6 @@ public class Accidente {
         this.tratamientoRecomendado = tratamientoRecomendado;
         this.medicoTratante = medicoTratante;
         this.cedulaProfesional = cedulaProfesional;
-        this.fechaInformeMedico = fechaInformeMedico;
         this.hospitalDestino = hospitalDestino;
         this.responsableTraslado = responsableTraslado;
         this.medioTransporte = medioTransporte;
@@ -215,8 +206,6 @@ public class Accidente {
     public String getLugarOcurrencia() { return lugarOcurrencia; }
     public String getUbicacionExacta() { return ubicacionExacta; }
     public String getEnHorarioClase() { return enHorarioClase; }
-    public String getTipoTrayecto() { return tipoTrayecto; }
-    public String getCentroAtencionInicial() { return centroAtencionInicial; }
     public String getLesionPrincipal() { return lesionPrincipal; }
     public String getLesionSecundaria() { return lesionSecundaria; }
     public String getParteCuerpo() { return parteCuerpo; }
@@ -234,7 +223,6 @@ public class Accidente {
     public String getTratamientoRecomendado() { return tratamientoRecomendado; }
     public String getMedicoTratante() { return medicoTratante; }
     public String getCedulaProfesional() { return cedulaProfesional; }
-    public String getFechaInformeMedico() { return fechaInformeMedico; }
     public String getHospitalDestino() { return hospitalDestino; }
     public String getResponsableTraslado() { return responsableTraslado; }
     public String getMedioTransporte() { return medioTransporte; }
