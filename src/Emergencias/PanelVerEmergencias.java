@@ -2,29 +2,30 @@ package Emergencias;
 
 import Utilidades.ColoresUDLAP;
 import Utilidades.PanelManager;
+import Utilidades.PanelProvider;
+
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
-import Utilidades.PanelProvider;
 
-/**
- * Panel para ver y actualizar el estado de las emergencias.
- */
 public class PanelVerEmergencias extends JPanel {
     private final PanelManager panelManager;
     private final boolean esMedico;
     private final int userId;
 
+    private JTextField txtBuscar;
     private JPanel panelCentro;
     private JTable tabla;
     private DefaultTableModel modelo;
     private JPanel panelBotones;
-    private JButton btnRegresar;
     private JButton btnVerInformacion;
     private JButton btnCambiarEstado;
 
@@ -40,127 +41,70 @@ public class PanelVerEmergencias extends JPanel {
         setLayout(new BorderLayout(10, 10));
         setBackground(ColoresUDLAP.BLANCO);
 
-        // --- Título ---
+        // --- Cabecera: Título + buscador ---
         JLabel titulo = new JLabel("Emergencias Registradas", SwingConstants.CENTER);
         titulo.setFont(new Font("Arial", Font.BOLD, 24));
         titulo.setForeground(ColoresUDLAP.VERDE_SOLIDO);
-        titulo.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
-        add(titulo, BorderLayout.NORTH);
+        titulo.setBorder(BorderFactory.createEmptyBorder(20, 0, 5, 0));
 
-        // --- Centro: tabla dentro de panelCentro ---
+        // panel de búsqueda
+        JPanel pnlBuscar = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 0));
+        pnlBuscar.setBackground(ColoresUDLAP.BLANCO);
+        pnlBuscar.setBorder(BorderFactory.createEmptyBorder(0, 20, 10, 20));
+        pnlBuscar.add(new JLabel("Buscar ID Estudiante:"));
+        txtBuscar = new JTextField(10);
+        pnlBuscar.add(txtBuscar);
+
+        // envolvemos ambos en un panel vertical
+        JPanel norte = new JPanel(new BorderLayout());
+        norte.setBackground(ColoresUDLAP.BLANCO);
+        norte.add(titulo, BorderLayout.NORTH);
+        norte.add(pnlBuscar, BorderLayout.SOUTH);
+
+        add(norte, BorderLayout.NORTH);
+
+        // cada vez que cambie el texto, recargamos
+        txtBuscar.getDocument().addDocumentListener(new DocumentListener() {
+            private void actualizar() { cargarDatosDesdeBD(); }
+            @Override public void insertUpdate(DocumentEvent e) { actualizar(); }
+            @Override public void removeUpdate(DocumentEvent e) { actualizar(); }
+            @Override public void changedUpdate(DocumentEvent e) { actualizar(); }
+        });
+
+        // --- Centro: tabla ---
         panelCentro = new JPanel(new BorderLayout());
         add(panelCentro, BorderLayout.CENTER);
         crearTabla();
 
-        // --- Botones inferior ---
+        // --- Pie: botones ---
         panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 10));
         JButton btnRegresar = botonTransparente("Regresar",
-                ColoresUDLAP.VERDE_SOLIDO, // color base
-                ColoresUDLAP.VERDE_HOVER // color hover
-        );
+                ColoresUDLAP.VERDE_SOLIDO, ColoresUDLAP.VERDE_HOVER);
         btnRegresar.addActionListener(e -> panelManager.showPanel("menuEmergencias"));
         panelBotones.add(btnRegresar);
-        add(panelBotones, BorderLayout.SOUTH);
 
-        // — después de crear btnRegresar —
-        btnVerInformacion = botonTransparente(
-                "Ver información",
-                ColoresUDLAP.NARANJA_SOLIDO, // color base
-                ColoresUDLAP.NARANJA_HOVER // color hover
-        );
+        btnVerInformacion = botonTransparente("Ver información",
+                ColoresUDLAP.NARANJA_SOLIDO, ColoresUDLAP.NARANJA_HOVER);
         btnVerInformacion.setVisible(false);
-
-        btnVerInformacion.addActionListener(e -> {
-            int filaVista = tabla.getSelectedRow();
-            if (filaVista == -1)
-                return;
-
-            int filaModelo = tabla.convertRowIndexToModel(filaVista);
-            int idEmergencia = (int) modelo.getValueAt(filaModelo, 0);
-            Emergencia em = EmergenciaDAO.obtenerPorId(idEmergencia);
-
-            // clave única: id + milisegundos
-            String keyDetalle = "detalleEmergencia_" + idEmergencia + "_" + System.currentTimeMillis();
-
-            panelManager.registerPanel(new PanelProvider() {
-                @Override
-                public JPanel getPanel() {
-                    return new PanelDetalleEmergencia(panelManager, em);
-                }
-
-                @Override
-                public String getPanelName() {
-                    return keyDetalle;
-                }
-            });
-
-            panelManager.showPanel(keyDetalle);
-        });
-
-        btnCambiarEstado = botonTransparente(
-                "Cambiar estado",
-                ColoresUDLAP.ROJO_SOLIDO, // color base
-                ColoresUDLAP.ROJO_HOVER // color hover
-        );
-        btnCambiarEstado.setVisible(false);
-        btnCambiarEstado.addActionListener(e -> {
-            int filaVista = tabla.getSelectedRow();
-            if (filaVista != -1) {
-                int filaModelo = tabla.convertRowIndexToModel(filaVista);
-                int idEmergencia = (int) modelo.getValueAt(filaModelo, 0);
-                String[] nuevosEstados = { "Transferido", "Completo" };
-
-                // guardamos textos originales
-                String oldOk = UIManager.getString("OptionPane.okButtonText");
-                String oldCancel = UIManager.getString("OptionPane.cancelButtonText");
-                UIManager.put("OptionPane.okButtonText", "Aceptar");
-                UIManager.put("OptionPane.cancelButtonText", "Cancelar");
-
-                String nuevoEstado = (String) JOptionPane.showInputDialog(
-                        PanelVerEmergencias.this,
-                        "Nuevo estado:",
-                        "Actualizar Emergencia",
-                        JOptionPane.QUESTION_MESSAGE,
-                        null,
-                        nuevosEstados,
-                        nuevosEstados[0]);
-
-                // restauramos UIManager
-                UIManager.put("OptionPane.okButtonText", oldOk);
-                UIManager.put("OptionPane.cancelButtonText", oldCancel);
-
-                if (nuevoEstado != null) {
-                    boolean ok = EmergenciaDAO.actualizarEstadoEmergencia(idEmergencia, nuevoEstado, userId);
-                    if (ok) {
-                        cargarDatosDesdeBD();
-                    } else {
-                        JOptionPane.showMessageDialog(
-                                PanelVerEmergencias.this,
-                                "No se pudo actualizar.",
-                                "Error",
-                                JOptionPane.ERROR_MESSAGE);
-                    }
-                }
-            }
-        });
-
-        // añadimos ambos botones antes o después de btnRegresar
+        btnVerInformacion.addActionListener(e -> mostrarDetalle());
         panelBotones.add(btnVerInformacion);
-        panelBotones.add(btnCambiarEstado);
-        panelBotones.revalidate();
-        panelBotones.repaint();
 
+        btnCambiarEstado = botonTransparente("Cambiar estado",
+                ColoresUDLAP.ROJO_SOLIDO, ColoresUDLAP.ROJO_HOVER);
+        btnCambiarEstado.setVisible(false);
+        btnCambiarEstado.addActionListener(e -> cambiarEstado());
+        panelBotones.add(btnCambiarEstado);
+
+        add(panelBotones, BorderLayout.SOUTH);
     }
 
     private void crearTabla() {
-        // Inicializamos JTable
         tabla = new JTable();
         tabla.setFont(new Font("Segoe UI", Font.PLAIN, 15));
         tabla.setRowHeight(28);
         tabla.setGridColor(new Color(230, 230, 230));
         tabla.setFillsViewportHeight(true);
 
-        // Encabezado
         JTableHeader encabezado = tabla.getTableHeader();
         encabezado.setBackground(ColoresUDLAP.VERDE_SOLIDO);
         encabezado.setForeground(Color.WHITE);
@@ -168,7 +112,6 @@ public class PanelVerEmergencias extends JPanel {
         encabezado.setPreferredSize(new Dimension(100, 40));
         encabezado.setReorderingAllowed(false);
 
-        // Scrollpane con márgenes
         JScrollPane scroll = new JScrollPane(tabla);
         scroll.setBorder(BorderFactory.createEmptyBorder(10, 20, 20, 20));
 
@@ -178,69 +121,52 @@ public class PanelVerEmergencias extends JPanel {
         tabla.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 2 && tabla.getSelectedRow() != -1) {
-                    int filaVista = tabla.getSelectedRow();
-                    int filaModelo = tabla.convertRowIndexToModel(filaVista);
-                    String estadoActual = modelo.getValueAt(filaModelo, 3).toString();
-
-                    // siempre mostramos “Ver información”
+                if (tabla.getSelectedRow() != -1) {
                     btnVerInformacion.setVisible(true);
-                    // “Cambiar estado” solo si estaba pendiente
-                    btnCambiarEstado.setVisible("Pendiente".equalsIgnoreCase(estadoActual));
-
-                    // refrescar layout de los botones
+                    // solo permitimos cambiar si estaba "Pendiente"
+                    String estado = modelo.getValueAt(tabla.convertRowIndexToModel(tabla.getSelectedRow()), 3).toString();
+                    btnCambiarEstado.setVisible("Pendiente".equalsIgnoreCase(estado));
                     panelBotones.revalidate();
-                    panelBotones.repaint();
                 }
             }
         });
-
     }
 
     private void cargarDatosDesdeBD() {
-
         btnVerInformacion.setVisible(false);
         btnCambiarEstado.setVisible(false);
 
-        // Nuevo modelo de tabla
         modelo = new DefaultTableModel() {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
+            @Override public boolean isCellEditable(int row, int col) { return false; }
         };
         modelo.setColumnIdentifiers(new String[] {
                 "ID", "ID Paciente", "Fecha Incidente", "Estado", "Médico Responsable"
         });
 
-        // Consultamos BD
+        // sacamos todas, ordenamos y luego filtramos en memoria por prefijo de matrícula
         List<Emergencia> lista = EmergenciaDAO.obtenerTodas();
-        // Orden personalizado: Pendiente > Transferido > Completo
         lista.sort(Comparator.comparingInt(e -> {
             switch (e.getEstado()) {
-                case "Pendiente":
-                    return 0;
-                case "Transferido":
-                    return 1;
-                default:
-                    return 2;
+                case "Pendiente": return 0;
+                case "Transferido": return 1;
+                default: return 2;
             }
         }));
+        String prefijo = txtBuscar.getText().trim();
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-        for (Emergencia e : lista) {
-            // aquí chequeamos null y mostramos "-" si no hay paciente
-            Object idPacCell = e.getIdPaciente() != null
-                    ? e.getIdPaciente()
-                    : "-";
 
+        for (Emergencia e : lista) {
+            // convertir idPaciente a cadena
+            String idPac = e.getIdPaciente() != null ? e.getIdPaciente().toString() : "";
+            if (!prefijo.isEmpty() && !idPac.startsWith(prefijo)) {
+                continue;
+            }
             modelo.addRow(new Object[] {
-                    e.getId(), // IDEmergencia
-                    idPacCell, // IDPaciente o "-"
+                    e.getId(),
+                    idPac.isEmpty() ? "-" : idPac,
                     e.getFechaIncidente().toLocalDateTime().format(fmt),
                     e.getEstado(),
-                    e.getMedicoResponsable() != null
-                            ? e.getMedicoResponsable()
-                            : "-"
+                    e.getMedicoResponsable() != null ? e.getMedicoResponsable() : "-"
             });
         }
 
@@ -249,37 +175,74 @@ public class PanelVerEmergencias extends JPanel {
         panelCentro.repaint();
     }
 
+    private void mostrarDetalle() {
+        int fila = tabla.getSelectedRow();
+        if (fila == -1) return;
+        int idEmergencia = (int) modelo.getValueAt(tabla.convertRowIndexToModel(fila), 0);
+        Emergencia em = EmergenciaDAO.obtenerPorId(idEmergencia);
+        String key = "detalleEmergencia_" + idEmergencia + "_" + System.currentTimeMillis();
+        panelManager.registerPanel((new PanelProvider() {
+            @Override public JPanel getPanel() {
+                return new PanelDetalleEmergencia(panelManager, em);
+            }
+            @Override public String getPanelName() { return key; }
+        }));
+        panelManager.showPanel(key);
+    }
+
+    private void cambiarEstado() {
+        int fila = tabla.getSelectedRow();
+        if (fila==-1) return;
+        int idEmergencia = (int) modelo.getValueAt(tabla.convertRowIndexToModel(fila), 0);
+        String[] estados = {"Transferido","Completo"};
+        // ... el diálogo de actualización que ya tienes
+        String oldOk = UIManager.getString("OptionPane.okButtonText");
+        String oldCancel = UIManager.getString("OptionPane.cancelButtonText");
+        UIManager.put("OptionPane.okButtonText","Aceptar");
+        UIManager.put("OptionPane.cancelButtonText","Cancelar");
+        String nuevo = (String)JOptionPane.showInputDialog(
+            this,"Nuevo estado:","Actualizar Emergencia",
+            JOptionPane.QUESTION_MESSAGE,null,estados,estados[0]
+        );
+        UIManager.put("OptionPane.okButtonText",oldOk);
+        UIManager.put("OptionPane.cancelButtonText",oldCancel);
+        if (nuevo!=null && EmergenciaDAO.actualizarEstadoEmergencia(idEmergencia,nuevo,userId)) {
+            cargarDatosDesdeBD();
+        } else if (nuevo!=null) {
+            JOptionPane.showMessageDialog(this,"No se pudo actualizar.","Error",JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
     @Override
     public void setVisible(boolean aFlag) {
         super.setVisible(aFlag);
         if (aFlag) {
-            // Oculta botones y recarga toda la tabla
+            cargarDatosDesdeBD();
             btnVerInformacion.setVisible(false);
             btnCambiarEstado.setVisible(false);
-            cargarDatosDesdeBD();
         }
     }
 
     private JButton botonTransparente(String texto, Color base, Color hover) {
-        JButton button = new JButton(texto) {
+        JButton b = new JButton(texto) {
             @Override
             protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(getModel().isRollover() ? hover : base);
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 25, 25);
+                Graphics2D g2 = (Graphics2D)g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                                   RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(getModel().isRollover()? hover: base);
+                g2.fillRoundRect(0,0,getWidth(),getHeight(),25,25);
                 super.paintComponent(g);
                 g2.dispose();
             }
         };
-        button.setForeground(Color.WHITE);
-        button.setFont(new Font("Arial", Font.BOLD, 15));
-        button.setFocusPainted(false);
-        button.setContentAreaFilled(false);
-        button.setOpaque(false);
-        button.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
-        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        return button;
+        b.setForeground(Color.WHITE);
+        b.setFont(new Font("Arial",Font.BOLD,15));
+        b.setContentAreaFilled(false);
+        b.setFocusPainted(false);
+        b.setOpaque(false);
+        b.setBorder(BorderFactory.createEmptyBorder(8,16,8,16));
+        b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        return b;
     }
-
 }
