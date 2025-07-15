@@ -61,7 +61,18 @@ public class PanelMenuEmergencias extends JPanel {
                 ColoresUDLAP.VERDE_SOLIDO,
                 ColoresUDLAP.VERDE_HOVER);
         btnVerEmergencias.addActionListener(e -> panelManager.showPanel("verEmergencias"));
-        add(btnVerEmergencias);
+        add(btnVerEmergencias);        
+        add(Box.createVerticalStrut(30));
+
+        // 4) Ver Accidentes (NARANJA_SOLIDO)
+        JButton btnVerAccidentes = crearBoton(
+                "Ver Accidentes",
+                ColoresUDLAP.NARANJA_SOLIDO,
+                ColoresUDLAP.NARANJA_HOVER);
+        btnVerAccidentes.addActionListener(e ->
+                panelManager.showPanel("verAccidentes"));
+        add(btnVerAccidentes);
+
     }
 
     private JButton crearBoton(String texto, Color base, Color hover) {

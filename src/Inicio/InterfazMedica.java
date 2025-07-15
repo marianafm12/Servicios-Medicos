@@ -290,6 +290,21 @@ public class InterfazMedica extends JFrame {
                 }
             });
 
+
+            
+            // 6) Ver Accidentes
+            panelManager.registerPanel(new PanelProvider() {
+                @Override
+                public JPanel getPanel() {
+                    return new PanelVerAccidentes(panelManager);
+                }
+
+                @Override
+                public String getPanelName() {
+                    return "verAccidentes";
+                }
+            });
+
             // ¡NO registramos aquí el detalle! Lo haremos justo antes de mostrarlo.
         } else {
             // Paneles para el paciente
