@@ -44,29 +44,14 @@ public class SolicitudesJustificantesFrame extends JPanel {
 
         panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 10));
 
-        btnVer = new JButton("Ver Seleccionado");
-        btnEliminar = new JButton("Eliminar");
-        btnRegresar = new JButton("Regresar");
+        // --- Creamos los botones redondeados ---
+        btnRegresar = crearBoton("Regresar", ColoresUDLAP.NARANJA_SOLIDO, ColoresUDLAP.NARANJA_HOVER);
+        btnVer       = crearBoton("Ver Seleccionado", ColoresUDLAP.VERDE_SOLIDO, ColoresUDLAP.VERDE_HOVER);
+        btnEliminar  = crearBoton("Eliminar", ColoresUDLAP.ROJO_SOLIDO, ColoresUDLAP.ROJO_HOVER);
 
-        btnVer.setFont(new Font("Arial", Font.BOLD, 15));
-        btnEliminar.setFont(new Font("Arial", Font.BOLD, 15));
-        btnRegresar.setFont(new Font("Arial", Font.BOLD, 15));
-
-        btnVer.setBackground(new Color(0, 102, 0));
-        btnVer.setForeground(Color.WHITE);
-        btnVer.setFocusPainted(false);
-
-        btnEliminar.setBackground(new Color(221, 71, 66));
-        btnEliminar.setForeground(Color.WHITE);
-        btnEliminar.setFocusPainted(false);
-
-        btnRegresar.setBackground(Color.GRAY);
-        btnRegresar.setForeground(Color.WHITE);
-        btnRegresar.setFocusPainted(false);
-
+        btnRegresar.addActionListener(e -> panelManager.showPanel("justificantes"));
         btnVer.addActionListener(e -> verSeleccionado());
         btnEliminar.addActionListener(e -> eliminarSeleccionado());
-        btnRegresar.addActionListener(e -> panelManager.showPanel("justificantes"));
 
         panelBotones.add(btnRegresar);
         panelBotones.add(btnVer);
@@ -92,7 +77,6 @@ public class SolicitudesJustificantesFrame extends JPanel {
         scroll.setBorder(BorderFactory.createEmptyBorder(10, 20, 20, 20));
 
         panelCentro.removeAll();
-        panelCentro.setLayout(new BorderLayout());
         panelCentro.add(scroll, BorderLayout.CENTER);
         panelCentro.revalidate();
         panelCentro.repaint();
@@ -100,23 +84,20 @@ public class SolicitudesJustificantesFrame extends JPanel {
 
     private void cargarDatosDesdeBD() {
         modelo = new DefaultTableModel() {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false; // Hace que ninguna celda sea editable
-            }
+            @Override public boolean isCellEditable(int row, int column) { return false; }
         };
 
         modelo.setColumnIdentifiers(new String[] {
-                "Folio", "ID Paciente", "Nombre", "Motivo", "Fecha Inicio", "Fecha Fin", "Estado"
+            "Folio", "ID Paciente", "Nombre", "Motivo", "Fecha Inicio", "Fecha Fin", "Estado"
         });
 
         String sql = "SELECT folio, idPaciente, nombrePaciente, motivo, fechaInicio, fechaFin, estado " +
-                "FROM JustificantePaciente " +
-                "ORDER BY CASE estado " +
-                "  WHEN 'Pendiente' THEN 1 " +
-                "  WHEN 'Aprobado' THEN 2 " +
-                "  WHEN 'Rechazado' THEN 3 " +
-                "  ELSE 4 END";
+                     "FROM JustificantePaciente " +
+                     "ORDER BY CASE estado " +
+                     "  WHEN 'Pendiente' THEN 1 " +
+                     "  WHEN 'Aprobado' THEN 2 " +
+                     "  WHEN 'Rechazado' THEN 3 " +
+                     "  ELSE 4 END";
 
         try (Connection con = ConexionSQLite.conectar();
              PreparedStatement ps = con.prepareStatement(sql);
@@ -130,31 +111,30 @@ public class SolicitudesJustificantesFrame extends JPanel {
                 String inicio = rs.getString("fechaInicio");
                 String fin = rs.getString("fechaFin");
                 String estado = rs.getString("estado");
-
                 if (estado == null || estado.trim().isEmpty()) {
                     estado = "Pendiente";
                 }
-
-                modelo.addRow(new Object[] { folio, id, nombre, motivo, inicio, fin, estado });
+                modelo.addRow(new Object[]{ folio, id, nombre, motivo, inicio, fin, estado });
             }
-
             tabla.setModel(modelo);
-
         } catch (SQLException e) {
             e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Error al cargar las solicitudes de justificantes.",
-                    "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(
+                this, "Error al cargar las solicitudes de justificantes.",
+                "Error", JOptionPane.ERROR_MESSAGE
+            );
         }
     }
 
     private void verSeleccionado() {
         int fila = tabla.getSelectedRow();
         if (fila == -1) {
-            JOptionPane.showMessageDialog(this, "Seleccione una fila para revisar.", "Aviso",
-                    JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this,
+                "Seleccione una fila para revisar.",
+                "Aviso",
+                JOptionPane.WARNING_MESSAGE);
             return;
         }
-
         int folio = (int) modelo.getValueAt(fila, 0);
 
         ActionListener volverAction = e -> {
@@ -164,63 +144,90 @@ public class SolicitudesJustificantesFrame extends JPanel {
             panelCentro.add(new JScrollPane(tabla), BorderLayout.CENTER);
             panelCentro.revalidate();
             panelCentro.repaint();
-            panelBotones.setVisible(true); 
+            panelBotones.setVisible(true);
         };
 
         panelCentro.removeAll();
-        panelCentro.setLayout(new BorderLayout());
-        panelCentro.add(new RevisarSolicitudFrame(folio, volverAction, panelManager, (InterfazMedica) SwingUtilities.getWindowAncestor(this)));
-
-
+        panelCentro.add(new RevisarSolicitudFrame(
+            folio,
+            volverAction,
+            panelManager,
+            (InterfazMedica) SwingUtilities.getWindowAncestor(this)
+        ), BorderLayout.CENTER);
         panelCentro.revalidate();
         panelCentro.repaint();
-        panelBotones.setVisible(false); 
+        panelBotones.setVisible(false);
     }
 
     private void eliminarSeleccionado() {
         int fila = tabla.getSelectedRow();
         if (fila == -1) {
-            JOptionPane.showMessageDialog(this, "Seleccione una fila para eliminar.", "Aviso",
-                    JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this,
+                "Seleccione una fila para eliminar.",
+                "Aviso",
+                JOptionPane.WARNING_MESSAGE);
             return;
         }
-
         String[] opciones = { "Sí", "No" };
         int confirmacion = JOptionPane.showOptionDialog(
-                this,
-                "¿Está seguro de que desea eliminar esta solicitud?",
-                "Confirmar eliminación",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.QUESTION_MESSAGE,
-                null,
-                opciones,
-                opciones[1]);
-
-        if (confirmacion != JOptionPane.YES_OPTION)
-            return;
+            this,
+            "¿Está seguro de que desea eliminar esta solicitud?",
+            "Confirmar eliminación",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE,
+            null,
+            opciones,
+            opciones[1]
+        );
+        if (confirmacion != JOptionPane.YES_OPTION) return;
 
         int folio = (int) modelo.getValueAt(fila, 0);
-
         String sql = "DELETE FROM JustificantePaciente WHERE folio = ?";
-
         try (Connection con = ConexionSQLite.conectar();
              PreparedStatement ps = con.prepareStatement(sql)) {
-
             ps.setInt(1, folio);
             int eliminado = ps.executeUpdate();
-
             if (eliminado > 0) {
                 modelo.removeRow(fila);
                 JOptionPane.showMessageDialog(this, "Solicitud eliminada correctamente.");
             } else {
-                JOptionPane.showMessageDialog(this, "No se pudo eliminar la solicitud.", "Error",
-                        JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this,
+                    "No se pudo eliminar la solicitud.",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
             }
-
         } catch (SQLException ex) {
             ex.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Error al eliminar de la base de datos.", "Error",
-                    JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this,
+                "Error al eliminar de la base de datos.",
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    // Método helper para crear botones redondeados
+    private JButton crearBoton(String texto, Color base, Color hover) {
+        JButton btn = new JButton(texto) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(
+                    RenderingHints.KEY_ANTIALIASING,
+                    RenderingHints.VALUE_ANTIALIAS_ON
+                );
+                g2.setColor(getModel().isRollover() ? hover : base);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 25, 25);
+                super.paintComponent(g);
+                g2.dispose();
+            }
+        };
+        btn.setFont(new Font("Arial", Font.BOLD, 15));
+        btn.setForeground(Color.WHITE);
+        btn.setContentAreaFilled(false);
+        btn.setFocusPainted(false);
+        btn.setOpaque(false);
+        btn.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
+        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        return btn;
     }
 }

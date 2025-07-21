@@ -305,6 +305,19 @@ public class InterfazMedica extends JFrame {
                 }
             });
 
+
+            // 7) Notificaciones
+            panelManager.registerPanel(new PanelProvider() {
+                @Override public JPanel getPanel() {
+                    return new Inicio.PanelNotificaciones(panelManager);
+                }
+                @Override public String getPanelName() {
+                    return "notificaciones";
+                }
+            });
+
+    
+
             // ¡NO registramos aquí el detalle! Lo haremos justo antes de mostrarlo.
         } else {
             // Paneles para el paciente
@@ -421,7 +434,8 @@ public class InterfazMedica extends JFrame {
         notificationIcon.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         notificationIcon.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
-                mostrarNotificaciones();
+                panelManager.showPanel("notificaciones");
+                checkNotifications();
             }
         });
         right.add(notificationIcon);
