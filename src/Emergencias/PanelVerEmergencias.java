@@ -9,6 +9,9 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
+
+import Inicio.InterfazMedica;
+
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -192,26 +195,31 @@ public class PanelVerEmergencias extends JPanel {
 
     private void cambiarEstado() {
         int fila = tabla.getSelectedRow();
-        if (fila==-1) return;
+        if (fila == -1) return;
         int idEmergencia = (int) modelo.getValueAt(tabla.convertRowIndexToModel(fila), 0);
-        String[] estados = {"Transferido","Completo"};
-        // ... el diálogo de actualización que ya tienes
-        String oldOk = UIManager.getString("OptionPane.okButtonText");
-        String oldCancel = UIManager.getString("OptionPane.cancelButtonText");
-        UIManager.put("OptionPane.okButtonText","Aceptar");
-        UIManager.put("OptionPane.cancelButtonText","Cancelar");
-        String nuevo = (String)JOptionPane.showInputDialog(
-            this,"Nuevo estado:","Actualizar Emergencia",
-            JOptionPane.QUESTION_MESSAGE,null,estados,estados[0]
+
+        String[] estados = {"Transferido", "Completo"};
+        // configuración de diálogo omitida por brevedad...
+        String nuevo = (String) JOptionPane.showInputDialog(
+            this, "Nuevo estado:", "Actualizar Emergencia",
+            JOptionPane.QUESTION_MESSAGE, null, estados, estados[0]
         );
-        UIManager.put("OptionPane.okButtonText",oldOk);
-        UIManager.put("OptionPane.cancelButtonText",oldCancel);
-        if (nuevo!=null && EmergenciaDAO.actualizarEstadoEmergencia(idEmergencia,nuevo,userId)) {
+        if (nuevo != null && EmergenciaDAO.actualizarEstadoEmergencia(idEmergencia, nuevo, userId)) {
+            // 1) recarga la tabla
             cargarDatosDesdeBD();
-        } else if (nuevo!=null) {
-            JOptionPane.showMessageDialog(this,"No se pudo actualizar.","Error",JOptionPane.ERROR_MESSAGE);
+
+            // 2) notifica a la ventana principal (InterfazMedica) para que actualice la campana
+            Window w = SwingUtilities.getWindowAncestor(this);
+            if (w instanceof InterfazMedica) {
+                ((InterfazMedica) w).checkNotifications();
+            }
+        } else if (nuevo != null) {
+            JOptionPane.showMessageDialog(
+                this, "No se pudo actualizar.", "Error", JOptionPane.ERROR_MESSAGE
+            );
         }
     }
+
 
     @Override
     public void setVisible(boolean aFlag) {
