@@ -24,7 +24,6 @@ import java.time.format.TextStyle;
 import java.util.Locale;
 
 
-
 /**
  * Formulario completo de reporte de accidente para estudiantes UDLAP.
  * Incluye todas las secciones I–VIII del PDF,
@@ -220,6 +219,47 @@ public class FormularioAccidenteCompleto extends JPanel {
         addArea(contenido, gbc, row++, "Tratamiento*:", areaTratamiento);
         campoMedicoTratante = crearCampo(contenido, gbc, row++, "Médico Tratante*:", fontField);
         campoCedula = crearCampo(contenido, gbc, row++, "Cédula*:", fontField);
+
+       
+        campoCedula.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusLost(FocusEvent e) {
+                String ced = campoCedula.getText().trim();
+                if (ced.isEmpty()) {
+                    // si el usuario borró la cédula, volvemos a habilitar edición
+                    campoMedicoTratante.setEditable(true);
+                    return;
+                }
+
+                String sql = """
+                    SELECT Nombre, ApellidoPaterno, ApellidoMaterno
+                    FROM InformacionMedico
+                    WHERE CedulaProfesional = ?
+                """;
+
+                try (Connection conn = ConexionSQLite.conectar();
+                    PreparedStatement ps = conn.prepareStatement(sql)) {
+                    ps.setString(1, ced);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next()) {
+                            String nombre = rs.getString("Nombre")
+                                + " " + rs.getString("ApellidoPaterno")
+                                + " " + rs.getString("ApellidoMaterno");
+                            campoMedicoTratante.setText(nombre);
+                            campoMedicoTratante.setEditable(false); // bloquea edición
+                        } else {
+                            // no existe: permite seguir editando libremente
+                            campoMedicoTratante.setEditable(true);
+                        }
+                    }
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                    // en caso de error DB, no bloquear el campo:
+                    campoMedicoTratante.setEditable(true);
+                }
+            }
+        });
+
 
     
         // V. Traslado
