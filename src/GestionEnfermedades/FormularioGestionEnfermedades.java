@@ -14,6 +14,7 @@ public class FormularioGestionEnfermedades extends FormularioMedicoBase {
     private final PanelBotonesFormulario botones;
     public boolean esMedico;
     private final int idUsuario;
+    private MensajeErrorUDLAP mensajeInline;
 
     public FormularioGestionEnfermedades(boolean esMedico, int idUsuario) {
         super("Gestión de Enfermedades del Paciente", new String[] {
@@ -23,6 +24,7 @@ public class FormularioGestionEnfermedades extends FormularioMedicoBase {
 
         this.esMedico = esMedico;
         this.idUsuario = idUsuario;
+        this.mensajeInline = new MensajeErrorUDLAP();
 
         JTextField txtID = (JTextField) campos[0];
         JTextField txtNombre = (JTextField) campos[1];
@@ -83,30 +85,32 @@ public class FormularioGestionEnfermedades extends FormularioMedicoBase {
 
     private void guardarDatos() {
         if (!ValidadorEnfermedades.validar(
-                (JTextField) campos[0], txtEnfermedades, txtAlergias, txtMedicacion))
+                (JTextField) campos[0], txtEnfermedades, txtAlergias, txtMedicacion, mensajeInline))
             return;
 
         boolean exito = EnfermedadesDB.guardarEnfermedades(
                 ((JTextField) campos[0]).getText().trim(),
                 txtEnfermedades.getText().trim(),
                 txtAlergias.getText().trim(),
-                txtMedicacion.getText().trim());
+                txtMedicacion.getText().trim(),
+                mensajeInline);
 
         if (exito) {
-            JOptionPane.showMessageDialog(this, "Información médica guardada correctamente.");
+            mensajeInline.limpiar();
+            mensajeInline.mostrarExito("Información médica guardada correctamente.");
             limpiarCampos();
         }
     }
 
     private void buscarDatos() {
         String id = ((JTextField) campos[0]).getText().trim();
-        EnfermedadPaciente paciente = EnfermedadesDB.buscarPorID(id);
+        EnfermedadPaciente paciente = EnfermedadesDB.buscarPorID(id, mensajeInline);
         if (paciente != null) {
             txtEnfermedades.setText(paciente.enfermedades());
             txtAlergias.setText(paciente.alergias());
             txtMedicacion.setText(paciente.medicacion());
         } else {
-            JOptionPane.showMessageDialog(this, "No se encontraron datos para ese ID.");
+            mensajeInline.mostrarAdvertencia("No se encontraron datos para ese ID.");
         }
     }
 }

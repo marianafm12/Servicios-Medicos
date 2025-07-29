@@ -19,6 +19,6 @@ public class LimpiarCampos implements ActionListener {
         for (JTextField campo : campos) {
             campo.setText("");
         }
-        mensajeInline.mostrarExito("Todos los campos han sido limpiados.");
+        mensajeInline.mostrarAdvertencia("Todos los campos han sido limpiados.");
     }
 }

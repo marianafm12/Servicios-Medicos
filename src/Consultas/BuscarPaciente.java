@@ -5,20 +5,27 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import BaseDeDatos.ConexionSQLite;
 import java.sql.*;
+import java.awt.Window;
+import Utilidades.*;
 
 /**
  * Busca los datos del paciente únicamente por ID.
  * Rellena Nombre, Correo, Edad, Altura, Peso y Medicación.
  */
 public class BuscarPaciente implements ActionListener {
+    private final MensajeErrorUDLAP mensajeInline;
+    private final Window owner; // ventana propietaria para diálogos
 
     private final JTextField[] campos; // arreglo con los 7 JTextField mencionados
 
-    public BuscarPaciente(JTextField[] campos) {
+    public BuscarPaciente(JTextField[] campos, MensajeErrorUDLAP mensajeInline, Window owner) {
+        mensajeInline.limpiar();
         if (campos.length < 7)
             throw new IllegalArgumentException(
                     "Se requieren al menos 7 JTextField (ID, Nombre, Correo, Edad, Altura, Peso, Medicación)");
         this.campos = campos;
+        this.mensajeInline = mensajeInline;
+        this.owner = owner;
     }
 
     @Override
@@ -27,9 +34,7 @@ public class BuscarPaciente implements ActionListener {
         /* 1. Validar ID numérico */
         String idText = campos[0].getText().trim();
         if (idText.isEmpty() || !idText.matches("\\d+")) {
-            JOptionPane.showMessageDialog(null,
-                    "Debe ingresar un ID numérico válido.",
-                    "Entrada inválida", JOptionPane.WARNING_MESSAGE);
+            mensajeInline.mostrarError("Debe ingresar un ID numérico válido.");
             return;
         }
         int id = Integer.parseInt(idText);
@@ -59,15 +64,13 @@ public class BuscarPaciente implements ActionListener {
                 campos[5].setText(rs.getString("Peso"));
                 campos[6].setText(rs.getString("Medicacion"));
             } else {
-                JOptionPane.showMessageDialog(null,
-                        "Paciente no encontrado.",
-                        "Búsqueda", JOptionPane.INFORMATION_MESSAGE);
+                mensajeInline.mostrarAdvertencia("Paciente no encontrado con ID: " + id);
             }
 
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(null,
+            MensajeErrorUDLAP.mostrarVentanaError(owner,
                     "Error al buscar paciente:\n" + ex.getMessage(),
-                    "Error de BD", JOptionPane.ERROR_MESSAGE);
+                    "Error de BD");
         }
     }
 }

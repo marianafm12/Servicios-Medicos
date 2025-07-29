@@ -128,7 +128,7 @@ public class InterfazMedica extends JFrame {
 
         JPanel contenedorBarras = new JPanel();
         contenedorBarras.setLayout(new BoxLayout(contenedorBarras, BoxLayout.Y_AXIS));
-        contenedorBarras.add(new BarraVentanaUDLAP(this, false));
+        contenedorBarras.add(new BarraVentanaUDLAP(this, false, false));
         contenedorBarras.add(crearTopPanel());
         add(contenedorBarras, BorderLayout.NORTH);
 
@@ -290,8 +290,6 @@ public class InterfazMedica extends JFrame {
                 }
             });
 
-
-            
             // 6) Ver Accidentes
             panelManager.registerPanel(new PanelProvider() {
                 @Override
@@ -305,18 +303,18 @@ public class InterfazMedica extends JFrame {
                 }
             });
 
-
             // 7) Notificaciones
             panelManager.registerPanel(new PanelProvider() {
-                @Override public JPanel getPanel() {
+                @Override
+                public JPanel getPanel() {
                     return new Inicio.PanelNotificaciones(panelManager);
                 }
-                @Override public String getPanelName() {
+
+                @Override
+                public String getPanelName() {
                     return "notificaciones";
                 }
             });
-
-    
 
             // ¡NO registramos aquí el detalle! Lo haremos justo antes de mostrarlo.
         } else {
@@ -388,10 +386,11 @@ public class InterfazMedica extends JFrame {
             });
 
             // 5) Modificar Cita
+            ModificarCitaFrame modificarFrame = new ModificarCitaFrame(userId, panelManager);
             panelManager.registerPanel(new PanelProvider() {
                 @Override
                 public JPanel getPanel() {
-                    return new ModificarCitaFrame(userId, panelManager);
+                    return modificarFrame;
                 }
 
                 @Override

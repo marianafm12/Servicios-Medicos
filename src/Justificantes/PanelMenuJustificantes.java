@@ -2,7 +2,7 @@ package Justificantes;
 
 import javax.swing.*;
 
-import Utilidades.PanelManager;
+import Utilidades.*;
 
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -11,6 +11,7 @@ import java.awt.event.MouseEvent;
 public class PanelMenuJustificantes extends JPanel {
 
     private final PanelManager panelManager;
+    private final MensajeErrorUDLAP mensajeInline = new MensajeErrorUDLAP();
 
     public PanelMenuJustificantes(PanelManager panelManager) {
         this.panelManager = panelManager;
@@ -27,19 +28,17 @@ public class PanelMenuJustificantes extends JPanel {
         JButton btnDesdeSolicitud = botonTransparente(
                 "Solicitudes",
                 new Color(0, 102, 0, 100),
-                new Color(0, 102, 0, 170)
-        );
+                new Color(0, 102, 0, 170));
         btnDesdeSolicitud.setMaximumSize(new Dimension(350, 60));
-        btnDesdeSolicitud.addActionListener(e -> {
-            panelManager.mostrarPanelPersonalizado(new SolicitudesJustificantesFrame(panelManager));
+        btnDesdeSolicitud.addActionListener(evt -> {
+            panelManager.mostrarPanelPersonalizado(new SolicitudesJustificantesFrame(panelManager, mensajeInline));
         });
 
         // Botón para emitir directamente
         JButton btnDesdeConsulta = botonTransparente(
                 "Consulta Interna",
                 new Color(255, 102, 0, 100),
-                new Color(255, 102, 0, 170)
-        );
+                new Color(255, 102, 0, 170));
         btnDesdeConsulta.setMaximumSize(new Dimension(350, 60));
         btnDesdeConsulta.addActionListener(e -> {
             EmitirJustificanteDesdeConsultaFrame panel = new EmitirJustificanteDesdeConsultaFrame(panelManager);

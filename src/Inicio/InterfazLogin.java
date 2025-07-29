@@ -19,7 +19,7 @@ public class InterfazLogin extends JFrame {
         setLayout(new BorderLayout());
 
         // Barra superior con botones personalizados
-        BarraVentanaUDLAP barra = new BarraVentanaUDLAP(this, false);
+        BarraVentanaUDLAP barra = new BarraVentanaUDLAP(this, false, false);
         add(barra, BorderLayout.NORTH);
 
         // Panel central

@@ -24,7 +24,7 @@ public class GuardarConsulta implements ActionListener {
     private final JTextArea taSintomas, taMedicamentosRec,
             taDiagnostico, taReceta;
 
-    private final MensajeErrorUDLAP mensaje;
+    private final MensajeErrorUDLAP mensajeInline;
 
     public GuardarConsulta(
             int idMedicoSesion,
@@ -33,7 +33,7 @@ public class GuardarConsulta implements ActionListener {
             JTextField txtMedicacion,
             JTextArea taSintomas, JTextArea taMedicamentosRec,
             JTextArea taDiagnostico, JTextField txtFechaConsulta,
-            JTextArea taReceta, MensajeErrorUDLAP mensaje) {
+            JTextArea taReceta, MensajeErrorUDLAP mensajeInline) {
 
         this.idMedico = idMedicoSesion; // ← valor que viene del login
         this.txtIdPaciente = txtIdPaciente;
@@ -46,19 +46,17 @@ public class GuardarConsulta implements ActionListener {
         this.taDiagnostico = taDiagnostico;
         this.txtFechaConsulta = txtFechaConsulta;
         this.taReceta = taReceta;
-        this.mensaje = mensaje;
+        this.mensajeInline = mensajeInline;
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        mensaje.limpiar(); // Limpiar mensajes previos
+        mensajeInline.limpiar(); // Limpiar mensajes previos
 
         /* 1. Validar ID Paciente */
         String idTxt = txtIdPaciente.getText().trim();
         if (!idTxt.matches("\\d+")) {
-            JOptionPane.showMessageDialog(null,
-                    "El ID del paciente debe ser numérico.",
-                    "Validación", JOptionPane.WARNING_MESSAGE);
+            mensajeInline.mostrarError("El ID del paciente debe ser numérico.");
             txtIdPaciente.requestFocus();
             return;
         }
@@ -67,9 +65,7 @@ public class GuardarConsulta implements ActionListener {
         /* 2. Validar campos obligatorios */
         if (taSintomas.getText().trim().isEmpty()
                 || taDiagnostico.getText().trim().isEmpty()) {
-            JOptionPane.showMessageDialog(null,
-                    "Síntomas y Diagnóstico son obligatorios.",
-                    "Validación", JOptionPane.WARNING_MESSAGE);
+            mensajeInline.mostrarError("Síntomas y Diagnóstico son obligatorios.");
             return;
         }
 
@@ -107,7 +103,7 @@ public class GuardarConsulta implements ActionListener {
 
             conn.commit();
             // Mensaje inline de éxito
-            mensaje.mostrarExito("Consulta guardada exitosamente.");
+            mensajeInline.mostrarExito("Consulta guardada exitosamente.");
             limpiarCampos();
 
         } catch (SQLException ex) {
@@ -127,6 +123,6 @@ public class GuardarConsulta implements ActionListener {
         taMedicamentosRec.setText("");
         taDiagnostico.setText("");
         taReceta.setText("");
-        mensaje.limpiar();
+        mensajeInline.limpiar();
     }
 }

@@ -16,7 +16,7 @@ public class PacienteDB {
                         rs.getString("apellidoMaterno");
             }
         } catch (SQLException e) {
-            System.err.println("Error buscando paciente: " + e.getMessage());
+            System.err.println("Error \nbuscando \npaciente: " + e.getMessage());
         }
         return null;
     }

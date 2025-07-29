@@ -42,7 +42,6 @@ public class PanelBotonesFormulario extends JPanel {
         public PanelBotonesFormulario(BotonConfig... configs) {
                 setLayout(new FlowLayout(FlowLayout.CENTER, 20, 10));
                 setBackground(ColoresUDLAP.BLANCO);
-                Dimension size = new Dimension(100, 35);
 
                 for (BotonConfig cfg : configs) {
                         JButton btn = new JButton(cfg.texto) {
@@ -94,7 +93,7 @@ public class PanelBotonesFormulario extends JPanel {
                         btn.setBorderPainted(false);
                         btn.setContentAreaFilled(false);
                         btn.setOpaque(false);
-                        btn.setPreferredSize(size);
+                        btn.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
 
                         btn.addMouseListener(new MouseAdapter() {
                                 @Override

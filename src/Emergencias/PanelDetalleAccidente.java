@@ -9,7 +9,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 import java.awt.*;
-import java.time.format.DateTimeFormatter;
+//import java.time.format.DateTimeFormatter;
 
 /**
  * Muestra en detalle todos los datos de un Accidente.
@@ -25,7 +25,7 @@ public class PanelDetalleAccidente extends JPanel {
     }
 
     private void initUI() {
-        setLayout(new BorderLayout(10, 10));
+        setLayout(new BorderLayout(5, 5));
         setBackground(ColoresUDLAP.BLANCO);
 
         // Título
@@ -36,13 +36,14 @@ public class PanelDetalleAccidente extends JPanel {
         add(titulo, BorderLayout.NORTH);
 
         // Datos en GridLayout
-        JPanel centro = new JPanel(new GridLayout(0, 1, 2, 2));
+        JPanel centro = new JPanel(new GridLayout(0, 1, 0, 0));
         centro.setBackground(ColoresUDLAP.BLANCO);
         centro.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
 
-        DateTimeFormatter dtFmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        DateTimeFormatter dFmt  = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
+        /*
+         * DateTimeFormatter dtFmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+         * DateTimeFormatter dFmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+         */
         centro.add(makeRow("ID Accidente: ", String.valueOf(accidente.getIdEmergencia())));
         centro.add(makeRow("Fecha Registro Emergencia: ", accidente.getFechaRegistro()));
         centro.add(makeRow("Paramédico Responsable: ", accidente.getParamedicoResponsable()));
@@ -50,8 +51,8 @@ public class PanelDetalleAccidente extends JPanel {
         centro.add(makeRow("ID Estudiante: ", String.valueOf(accidente.getMatricula())));
         centro.add(makeRow("Nombre Estudiante: ",
                 accidente.getNombreEstudiante() + " " +
-                accidente.getApellidoPaterno() + " " +
-                accidente.getApellidoMaterno()));
+                        accidente.getApellidoPaterno() + " " +
+                        accidente.getApellidoMaterno()));
         centro.add(makeRow("Edad: ", String.valueOf(accidente.getEdad())));
         centro.add(makeRow("Sexo: ", accidente.getSexo()));
         centro.add(makeRow("Escuela: ", accidente.getEscuela()));
@@ -104,9 +105,8 @@ public class PanelDetalleAccidente extends JPanel {
         centro.add(makeRow("Narrativa Detallada: ", accidente.getNarrativaDetallada()));
         centro.add(makeRow("Fecha Elaboración: ", accidente.getFechaElaboracion()));
 
-
         if (accidente.getFotos() != null && !accidente.getFotos().isEmpty()) {
-            JPanel rowFotos = new JPanel(new BorderLayout(5, 0));
+            JPanel rowFotos = new JPanel(new BorderLayout(1, 0));
             rowFotos.setBackground(ColoresUDLAP.BLANCO);
             JLabel lblFotos = new JLabel("Fotos:");
             lblFotos.setFont(new Font("Arial", Font.BOLD, 16));
@@ -119,7 +119,7 @@ public class PanelDetalleAccidente extends JPanel {
                 ImageIcon icon = new ImageIcon(imgBytes);
                 // Miniatura de 80×80
                 Image thumb = icon.getImage()
-                                .getScaledInstance(80, 80, Image.SCALE_SMOOTH);
+                        .getScaledInstance(80, 80, Image.SCALE_SMOOTH);
                 JLabel lblFoto = new JLabel(new ImageIcon(thumb));
                 lblFoto.setBorder(BorderFactory.createLineBorder(Color.GRAY));
                 lblFoto.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -129,16 +129,15 @@ public class PanelDetalleAccidente extends JPanel {
                     @Override
                     public void mouseClicked(MouseEvent e) {
                         ImageIcon fullIcon = new ImageIcon(imgBytes);
-                        // Ajusta  la escala que necesites
+                        // Ajusta la escala que necesites
                         Image fullImg = fullIcon.getImage()
-                                                .getScaledInstance(400, 400, Image.SCALE_SMOOTH);
+                                .getScaledInstance(400, 400, Image.SCALE_SMOOTH);
                         JLabel lblFull = new JLabel(new ImageIcon(fullImg));
                         JOptionPane.showMessageDialog(
-                            PanelDetalleAccidente.this,
-                            lblFull,
-                            "Foto",
-                            JOptionPane.PLAIN_MESSAGE
-                        );
+                                PanelDetalleAccidente.this,
+                                lblFull,
+                                "Foto",
+                                JOptionPane.PLAIN_MESSAGE);
                     }
                 });
 
@@ -163,7 +162,7 @@ public class PanelDetalleAccidente extends JPanel {
     }
 
     private JPanel makeRow(String label, String value) {
-        JPanel row = new JPanel(new BorderLayout(5, 0));
+        JPanel row = new JPanel(new BorderLayout(0, 0));
         row.setBackground(ColoresUDLAP.BLANCO);
         JLabel lbl = new JLabel(label);
         lbl.setFont(new Font("Arial", Font.BOLD, 16));
@@ -180,7 +179,7 @@ public class PanelDetalleAccidente extends JPanel {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-                                    RenderingHints.VALUE_ANTIALIAS_ON);
+                        RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(getModel().isRollover() ? hover : base);
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 25, 25);
                 super.paintComponent(g);

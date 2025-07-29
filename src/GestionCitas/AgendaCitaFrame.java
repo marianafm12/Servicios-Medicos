@@ -22,9 +22,15 @@ public class AgendaCitaFrame extends JPanel {
     private ComboBoxUDLAP<String> comboMinuto;
     private JLabel errorLabel;
 
+    private final Window owner;
+    private final MensajeErrorUDLAP mensajeInline;
+
     public AgendaCitaFrame(int idPaciente, PanelManager panelManager) {
+
         this.idPaciente = idPaciente;
         this.panelManager = panelManager;
+        this.mensajeInline = new MensajeErrorUDLAP();
+        this.owner = SwingUtilities.getWindowAncestor(this);
 
         setLayout(new GridBagLayout());
         setBackground(ColoresUDLAP.BLANCO);
@@ -134,10 +140,11 @@ public class AgendaCitaFrame extends JPanel {
         gbc.gridy++;
         gbc.gridx = 0;
         gbc.gridwidth = 2;
-        errorLabel = new JLabel("", SwingConstants.CENTER);
-        errorLabel.setFont(new Font("Arial", Font.PLAIN, 13));
-        errorLabel.setForeground(Color.RED);
-        add(errorLabel, gbc);
+        // Centrado horizontal
+        JPanel centro = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        centro.setBackground(ColoresUDLAP.BLANCO);
+        centro.add(mensajeInline);
+        add(centro, gbc);
 
         // — BOTONES —
         gbc.gridy++;
@@ -161,8 +168,7 @@ public class AgendaCitaFrame extends JPanel {
                         fechaSeleccionada.getDayOfMonth(),
                         fechaSeleccionada.getMonthValue(),
                         fechaSeleccionada.getYear())) {
-            errorLabel.setText("Fecha inválida (debe ser futura y válida)");
-            errorLabel.setForeground(Color.RED);
+            mensajeInline.mostrarError("Fecha inválida. Debe ser un día hábil.");
             return;
         }
 
@@ -198,16 +204,16 @@ public class AgendaCitaFrame extends JPanel {
                             return null;
                         }
                     }.execute();
-                    errorLabel.setForeground(ColoresUDLAP.NARANJA_SOLIDO);
-                    errorLabel.setText("Registrado en lista de espera.");
+                    mensajeInline.mostrarAdvertencia(horaFinal + " ya está ocupado. " +
+                            "Te has registrado en la lista de espera.");
                 }
                 return;
             }
             // 2) ¿ya tiene cita para el servicio?
             if (ValidacionesCita.pacienteYaTieneCitaParaServicio(
                     idPaciente, servicio)) {
-                errorLabel.setForeground(Color.RED);
-                errorLabel.setText("Ya tienes una cita para este servicio.");
+                mensajeInline.mostrarError(horaFinal + " ya tiene una cita para " + servicio
+                        + ", no puede haber dos citas del mismo servicio.");
                 return;
             }
             // 3) Insert en BD
@@ -218,12 +224,10 @@ public class AgendaCitaFrame extends JPanel {
                 ps.setString(3, horaFinal);
                 ps.setString(4, servicio);
                 ps.executeUpdate();
-                errorLabel.setForeground(ColoresUDLAP.VERDE_SOLIDO);
-                errorLabel.setText("Cita agendada exitosamente.");
+                mensajeInline.mostrarExito("Cita agendada exitosamente.");
             }
         } catch (SQLException ex) {
-            errorLabel.setForeground(Color.RED);
-            errorLabel.setText("Error al registrar cita.");
+            mensajeInline.mostrarError("Error al registrar cita.");
             ex.printStackTrace();
         }
     }

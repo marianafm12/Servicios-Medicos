@@ -8,7 +8,6 @@ import javax.swing.*;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.DocumentEvent;
 
-
 import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
@@ -22,7 +21,6 @@ import java.util.ArrayList;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.util.Locale;
-
 
 /**
  * Formulario completo de reporte de accidente para estudiantes UDLAP.
@@ -50,14 +48,13 @@ public class FormularioAccidenteCompleto extends JPanel {
             areaNarrativa;
 
     private ComboBoxUDLAP<String> comboSexo, comboEscuela,
-            comboLugar, comboEnHorario, 
+            comboLugar, comboEnHorario,
             comboLesionPrincipal, comboParteCuerpo, comboTriage,
             comboConsciencia, comboLesionesAtribuibles,
             comboRiesgoMuerte, comboHospitalizacion,
             comboHospitalDestino;
 
-
-    private MensajeErrorUDLAP mensajeEstado;
+    private MensajeErrorUDLAP mensajeInline;
     // PARA FOTOS
     private JPanel panelFotos;
     private java.util.List<byte[]> fotosAccidente = new ArrayList<>();
@@ -74,8 +71,7 @@ public class FormularioAccidenteCompleto extends JPanel {
         initListeners();
     }
 
-    private static final String SIGNOS_PLACEHOLDER =
-        "FC:75 LPM; PA:120/80 mmHg; FR:16 RPM; T:37°C; SpO2:98%";
+    private static final String SIGNOS_PLACEHOLDER = "FC:75 LPM; PA:120/80 mmHg; FR:16 RPM; T:37°C; SpO2:98%";
 
     /** Construye y distribuye todos los componentes en el panel. */
     private void initComponentes() {
@@ -139,7 +135,7 @@ public class FormularioAccidenteCompleto extends JPanel {
         panelAcc.add(comboMinutoAccidente);
         addCustom(contenido, gbc, row++, "Fecha y Hora del Accidente*:", panelAcc);
 
-            // ↓ justo antes de la fila “Día*:”
+        // ↓ justo antes de la fila “Día*:”
         campoDiaSemana = new JTextField(10);
         campoDiaSemana.setFont(fontField);
         campoDiaSemana.setEditable(false);
@@ -176,14 +172,13 @@ public class FormularioAccidenteCompleto extends JPanel {
         campoSignosVitales = crearCampo(contenido, gbc, row++, "Signos Vitales*:", fontField);
         areaDescripcion = new JTextArea(3, 20);
 
-
         campoSignosVitales.setText(SIGNOS_PLACEHOLDER);
         campoSignosVitales.setForeground(Color.GRAY);
         campoSignosVitales.addFocusListener(new FocusAdapter() {
-        @Override
-        public void focusGained(FocusEvent e) {
-            campoSignosVitales.selectAll();
-        }
+            @Override
+            public void focusGained(FocusEvent e) {
+                campoSignosVitales.selectAll();
+            }
         });
 
         campoSignosVitales.getDocument().addDocumentListener(new DocumentListener() {
@@ -192,11 +187,21 @@ public class FormularioAccidenteCompleto extends JPanel {
                     campoSignosVitales.setForeground(Color.BLACK);
                 }
             }
-            @Override public void insertUpdate(DocumentEvent e)  { actualizarColor(); }
-            @Override public void removeUpdate(DocumentEvent e)  { actualizarColor(); }
-            @Override public void changedUpdate(DocumentEvent e) {}
-        });
 
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                actualizarColor();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                actualizarColor();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+            }
+        });
 
         addArea(contenido, gbc, row++, "Descripción*:", areaDescripcion);
         areaPrimerosAuxilios = new JTextArea(3, 20);
@@ -220,7 +225,6 @@ public class FormularioAccidenteCompleto extends JPanel {
         campoMedicoTratante = crearCampo(contenido, gbc, row++, "Médico Tratante*:", fontField);
         campoCedula = crearCampo(contenido, gbc, row++, "Cédula*:", fontField);
 
-       
         campoCedula.addFocusListener(new FocusAdapter() {
             @Override
             public void focusLost(FocusEvent e) {
@@ -232,19 +236,19 @@ public class FormularioAccidenteCompleto extends JPanel {
                 }
 
                 String sql = """
-                    SELECT Nombre, ApellidoPaterno, ApellidoMaterno
-                    FROM InformacionMedico
-                    WHERE CedulaProfesional = ?
-                """;
+                            SELECT Nombre, ApellidoPaterno, ApellidoMaterno
+                            FROM InformacionMedico
+                            WHERE CedulaProfesional = ?
+                        """;
 
                 try (Connection conn = ConexionSQLite.conectar();
-                    PreparedStatement ps = conn.prepareStatement(sql)) {
+                        PreparedStatement ps = conn.prepareStatement(sql)) {
                     ps.setString(1, ced);
                     try (ResultSet rs = ps.executeQuery()) {
                         if (rs.next()) {
                             String nombre = rs.getString("Nombre")
-                                + " " + rs.getString("ApellidoPaterno")
-                                + " " + rs.getString("ApellidoMaterno");
+                                    + " " + rs.getString("ApellidoPaterno")
+                                    + " " + rs.getString("ApellidoMaterno");
                             campoMedicoTratante.setText(nombre);
                             campoMedicoTratante.setEditable(false); // bloquea edición
                         } else {
@@ -260,11 +264,13 @@ public class FormularioAccidenteCompleto extends JPanel {
             }
         });
 
-
-    
         // V. Traslado
         addSeccion(contenido, gbc, row++, "V. Traslado y Seguimiento", fontLabel);
-        comboHospitalDestino = new ComboBoxUDLAP<>("Seleccione", new String[] { "Hospital Ángeles Puebla", "Beneficencia española (Puebla)", "Centro hospitalario MAC Puebla", "Christus muguerza hospital Betania", "Christus muguerza hospital UPAEP (Puebla)", "Unidad hospitalaria La Paz", "Hospital militar", "Otro" });
+        comboHospitalDestino = new ComboBoxUDLAP<>("Seleccione",
+                new String[] { "Hospital Ángeles Puebla", "Beneficencia española (Puebla)",
+                        "Centro hospitalario MAC Puebla", "Christus muguerza hospital Betania",
+                        "Christus muguerza hospital UPAEP (Puebla)", "Unidad hospitalaria La Paz", "Hospital militar",
+                        "Otro" });
         addCombo(contenido, gbc, row++, "Hospital Destino:", comboHospitalDestino);
         campoResponsableTraslado = crearCampo(contenido, gbc, row++, "Responsable:", fontField);
         campoMedioTransporte = crearCampo(contenido, gbc, row++, "Medio Transporte:", fontField);
@@ -343,11 +349,11 @@ public class FormularioAccidenteCompleto extends JPanel {
                 new PanelBotonesFormulario.BotonConfig("Limpiar", PanelBotonesFormulario.BotonConfig.Tipo.BACK),
                 new PanelBotonesFormulario.BotonConfig("Foto(s)",
                         PanelBotonesFormulario.BotonConfig.Tipo.PRIMARY));
-        mensajeEstado = new MensajeErrorUDLAP();
+        mensajeInline = new MensajeErrorUDLAP();
 
         JPanel panelInferior = new JPanel(new BorderLayout());
         panelInferior.setBackground(ColoresUDLAP.BLANCO);
-        panelInferior.add(mensajeEstado, BorderLayout.NORTH);
+        panelInferior.add(mensajeInline, BorderLayout.NORTH);
         panelInferior.add(panelBotones, BorderLayout.SOUTH);
 
         add(panelInferior, BorderLayout.SOUTH);
@@ -356,7 +362,6 @@ public class FormularioAccidenteCompleto extends JPanel {
                 e -> guardarAccidente(),
                 e -> limpiarCampos(),
                 e -> abrirSelectorFotos());
-
 
         actualizarDiaSemana(datePickerAccidente.getDate());
     }
@@ -453,17 +458,13 @@ public class FormularioAccidenteCompleto extends JPanel {
 
                 } catch (SQLException ex) {
                     ex.printStackTrace();
-                    JOptionPane.showMessageDialog(
-                            FormularioAccidenteCompleto.this,
-                            "Error al cargar datos del estudiante:\n" + ex.getMessage(),
-                            "Error",
-                            JOptionPane.ERROR_MESSAGE);
+                    mensajeInline.mostrarError(
+                            "Error al cargar datos del estudiante:\n" + ex.getMessage());
                 }
             }
         });
 
-
-        datePickerAccidente.addDateChangeListener(fecha ->{
+        datePickerAccidente.addDateChangeListener(fecha -> {
             actualizarDiaSemana(fecha);
         });
 
@@ -508,7 +509,6 @@ public class FormularioAccidenteCompleto extends JPanel {
         p.add(new JScrollPane(a), gbc);
     }
 
-
     private JPanel crearPanelFecha() {
         JComboBox<String> d = new JComboBox<>();
         for (int i = 1; i <= 31; i++) {
@@ -541,32 +541,28 @@ public class FormularioAccidenteCompleto extends JPanel {
         return p;
     }
 
-
-
-
     /**
      * Activa sólo si se seleccionó "Hospital" en Lugar de Tratamiento.
      */
     private void actualizarCamposTraslado() {
         // si aún no están creados, salimos
-        if (comboHospitalDestino == null) return;
+        if (comboHospitalDestino == null)
+            return;
 
         // habilita los campos de traslado completo sólo para Hospital
         boolean esHospital = "Hospital".equals(comboHospitalizacion.getSelectedItem());
-        comboHospitalDestino   .setEnabled(esHospital);
+        comboHospitalDestino.setEnabled(esHospital);
         campoResponsableTraslado.setEnabled(esHospital);
-        campoMedioTransporte   .setEnabled(esHospital);
+        campoMedioTransporte.setEnabled(esHospital);
 
         // habilita fecha + hora de ingreso tanto para Enfermería como para Hospital
         boolean requiereIngreso = comboHospitalizacion.getSelectedItem() != null &&
-            (comboHospitalizacion.getSelectedItem().equals("Hospital")
-        || comboHospitalizacion.getSelectedItem().equals("Enfermería UDLAP"));
-        datePickerIngreso  .setEnabled(requiereIngreso);
-        comboHoraIngreso   .setEnabled(requiereIngreso);
-        comboMinutoIngreso .setEnabled(requiereIngreso);
+                (comboHospitalizacion.getSelectedItem().equals("Hospital")
+                        || comboHospitalizacion.getSelectedItem().equals("Enfermería UDLAP"));
+        datePickerIngreso.setEnabled(requiereIngreso);
+        comboHoraIngreso.setEnabled(requiereIngreso);
+        comboMinutoIngreso.setEnabled(requiereIngreso);
     }
-
-
 
     /**
      * Limpia y restaura todos los campos del formulario a su estado inicial.
@@ -771,7 +767,7 @@ public class FormularioAccidenteCompleto extends JPanel {
                 campoCedula.getText().trim(),
 
                 // Fechas UDLAP
-                (String)comboHospitalDestino.getSelectedItem(),
+                (String) comboHospitalDestino.getSelectedItem(),
                 campoResponsableTraslado.getText().trim(),
                 campoMedioTransporte.getText().trim(),
                 datePickerIngreso.getDate(),
@@ -838,8 +834,8 @@ public class FormularioAccidenteCompleto extends JPanel {
         String riesgoMuerte = comboRiesgoMuerte.getSelectedItem().toString();
         int incapacidadDias = Integer.parseInt(campoIncapacidad.getText().trim());
         String requiereHosp = "Hospital".equals(comboHospitalizacion.getSelectedItem())
-            ? "Si"
-            : "No";
+                ? "Si"
+                : "No";
         String tratamientoRec = areaTratamiento.getText().trim();
         String medicoTratante = campoMedicoTratante.getText().trim();
         String cedulaProfesional = campoCedula.getText().trim();
@@ -928,7 +924,7 @@ public class FormularioAccidenteCompleto extends JPanel {
                         "Error",
                         "Error al guardar el accidente.");
             } else {
-                mensajeEstado.mostrarExito("Accidente guardado con éxito.");
+                mensajeInline.mostrarExito("Accidente guardado con éxito.");
                 limpiarCampos();
             }
 
@@ -976,18 +972,15 @@ public class FormularioAccidenteCompleto extends JPanel {
         p.add(c, gbc);
     }
 
-
- private void actualizarDiaSemana(LocalDate fecha) {
-    if (fecha != null) {
-        String dia = fecha.getDayOfWeek()
-                        .getDisplayName(TextStyle.FULL, new Locale("es"));
-        dia = dia.substring(0,1).toUpperCase() + dia.substring(1).toLowerCase();
-        campoDiaSemana.setText(dia);
-    } else {
-        campoDiaSemana.setText("");
+    private void actualizarDiaSemana(LocalDate fecha) {
+        if (fecha != null) {
+            String dia = fecha.getDayOfWeek()
+                    .getDisplayName(TextStyle.FULL, Locale.forLanguageTag("es"));
+            dia = dia.substring(0, 1).toUpperCase() + dia.substring(1).toLowerCase();
+            campoDiaSemana.setText(dia);
+        } else {
+            campoDiaSemana.setText("");
+        }
     }
- }
-
-
 
 }

@@ -70,9 +70,9 @@ public class AgregarRegistro implements ActionListener {
             }
 
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(null,
+            MensajeErrorUDLAP.mostrarVentanaError(owner,
                     "Error al cargar datos personales:\n" + ex.getMessage(),
-                    "Error de Base de Datos", JOptionPane.ERROR_MESSAGE);
+                    "Error de Base de Datos");
         }
     }
 
