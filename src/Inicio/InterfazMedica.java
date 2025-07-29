@@ -432,11 +432,17 @@ public class InterfazMedica extends JFrame {
         notificationIcon = new JLabel(iconDefault);
         notificationIcon.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         notificationIcon.addMouseListener(new MouseAdapter() {
-            public void mouseClicked(MouseEvent e) {
-                panelManager.showPanel("notificaciones");
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (esMedico) {
+                    panelManager.showPanel("notificaciones");
+                } else {
+                    mostrarNotificaciones();
+                }
                 checkNotifications();
             }
         });
+
         right.add(notificationIcon);
 
         JButton cerrarSesion = new JButton("Cerrar sesión");
