@@ -3,8 +3,7 @@ package Inicio;
 import Emergencias.EmergenciaDAO;
 import Justificantes.JustificanteDAO;
 import Justificantes.SolicitudesJustificantesFrame;
-import Utilidades.ColoresUDLAP;
-import Utilidades.PanelManager;
+import Utilidades.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -13,6 +12,7 @@ public class PanelNotificaciones extends JPanel {
     private final PanelManager panelManager;
     private JButton btnEmergencias;
     private JButton btnJustificantes;
+    private final MensajeErrorUDLAP mensajeInline = new MensajeErrorUDLAP();
 
     public PanelNotificaciones(PanelManager panelManager) {
         this.panelManager = panelManager;
@@ -37,17 +37,14 @@ public class PanelNotificaciones extends JPanel {
         add(Box.createVerticalStrut(30));
 
         btnJustificantes = crearBoton("", ColoresUDLAP.NARANJA_SOLIDO, ColoresUDLAP.NARANJA_HOVER);
-        btnJustificantes.addActionListener(e ->
-            panelManager.mostrarPanelPersonalizado(
-                new SolicitudesJustificantesFrame(panelManager)
-            )
-        );
+        btnJustificantes.addActionListener(evt -> panelManager.mostrarPanelPersonalizado(
+                new SolicitudesJustificantesFrame(panelManager, mensajeInline)));
         add(btnJustificantes);
     }
 
     private void updateCounts() {
-        int emPend  = EmergenciaDAO.contarPendientes();
-        int justPend= JustificanteDAO.contarJustificantesPendientes();
+        int emPend = EmergenciaDAO.contarPendientes();
+        int justPend = JustificanteDAO.contarJustificantesPendientes();
 
         btnEmergencias.setText("Emergencias pendientes: " + emPend);
         btnJustificantes.setText("Justificantes pendientes: " + justPend);
@@ -67,9 +64,8 @@ public class PanelNotificaciones extends JPanel {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(
-                    RenderingHints.KEY_ANTIALIASING,
-                    RenderingHints.VALUE_ANTIALIAS_ON
-                );
+                        RenderingHints.KEY_ANTIALIASING,
+                        RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(getModel().isRollover() ? hover : base);
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 25, 25);
                 super.paintComponent(g);
@@ -86,8 +82,15 @@ public class PanelNotificaciones extends JPanel {
         btn.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btn.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override public void mouseEntered(java.awt.event.MouseEvent e) { btn.repaint(); }
-            @Override public void mouseExited(java.awt.event.MouseEvent e)  { btn.repaint(); }
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                btn.repaint();
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                btn.repaint();
+            }
         });
         return btn;
     }

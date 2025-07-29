@@ -3,12 +3,15 @@ package Registro;
 import java.awt.event.*;
 import java.sql.*;
 import javax.swing.*;
+import Utilidades.*;
 
 public class Buscar implements ActionListener {
     private final JTextField[] campos;
+    private final MensajeErrorUDLAP mensajeInline;
 
-    public Buscar(JTextField[] campos) {
+    public Buscar(JTextField[] campos, MensajeErrorUDLAP mensajeInline) {
         this.campos = campos;
+        this.mensajeInline = mensajeInline;
     }
 
     @Override
@@ -21,11 +24,7 @@ public class Buscar implements ActionListener {
         // Validar que haya al menos ID o Nombre completo
         if ((idText.isEmpty() || !idText.matches("\\d+"))
                 && (nombre.isEmpty() || apPat.isEmpty() || apMat.isEmpty())) {
-            JOptionPane.showMessageDialog(
-                    null,
-                    "Debe ingresar un ID válido o Nombre completo para buscar.",
-                    "Búsqueda incompleta",
-                    JOptionPane.WARNING_MESSAGE);
+            mensajeInline.mostrarAdvertencia("Debe ingresar un ID válido o Nombre completo para buscar.");
             return;
         }
 
@@ -43,7 +42,7 @@ public class Buscar implements ActionListener {
                 stmt = conexion.prepareStatement(sql);
                 stmt.setInt(1, Integer.parseInt(idText));
 
-            // Búsqueda por nombre completo
+                // Búsqueda por nombre completo
             } else {
                 sql = "SELECT a.ID, a.Nombre, a.ApellidoPaterno, a.ApellidoMaterno, a.Correo, " +
                         "r.Edad, r.Altura, r.Peso, r.EnfermedadesPreexistentes, r.Medicacion, r.Alergias " +
@@ -74,26 +73,17 @@ public class Buscar implements ActionListener {
                     campos[9].setText(rs.getString("Medicacion"));
                     campos[10].setText(rs.getString("Alergias"));
 
-                    JOptionPane.showMessageDialog(
-                            null,
-                            "Registro encontrado y cargado.",
-                            "Éxito",
-                            JOptionPane.INFORMATION_MESSAGE);
+                    mensajeInline.mostrarInformacion(
+                            "Registro encontrado y cargado.");
                 } else {
-                    JOptionPane.showMessageDialog(
-                            null,
-                            "No se encontró ningún registro con los datos proporcionados.",
-                            "No encontrado",
-                            JOptionPane.INFORMATION_MESSAGE);
+                    mensajeInline.mostrarAdvertencia(
+                            "No se encontró ningún registro con los datos proporcionados.");
                 }
             }
 
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(
-                    null,
-                    "Error al buscar registro: " + e.getMessage(),
-                    "Error de Base de Datos",
-                    JOptionPane.ERROR_MESSAGE);
+            mensajeInline.mostrarError(
+                    "Error en la base de datos " + e.getMessage());
         }
     }
 }

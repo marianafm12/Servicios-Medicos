@@ -1,6 +1,7 @@
 package GestionCitas;
 
 import Utilidades.*;
+import Utilidades.PanelBotonesFormulario.BotonConfig;
 import BaseDeDatos.ConexionSQLite;
 
 import javax.swing.*;
@@ -24,7 +25,7 @@ public class ModificarCitaFrame extends JPanel {
     private DatePickerUDLAP datePickerUDLAP;
     private ComboBoxUDLAP<String> comboHora;
     private ComboBoxUDLAP<String> comboMinuto;
-    private JLabel errorLabel;
+    private MensajeErrorUDLAP mensajeInline;
 
     public ModificarCitaFrame(int idPaciente, PanelManager panelManager) {
         this.idPaciente = idPaciente;
@@ -141,34 +142,23 @@ public class ModificarCitaFrame extends JPanel {
         panelHora.add(comboMinuto);
         add(panelHora, gbc);
 
-        // — MENSAJE DE ERROR —
+        // — MENSAJE DE ERROR UDLAP —
         gbc.gridy++;
         gbc.gridx = 0;
         gbc.gridwidth = 2;
-        errorLabel = new JLabel("", SwingConstants.CENTER);
-        errorLabel.setFont(new Font("Arial", Font.PLAIN, 13));
-        errorLabel.setForeground(Color.RED);
-        add(errorLabel, gbc);
+        mensajeInline = new MensajeErrorUDLAP();
+        add(mensajeInline, gbc);
 
-        // — BOTONES —
+        // — BOTONES UDLAP —
         gbc.gridy++;
-        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
-        panelBotones.setBackground(ColoresUDLAP.BLANCO);
-
-        JButton btnModificar = botonTransparente(
-                "Modificar Cita", ColoresUDLAP.VERDE_SOLIDO, ColoresUDLAP.VERDE_HOVER);
-        JButton btnCancelarCita = botonTransparente(
-                "Cancelar Cita", ColoresUDLAP.ROJO_SOLIDO, ColoresUDLAP.ROJO_HOVER);
-        JButton btnVolver = botonTransparente(
-                "Volver", ColoresUDLAP.NARANJA_SOLIDO, ColoresUDLAP.NARANJA_HOVER);
-
-        btnModificar.addActionListener(e -> modificarCita());
-        btnCancelarCita.addActionListener(e -> cancelarCita());
-        btnVolver.addActionListener(e -> panelManager.showPanel("panelGestionCitas"));
-
-        panelBotones.add(btnModificar);
-        panelBotones.add(btnCancelarCita);
-        panelBotones.add(btnVolver);
+        PanelBotonesFormulario panelBotones = new PanelBotonesFormulario(
+                new BotonConfig("Modificar Cita", BotonConfig.Tipo.PRIMARY),
+                new BotonConfig("Cancelar Cita", BotonConfig.Tipo.DANGER),
+                new BotonConfig("Volver", BotonConfig.Tipo.BACK));
+        panelBotones.setListeners(
+                e -> modificarCita(),
+                e -> cancelarCita(),
+                e -> panelManager.showPanel("panelGestionCitas"));
         add(panelBotones, gbc);
 
         // Carga inicial de datos
@@ -199,19 +189,27 @@ public class ModificarCitaFrame extends JPanel {
     private void cargarCitas() {
         comboCitas.removeAllItems();
         comboCitas.addItem("Seleccione una cita");
-        try (Connection conn = ConexionSQLite.conectar();
-                PreparedStatement ps = conn.prepareStatement(
-                        "SELECT idCita, fecha || ' ' || hora || ' - ' || servicio AS desc " +
-                                "FROM CitasMedicas WHERE idPaciente = ?")) {
-            ps.setInt(1, idPaciente);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    String item = rs.getInt("idCita") + ": " + rs.getString("desc");
-                    comboCitas.addItem(item);
+        try {
+            mensajeInline.limpiar();
+            try (Connection conn = ConexionSQLite.conectar();
+                    PreparedStatement ps = conn.prepareStatement(
+                            "SELECT idCita, fecha || ' ' || hora || ' - ' || servicio AS desc " +
+                                    "FROM CitasMedicas WHERE idPaciente = ?")) {
+                ps.setInt(1, idPaciente);
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        String item = rs.getInt("idCita") + ": " + rs.getString("desc");
+                        comboCitas.addItem(item);
+                    }
+                    if (comboCitas.getItemCount() <= 1) {
+                        mensajeInline.mostrarInformacion("No tienes citas programadas.");
+                    } else {
+                        comboCitas.setSelectedIndex(0); // Selecciona el primer elemento
+                    }
                 }
             }
         } catch (SQLException ex) {
-            errorLabel.setText("Error al cargar citas.");
+            mensajeInline.mostrarError("Error al cargar citas.");
         }
     }
 
@@ -229,11 +227,11 @@ public class ModificarCitaFrame extends JPanel {
                     String[] hm = rs.getString("hora").split(":");
                     comboHora.setSelectedItem(hm[0]);
                     comboMinuto.setSelectedItem(hm[1]);
-                    errorLabel.setText("");
+                    mensajeInline.limpiar();
                 }
             }
         } catch (SQLException ex) {
-            errorLabel.setText("Error al cargar datos de la cita.");
+            mensajeInline.mostrarError("Error al cargar datos de la cita.");
         }
     }
 
@@ -241,7 +239,7 @@ public class ModificarCitaFrame extends JPanel {
     private void modificarCita() {
         String sel = comboCitas.getSelectedItem();
         if (sel == null) {
-            errorLabel.setText("Seleccione una cita para modificar.");
+            mensajeInline.mostrarAdvertencia("Seleccione una cita para modificar.");
             return;
         }
         int idCita = Integer.parseInt(sel.split(":")[0].trim());
@@ -254,7 +252,7 @@ public class ModificarCitaFrame extends JPanel {
                 fechaSel.getDayOfMonth(),
                 fechaSel.getMonthValue(),
                 fechaSel.getYear())) {
-            errorLabel.setText("Fecha inválida o no seleccionada.");
+            mensajeInline.mostrarAdvertencia("Fecha inválida o no seleccionada.");
             return;
         }
 
@@ -269,13 +267,13 @@ public class ModificarCitaFrame extends JPanel {
             try (ResultSet rs = ps.executeQuery()) {
                 rs.next();
                 if (rs.getInt(1) > 0) {
-                    errorLabel.setText(
-                            "Ya tienes otra cita de “" + servicio + "”. Sólo una por servicio.");
+                    mensajeInline.mostrarError(
+                            "Ya tienes otra cita de “" + servicio + "”. Sólo se puede una cita por servicio.");
                     return;
                 }
             }
         } catch (SQLException ex) {
-            errorLabel.setText("Error al validar duplicados.");
+            mensajeInline.mostrarError("Error al validar duplicados.");
             return;
         }
 
@@ -298,7 +296,7 @@ public class ModificarCitaFrame extends JPanel {
                 }
             }
         } catch (SQLException ex) {
-            errorLabel.setText("Error al obtener datos originales.");
+            mensajeInline.mostrarError("Error al obtener datos originales.");
             return;
         }
 
@@ -312,8 +310,7 @@ public class ModificarCitaFrame extends JPanel {
             ps.setInt(4, idCita);
             ps.executeUpdate();
 
-            errorLabel.setForeground(ColoresUDLAP.VERDE_SOLIDO);
-            errorLabel.setText("Cita modificada correctamente.");
+            mensajeInline.mostrarExito("Cita modificada correctamente.");
             cargarCitas();
 
             // Notificar lista de espera si cambió
@@ -325,8 +322,7 @@ public class ModificarCitaFrame extends JPanel {
             }
 
         } catch (SQLException ex) {
-            errorLabel.setForeground(Color.RED);
-            errorLabel.setText("Error al modificar la cita.");
+            mensajeInline.mostrarError("Error al modificar la cita.");
         }
     }
 
@@ -334,10 +330,73 @@ public class ModificarCitaFrame extends JPanel {
     private void cancelarCita() {
         String sel = comboCitas.getSelectedItem();
         if (sel == null) {
-            errorLabel.setText("Seleccione una cita para cancelar.");
+            mensajeInline.mostrarAdvertencia("Seleccione una cita para cancelar.");
             return;
         }
-        // … tu lógica de cancelación …
+        Object[] opciones = { "Sí", "No" };
+        int confirm = JOptionPane.showOptionDialog(
+                this,
+                "¿Estás seguro de cancelar esta cita?",
+                "Confirmar cancelación",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                opciones,
+                opciones[0] // opción predeterminada
+        );
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            int idCita = Integer.parseInt(sel.split(":")[0].trim());
+            String fechaLiberada = null;
+            String horaLiberada = null;
+            String servicioLiberado = null;
+
+            try (Connection conn = ConexionSQLite.conectar();
+                    PreparedStatement ps = conn
+                            .prepareStatement("SELECT fecha, hora, servicio FROM CitasMedicas WHERE idCita = ?")) {
+                ps.setInt(1, idCita);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        fechaLiberada = rs.getString("fecha");
+                        horaLiberada = rs.getString("hora");
+                        servicioLiberado = rs.getString("servicio");
+
+                        if (horaLiberada.length() == 8) {
+                            horaLiberada = horaLiberada.substring(0, 5);
+                        } else if (!horaLiberada.contains(":")) {
+                            horaLiberada += ":00";
+                        }
+                    }
+                }
+            } catch (SQLException ex) {
+                mensajeInline.mostrarAdvertencia("Error al obtener cita antes de cancelar.");
+                return;
+            }
+
+            // 🔧 Normalizar hora
+            if (horaLiberada.length() == 8) {
+                horaLiberada = horaLiberada.substring(0, 5); // de 10:30:00 a 10:30
+            } else if (!horaLiberada.contains(":")) {
+                horaLiberada += ":00";
+            }
+
+            try {
+                NotificadorListaEspera.notificarDisponibilidad(fechaLiberada, horaLiberada, servicioLiberado);
+
+                try (Connection conn = ConexionSQLite.conectar();
+                        PreparedStatement ps = conn.prepareStatement("DELETE FROM CitasMedicas WHERE idCita=?")) {
+                    ps.setInt(1, idCita);
+                    ps.executeUpdate();
+                }
+
+                mensajeInline.mostrarExito("Cita cancelada.");
+                cargarCitas();
+
+            } catch (SQLException ex) {
+                mensajeInline.mostrarError("Error al cancelar cita.");
+            }
+
+        }
     }
 
     private Border getCampoBorde() {
@@ -346,27 +405,17 @@ public class ModificarCitaFrame extends JPanel {
                 BorderFactory.createEmptyBorder(5, 5, 5, 5));
     }
 
-    private JButton botonTransparente(String texto, Color base, Color hover) {
-        JButton button = new JButton(texto) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(
-                        RenderingHints.KEY_ANTIALIASING,
-                        RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(getModel().isRollover() ? hover : base);
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 25, 25);
-                super.paintComponent(g);
-                g2.dispose();
-            }
-        };
-        button.setForeground(Color.WHITE);
-        button.setFont(new Font("Arial", Font.BOLD, 14));
-        button.setFocusPainted(false);
-        button.setContentAreaFilled(false);
-        button.setOpaque(false);
-        button.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
-        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        return button;
+    public void reiniciar() {
+        // 1) Limpia mensaje
+        mensajeInline.limpiar();
+        // 2) Reset de controles
+        comboServicio.setSelectedIndex(0);
+        datePickerUDLAP.setDate(null);
+        comboHora.setSelectedIndex(0);
+        comboMinuto.setSelectedIndex(0);
+        // 3) Recarga datos
+        cargarDatosPersonales();
+        cargarCitas();
     }
+
 }

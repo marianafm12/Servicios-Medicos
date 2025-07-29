@@ -6,13 +6,16 @@ import java.sql.*;
 import java.util.ArrayList;
 import BaseDeDatos.ConexionSQLite;
 import Utilidades.ColoresUDLAP;
+import Utilidades.MensajeErrorUDLAP;
 import Utilidades.PanelProvider;
 
 public class PanelHistorialMedico extends JPanel implements PanelProvider {
     private final int idPaciente;
+    private final MensajeErrorUDLAP mensajeInline;
 
     public PanelHistorialMedico(int idPaciente) {
         this.idPaciente = idPaciente;
+        this.mensajeInline = new MensajeErrorUDLAP();
         setLayout(new BorderLayout());
         setBackground(ColoresUDLAP.BLANCO);
 
@@ -95,8 +98,7 @@ public class PanelHistorialMedico extends JPanel implements PanelProvider {
 
         } catch (SQLException e) {
             e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Error al obtener información general:\n" + e.getMessage(),
-                    "Error", JOptionPane.ERROR_MESSAGE);
+            mensajeInline.mostrarError("Error al obtener información general:\n" + e.getMessage());
         }
 
         return null;
@@ -128,8 +130,7 @@ public class PanelHistorialMedico extends JPanel implements PanelProvider {
 
         } catch (SQLException e) {
             e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Error al obtener el historial médico:\n" + e.getMessage(),
-                    "Error", JOptionPane.ERROR_MESSAGE);
+            mensajeInline.mostrarError("Error al obtener el historial médico:\n" + e.getMessage());
         }
 
         return lista;

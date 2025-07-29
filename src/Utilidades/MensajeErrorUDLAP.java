@@ -4,16 +4,21 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
 import javax.swing.border.EmptyBorder;
+import java.net.URL;
 
 /**
  * Componente para mostrar mensajes de error, advertencia o éxito inline,
  * y lanzar un diálogo modal de error/advertencia con estilo UDLAP.
  */
 public class MensajeErrorUDLAP extends JLabel {
-    private static final Icon ICON_ERROR = UIManager.getIcon("OptionPane.errorIcon");
-    private static final Icon ICON_WARN = UIManager.getIcon("OptionPane.warningIcon");
-    private static final Icon ICON_INFO = UIManager.getIcon("OptionPane.informationIcon");
-    private static final Icon ICON_SUCCESS = UIManager.getIcon("OptionPane.successIcon");
+    private static final Icon ICON_ERROR = loadIcon("/icons/ERROR.png", UIManager.getIcon("OptionPane.errorIcon"), 24,
+            24);
+    private static final Icon ICON_WARN = loadIcon("/icons/WARNING.png", UIManager.getIcon("OptionPane.warningIcon"),
+            24, 24);
+    private static final Icon ICON_INFO = loadIcon("/icons/INFO.png", UIManager.getIcon("OptionPane.informationIcon"),
+            24, 24);
+    private static final Icon ICON_SUCCESS = loadIcon("/icons/SUCCESS.png",
+            UIManager.getIcon("OptionPane.informationIcon"), 24, 24);
 
     public MensajeErrorUDLAP() {
         super("");
@@ -63,6 +68,26 @@ public class MensajeErrorUDLAP extends JLabel {
         VentanaErrorUDLAP dialog = new VentanaErrorUDLAP(owner, titulo, mensaje);
         dialog.setVisible(true);
     }
+
+    /**
+     * Lanza un diálogo modal de información con barra azul, borde exterior y botón
+     * de cierre.
+     */
+    public static void mostrarVentanaInformacion(Window owner, String titulo, String mensaje) {
+        VentanaInformacionUDLAP dialog = new VentanaInformacionUDLAP(owner, titulo, mensaje);
+        dialog.setVisible(true);
+    }
+
+    private static Icon loadIcon(String resourcePath, Icon fallback, int width, int height) {
+        URL url = MensajeErrorUDLAP.class.getResource(resourcePath);
+        if (url != null) {
+            ImageIcon original = new ImageIcon(url);
+            Image scaled = original.getImage()
+                    .getScaledInstance(width, height, Image.SCALE_SMOOTH);
+            return new ImageIcon(scaled);
+        }
+        return fallback;
+    }
 }
 
 /**
@@ -107,7 +132,7 @@ class VentanaErrorUDLAP extends JDialog {
         root.setBorder(new EmptyBorder(0, 0, 0, 0));
 
         // ——— Barra superior roja ————————————————
-        root.add(new BarraVentanaUDLAP(this, true), BorderLayout.NORTH);
+        root.add(new BarraVentanaUDLAP(this, true, false), BorderLayout.NORTH);
 
         // ——— Mensaje central —————————————————————
         JLabel lblMsg = new JLabel(mensaje, SwingConstants.CENTER);
@@ -141,6 +166,71 @@ class VentanaErrorUDLAP extends JDialog {
         setShape(new RoundRectangle2D.Float(
                 0, 0, getWidth(), getHeight(), ARC, ARC));
 
+        setLocationRelativeTo(owner);
+    }
+
+}
+
+class VentanaInformacionUDLAP extends JDialog {
+    private static final int ARC = 12;
+    private static final int BORDE = 2;
+
+    public VentanaInformacionUDLAP(Window owner, String titulo, String mensaje) {
+        super(owner, titulo, ModalityType.APPLICATION_MODAL);
+        setUndecorated(true);
+        setBackground(new Color(0, 0, 0, 0));
+
+        JPanel root = new JPanel(new BorderLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                        RenderingHints.VALUE_ANTIALIAS_ON);
+
+                int w = getWidth(), h = getHeight();
+                g2.setColor(ColoresUDLAP.BLANCO);
+                g2.fillRoundRect(0, 0, w, h, ARC, ARC);
+
+                g2.setStroke(new BasicStroke(BORDE));
+                g2.setColor(ColoresUDLAP.AZUL_SOLIDO);
+                g2.drawRoundRect(BORDE / 2, BORDE / 2, w - BORDE, h - BORDE, ARC, ARC);
+                g2.dispose();
+            }
+        };
+        root.setOpaque(false);
+        root.setBorder(new EmptyBorder(0, 0, 0, 0));
+
+        // barra superior informativa (pasa 'false' si así lo define tu
+        // BarraVentanaUDLAP)
+        BarraVentanaUDLAP barra = new BarraVentanaUDLAP(this, false, true);
+        barra.setBackground(ColoresUDLAP.AZUL_SOLIDO);
+        root.add(barra, BorderLayout.NORTH);
+
+        JLabel lblMsg = new JLabel(mensaje, SwingConstants.CENTER);
+        lblMsg.setFont(new Font("Arial", Font.PLAIN, 14));
+        lblMsg.setBorder(new EmptyBorder(20, 20, 20, 20));
+        lblMsg.setOpaque(false);
+        root.add(lblMsg, BorderLayout.CENTER);
+
+        JButton btnCerrar = new JButton("Cerrar");
+        btnCerrar.setFont(btnCerrar.getFont().deriveFont(Font.BOLD, 14f));
+        btnCerrar.setForeground(ColoresUDLAP.BLANCO);
+        btnCerrar.setBackground(ColoresUDLAP.AZUL_SOLIDO);
+        btnCerrar.setFocusPainted(false);
+        btnCerrar.setBorderPainted(false);
+        btnCerrar.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnCerrar.setPreferredSize(new Dimension(100, 32));
+        btnCerrar.addActionListener(e -> dispose());
+
+        JPanel pnlBtn = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        pnlBtn.setOpaque(false);
+        pnlBtn.setBorder(new EmptyBorder(0, 0, 20, 0));
+        pnlBtn.add(btnCerrar);
+        root.add(pnlBtn, BorderLayout.SOUTH);
+
+        setContentPane(root);
+        pack();
+        setShape(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), ARC, ARC));
         setLocationRelativeTo(owner);
     }
 }

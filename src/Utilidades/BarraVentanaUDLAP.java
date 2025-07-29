@@ -28,11 +28,14 @@ public class BarraVentanaUDLAP extends JPanel {
     private final JButton btnCerrar;
 
     /** Constructor “solo colores” */
-    public BarraVentanaUDLAP(boolean esError) {
+    public BarraVentanaUDLAP(boolean esError, boolean esInformacion) {
         // Selección de paleta
         if (esError) {
             colorFondo = ColoresUDLAP.ROJO_SOLIDO;
             colorHover = ColoresUDLAP.ROJO_HOVER;
+        } else if (esInformacion) {
+            colorFondo = ColoresUDLAP.AZUL_SOLIDO;
+            colorHover = ColoresUDLAP.AZUL_HOVER;
         } else {
             colorFondo = ColoresUDLAP.NARANJA_SOLIDO;
             colorHover = ColoresUDLAP.NARANJA_HOVER;
@@ -49,7 +52,7 @@ public class BarraVentanaUDLAP extends JPanel {
         btnCerrar = crearBoton("X");
 
         // Si es modo error, solo agregamos cerrar; si no, los tres
-        if (esError) {
+        if (esError || esInformacion) {
             add(btnCerrar);
         } else {
             add(btnMinimizar);
@@ -65,8 +68,8 @@ public class BarraVentanaUDLAP extends JPanel {
     }
 
     /** Constructor “completo”: colores + integración con Window */
-    public BarraVentanaUDLAP(Window ventana, boolean esError) {
-        this(esError);
+    public BarraVentanaUDLAP(Window ventana, boolean esError, boolean esInformacion) {
+        this(esError, esInformacion);
         instalarControlVentana(ventana);
         habilitarArrastre(ventana);
 

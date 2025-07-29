@@ -16,7 +16,7 @@ public class PanelConsultaNueva extends FormularioMedicoBase implements PanelPro
 
     /** Barra de botones reutilizable */
     private final PanelBotonesFormulario botones;
-    private final MensajeErrorUDLAP mensaje;
+    private final MensajeErrorUDLAP mensajeInline;
 
     public PanelConsultaNueva(int idMedico, String nombreMedico) {
         super("Consulta Médica – Dr. " + nombreMedico, new String[] {
@@ -53,7 +53,7 @@ public class PanelConsultaNueva extends FormularioMedicoBase implements PanelPro
         JTextArea taReceta = (JTextArea) campos[11];
 
         /* ──────────────── 2.1. Mensaje de error inline ───────────────── */
-        mensaje = new MensajeErrorUDLAP();
+        mensajeInline = new MensajeErrorUDLAP();
 
         /* ─────────────────── 3. BARRA DE BOTONES ─────────────────────── */
         botones = new PanelBotonesFormulario(
@@ -63,14 +63,21 @@ public class PanelConsultaNueva extends FormularioMedicoBase implements PanelPro
 
         // Añadir mensaje de error inline en un panel nuevo
         JPanel panelSur = new JPanel(new BorderLayout());
-        panelSur.add(mensaje, BorderLayout.NORTH);
+        JPanel mensajeContenedor = new JPanel(new FlowLayout());
+        mensajeContenedor.setBackground(ColoresUDLAP.BLANCO);
+        mensajeContenedor.add(mensajeInline);
+
+        panelSur.setBackground(ColoresUDLAP.BLANCO);
+        panelSur.add(mensajeContenedor, BorderLayout.CENTER);
         panelSur.add(botones, BorderLayout.SOUTH);
         add(panelSur, BorderLayout.SOUTH);
+
+        Window owner = SwingUtilities.getWindowAncestor(this);
 
         /* Acción Buscar: ahora SOLO por ID y rellena Edad-Altura-Peso-Medicación */
         BuscarPaciente buscarAccion = new BuscarPaciente(new JTextField[] {
                 txtId, txtNombre, txtCorreo, txtEdad, txtAltura, txtPeso, txtMedica
-        });
+        }, mensajeInline, owner);
 
         /* ────────── 4. LISTENERS: se registran en bloque ─────────────── */
         botones.setListeners(
@@ -81,11 +88,11 @@ public class PanelConsultaNueva extends FormularioMedicoBase implements PanelPro
                         txtMedica,
                         taSintomas, taMedRec, taDiag,
                         txtFecha, taReceta,
-                        mensaje),
+                        mensajeInline),
                 buscarAccion,
                 e -> {
                     limpiarCampos();
-                    mensaje.limpiar(); // Limpiar mensajes previos
+                    mensajeInline.limpiar(); // Limpiar mensajes previos
                 });
 
         /* ─────────────────── 5. CAMPOS SOLO LECTURA ──────────────────── */

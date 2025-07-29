@@ -6,15 +6,18 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.*;
 import BaseDeDatos.ConexionSQLite;
+import Utilidades.MensajeErrorUDLAP;
 
 public class PanelHistorialMedicoEditable extends JPanel {
     private JTextField campoID;
     private JPanel panelDatos;
     private JPanel panelHistorial;
+    private final MensajeErrorUDLAP mensajeInline;
 
     public PanelHistorialMedicoEditable() {
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
+        mensajeInline = new MensajeErrorUDLAP();
 
         // Parte superior con campo para ID
         JPanel panelTop = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -34,7 +37,12 @@ public class PanelHistorialMedicoEditable extends JPanel {
         panelTop.add(campoID);
         panelTop.add(botonBuscar);
 
-        add(panelTop, BorderLayout.NORTH);
+        // Panel para el mensaje Inline
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(Color.WHITE);
+        header.add(panelTop, BorderLayout.NORTH);
+        header.add(mensajeInline, BorderLayout.SOUTH);
+        add(header, BorderLayout.NORTH);
 
         // Panel donde irán los resultados
         JPanel panelCentral = new JPanel();
@@ -61,9 +69,10 @@ public class PanelHistorialMedicoEditable extends JPanel {
         botonBuscar.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                mensajeInline.limpiar();
                 String idTexto = campoID.getText().trim();
                 if (!idTexto.matches("\\d+")) {
-                    mostrarMensaje("Ingrese un ID numérico válido.");
+                    mensajeInline.mostrarAdvertencia(idTexto + " no es un ID válido. Debe ser numérico.");
                     return;
                 }
                 int idPaciente = Integer.parseInt(idTexto);
@@ -88,7 +97,7 @@ public class PanelHistorialMedicoEditable extends JPanel {
                         + " " + rs.getString("ApellidoMaterno")));
                 panelDatos.add(new JLabel("Correo: " + rs.getString("Correo")));
             } else {
-                mostrarMensaje("No se encontró un alumno con ID: " + id);
+                mensajeInline.mostrarAdvertencia("No se encontró un alumno con ID: " + id);
                 revalidate();
                 repaint();
                 return;
@@ -139,14 +148,11 @@ public class PanelHistorialMedicoEditable extends JPanel {
             }
 
         } catch (SQLException ex) {
-            mostrarMensaje("Error al obtener el expediente:\n" + ex.getMessage());
+            mensajeInline.mostrarError("Error al obtener el expediente:\n" + ex.getMessage());
         }
 
         revalidate();
         repaint();
     }
 
-    private void mostrarMensaje(String msg) {
-        JOptionPane.showMessageDialog(this, msg, "Historial Médico", JOptionPane.INFORMATION_MESSAGE);
-    }
 }

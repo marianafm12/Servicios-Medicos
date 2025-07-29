@@ -1,8 +1,6 @@
 package Emergencias;
 
-import Utilidades.ColoresUDLAP;
-import Utilidades.PanelManager;
-import Utilidades.PanelProvider;
+import Utilidades.*;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -32,10 +30,15 @@ public class PanelVerEmergencias extends JPanel {
     private JButton btnVerInformacion;
     private JButton btnCambiarEstado;
 
+    private final MensajeErrorUDLAP mensajeInline;
+
     public PanelVerEmergencias(PanelManager panelManager, boolean esMedico, int userId) {
         this.panelManager = panelManager;
         this.esMedico = esMedico;
         this.userId = userId;
+
+        mensajeInline = new MensajeErrorUDLAP();
+        mensajeInline.limpiar();
         initUI();
         cargarDatosDesdeBD();
     }
@@ -68,10 +71,24 @@ public class PanelVerEmergencias extends JPanel {
 
         // cada vez que cambie el texto, recargamos
         txtBuscar.getDocument().addDocumentListener(new DocumentListener() {
-            private void actualizar() { cargarDatosDesdeBD(); }
-            @Override public void insertUpdate(DocumentEvent e) { actualizar(); }
-            @Override public void removeUpdate(DocumentEvent e) { actualizar(); }
-            @Override public void changedUpdate(DocumentEvent e) { actualizar(); }
+            private void actualizar() {
+                cargarDatosDesdeBD();
+            }
+
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                actualizar();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                actualizar();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                actualizar();
+            }
         });
 
         // --- Centro: tabla ---
@@ -127,7 +144,8 @@ public class PanelVerEmergencias extends JPanel {
                 if (tabla.getSelectedRow() != -1) {
                     btnVerInformacion.setVisible(true);
                     // solo permitimos cambiar si estaba "Pendiente"
-                    String estado = modelo.getValueAt(tabla.convertRowIndexToModel(tabla.getSelectedRow()), 3).toString();
+                    String estado = modelo.getValueAt(tabla.convertRowIndexToModel(tabla.getSelectedRow()), 3)
+                            .toString();
                     btnCambiarEstado.setVisible("Pendiente".equalsIgnoreCase(estado));
                     panelBotones.revalidate();
                 }
@@ -140,19 +158,26 @@ public class PanelVerEmergencias extends JPanel {
         btnCambiarEstado.setVisible(false);
 
         modelo = new DefaultTableModel() {
-            @Override public boolean isCellEditable(int row, int col) { return false; }
+            @Override
+            public boolean isCellEditable(int row, int col) {
+                return false;
+            }
         };
         modelo.setColumnIdentifiers(new String[] {
                 "ID", "ID Paciente", "Fecha Incidente", "Estado", "Médico Responsable"
         });
 
-        // sacamos todas, ordenamos y luego filtramos en memoria por prefijo de matrícula
+        // sacamos todas, ordenamos y luego filtramos en memoria por prefijo de
+        // matrícula
         List<Emergencia> lista = EmergenciaDAO.obtenerTodas();
         lista.sort(Comparator.comparingInt(e -> {
             switch (e.getEstado()) {
-                case "Pendiente": return 0;
-                case "Transferido": return 1;
-                default: return 2;
+                case "Pendiente":
+                    return 0;
+                case "Transferido":
+                    return 1;
+                default:
+                    return 2;
             }
         }));
         String prefijo = txtBuscar.getText().trim();
@@ -180,46 +205,50 @@ public class PanelVerEmergencias extends JPanel {
 
     private void mostrarDetalle() {
         int fila = tabla.getSelectedRow();
-        if (fila == -1) return;
+        if (fila == -1)
+            return;
         int idEmergencia = (int) modelo.getValueAt(tabla.convertRowIndexToModel(fila), 0);
         Emergencia em = EmergenciaDAO.obtenerPorId(idEmergencia);
         String key = "detalleEmergencia_" + idEmergencia + "_" + System.currentTimeMillis();
         panelManager.registerPanel((new PanelProvider() {
-            @Override public JPanel getPanel() {
+            @Override
+            public JPanel getPanel() {
                 return new PanelDetalleEmergencia(panelManager, em);
             }
-            @Override public String getPanelName() { return key; }
+
+            @Override
+            public String getPanelName() {
+                return key;
+            }
         }));
         panelManager.showPanel(key);
     }
 
     private void cambiarEstado() {
         int fila = tabla.getSelectedRow();
-        if (fila == -1) return;
+        if (fila == -1)
+            return;
         int idEmergencia = (int) modelo.getValueAt(tabla.convertRowIndexToModel(fila), 0);
 
-        String[] estados = {"Transferido", "Completo"};
+        String[] estados = { "Transferido", "Completo" };
         // configuración de diálogo omitida por brevedad...
         String nuevo = (String) JOptionPane.showInputDialog(
-            this, "Nuevo estado:", "Actualizar Emergencia",
-            JOptionPane.QUESTION_MESSAGE, null, estados, estados[0]
-        );
+                this, "Nuevo estado:", "Actualizar Emergencia",
+                JOptionPane.QUESTION_MESSAGE, null, estados, estados[0]);
         if (nuevo != null && EmergenciaDAO.actualizarEstadoEmergencia(idEmergencia, nuevo, userId)) {
             // 1) recarga la tabla
             cargarDatosDesdeBD();
 
-            // 2) notifica a la ventana principal (InterfazMedica) para que actualice la campana
+            // 2) notifica a la ventana principal (InterfazMedica) para que actualice la
+            // campana
             Window w = SwingUtilities.getWindowAncestor(this);
             if (w instanceof InterfazMedica) {
                 ((InterfazMedica) w).checkNotifications();
             }
         } else if (nuevo != null) {
-            JOptionPane.showMessageDialog(
-                this, "No se pudo actualizar.", "Error", JOptionPane.ERROR_MESSAGE
-            );
+            mensajeInline.mostrarAdvertencia("No se pudo actualizar.");
         }
     }
-
 
     @Override
     public void setVisible(boolean aFlag) {
@@ -235,21 +264,21 @@ public class PanelVerEmergencias extends JPanel {
         JButton b = new JButton(texto) {
             @Override
             protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D)g.create();
+                Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-                                   RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(getModel().isRollover()? hover: base);
-                g2.fillRoundRect(0,0,getWidth(),getHeight(),25,25);
+                        RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(getModel().isRollover() ? hover : base);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 25, 25);
                 super.paintComponent(g);
                 g2.dispose();
             }
         };
         b.setForeground(Color.WHITE);
-        b.setFont(new Font("Arial",Font.BOLD,15));
+        b.setFont(new Font("Arial", Font.BOLD, 15));
         b.setContentAreaFilled(false);
         b.setFocusPainted(false);
         b.setOpaque(false);
-        b.setBorder(BorderFactory.createEmptyBorder(8,16,8,16));
+        b.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
         b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         return b;
     }

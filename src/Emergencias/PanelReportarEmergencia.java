@@ -3,6 +3,7 @@ package Emergencias;
 import javax.swing.*;
 import java.awt.*;
 import Utilidades.ColoresUDLAP;
+import Utilidades.MensajeErrorUDLAP;
 import Utilidades.PanelProvider;
 
 public class PanelReportarEmergencia extends JPanel implements PanelProvider {
@@ -46,11 +47,8 @@ public class PanelReportarEmergencia extends JPanel implements PanelProvider {
     }
 
     private void mostrarLlamada(String destino) {
-        JOptionPane.showMessageDialog(
-                this,
-                "📞 Llamando a " + destino + "...\n\nEspere mientras se procesa la emergencia.",
-                "Llamada en curso",
-                JOptionPane.INFORMATION_MESSAGE);
+        MensajeErrorUDLAP.mostrarVentanaInformacion(SwingUtilities.getWindowAncestor(this), "Llamada en curso",
+                "Llamando a " + destino + "...\n\nEspere mientras se procesa la emergencia.");
     }
 
     @Override

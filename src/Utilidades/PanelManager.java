@@ -1,6 +1,9 @@
 package Utilidades;
 
 import javax.swing.*;
+
+import GestionCitas.ModificarCitaFrame;
+
 import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,10 +32,17 @@ public class PanelManager {
     public void showPanel(String panelName) {
         if (panels.containsKey(panelName)) {
             cardLayout.show(contentPanel, panelName);
+            // ——————> reiniciar si es ModificarCitaFrame
+            PanelProvider provider = panels.get(panelName);
+            JPanel panel = provider.getPanel();
+            if (panel instanceof ModificarCitaFrame) {
+                ((ModificarCitaFrame) panel).reiniciar();
+            }
         }
     }
 
-    // Mostrar un panel dinámico (como CorreosProfesoresPanel) sin registrarlo de forma fija
+    // Mostrar un panel dinámico (como CorreosProfesoresPanel) sin registrarlo de
+    // forma fija
     public void mostrarPanelPersonalizado(JPanel panel) {
         String panelName = "dinamico_" + (++dynamicPanelCounter);
         contentPanel.add(panel, panelName);

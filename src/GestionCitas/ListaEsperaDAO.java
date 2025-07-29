@@ -4,13 +4,16 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
+
+import Utilidades.*;
 
 import BaseDeDatos.ConexionSQLite;
 import Modelo.Espera;
 
 public class ListaEsperaDAO {
+
+    private static final MensajeErrorUDLAP mensajeInline = new MensajeErrorUDLAP();
 
     public synchronized static void registrarEnEspera(String idPaciente, String fecha, String hora, String servicio)
             throws SQLException {
@@ -21,12 +24,8 @@ public class ListaEsperaDAO {
         }
 
         if (yaRegistradoEnLista(idPaciente, fecha, hora, servicio)) {
-            SwingUtilities.invokeLater(() ->
-                JOptionPane.showMessageDialog(null,
-                    "Ya estás en lista de espera para esta cita.",
-                    "Registro duplicado",
-                    JOptionPane.WARNING_MESSAGE)
-            );
+            SwingUtilities.invokeLater(() -> mensajeInline.mostrarError("Ya estás en lista de espera para esta cita." +
+                    "Registro duplicado"));
             return;
         }
 
@@ -37,7 +36,7 @@ public class ListaEsperaDAO {
         while (intentos < MAX_REINTENTOS && !completado) {
             try (Connection conn = ConexionSQLite.conectar()) {
                 String sql = "INSERT INTO ListaEsperaCitas(idPaciente, fechaDeseada, horaDeseada, servicio, estado) " +
-                             "VALUES (?, ?, ?, ?, 'pendiente')";
+                        "VALUES (?, ?, ?, ?, 'pendiente')";
                 try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                     stmt.setInt(1, Integer.parseInt(idPaciente.trim()));
                     stmt.setString(2, fecha);
@@ -47,12 +46,8 @@ public class ListaEsperaDAO {
                     completado = true;
                 }
 
-                SwingUtilities.invokeLater(() ->
-                    JOptionPane.showMessageDialog(null,
-                        "Registrado correctamente en lista de espera.",
-                        "Éxito",
-                        JOptionPane.INFORMATION_MESSAGE)
-                );
+                SwingUtilities
+                        .invokeLater(() -> mensajeInline.mostrarExito("Registrado correctamente en lista de espera."));
 
             } catch (SQLException e) {
                 if (e.getMessage().contains("database is locked")) {
@@ -64,7 +59,7 @@ public class ListaEsperaDAO {
                         break;
                     }
                 } else {
-                    mostrarError("Error al insertar en lista de espera:\n" + e.getMessage());
+                    mensajeInline.mostrarError("Error al insertar en lista de espera:\n" + e.getMessage());
                     throw e;
                 }
             }
@@ -77,12 +72,8 @@ public class ListaEsperaDAO {
     }
 
     private static void mostrarError(String mensaje) {
-        SwingUtilities.invokeLater(() ->
-            JOptionPane.showMessageDialog(null,
-                mensaje,
-                "Error SQL",
-                JOptionPane.ERROR_MESSAGE)
-        );
+        SwingUtilities.invokeLater(() -> MensajeErrorUDLAP.mostrarVentanaError(SwingUtilities.getWindowAncestor(null),
+                "Error SQL", mensaje));
     }
 
     private static boolean yaRegistradoEnLista(String idPaciente, String fecha, String hora, String servicio) {
@@ -92,10 +83,10 @@ public class ListaEsperaDAO {
         }
 
         String sql = "SELECT COUNT(*) FROM ListaEsperaCitas " +
-                     "WHERE idPaciente = ? AND fechaDeseada = ? AND horaDeseada = ? AND servicio = ? AND estado = 'pendiente'";
+                "WHERE idPaciente = ? AND fechaDeseada = ? AND horaDeseada = ? AND servicio = ? AND estado = 'pendiente'";
 
         try (Connection conn = ConexionSQLite.conectar();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, idPaciente);
             stmt.setString(2, fecha);
             stmt.setString(3, hora);
@@ -122,7 +113,7 @@ public class ListaEsperaDAO {
         List<Espera> lista = new ArrayList<>();
         try (Connection conn = ConexionSQLite.conectar()) {
             String sql = "SELECT idPaciente FROM ListaEsperaCitas " +
-                         "WHERE fechaDeseada = ? AND horaDeseada = ? AND servicio = ? AND estado = 'pendiente'";
+                    "WHERE fechaDeseada = ? AND horaDeseada = ? AND servicio = ? AND estado = 'pendiente'";
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setString(1, fecha);
                 stmt.setString(2, hora);
@@ -151,7 +142,7 @@ public class ListaEsperaDAO {
         while (intentos < MAX_REINTENTOS && !completado) {
             try (Connection conn = ConexionSQLite.conectar()) {
                 String sql = "UPDATE ListaEsperaCitas SET estado = 'notificada' " +
-                             "WHERE idPaciente = ? AND fechaDeseada = ? AND horaDeseada = ? AND servicio = ?";
+                        "WHERE idPaciente = ? AND fechaDeseada = ? AND horaDeseada = ? AND servicio = ?";
                 try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                     stmt.setString(1, idPaciente);
                     stmt.setString(2, fecha);
@@ -192,7 +183,7 @@ public class ListaEsperaDAO {
                 try (Connection conn = ConexionSQLite.conectar()) {
                     String mensaje = "Se ha liberado una cita el " + fecha + " a las " + hora + " para " + servicio;
                     String sql = "INSERT INTO Notificaciones(idPaciente, mensaje, estado, fecha, hora, servicio) " +
-                                 "VALUES (?, ?, 'pendiente', ?, ?, ?)";
+                            "VALUES (?, ?, 'pendiente', ?, ?, ?)";
                     try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                         stmt.setString(1, espera.getIdPaciente());
                         stmt.setString(2, mensaje);
