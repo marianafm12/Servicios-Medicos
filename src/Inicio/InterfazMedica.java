@@ -8,6 +8,7 @@ import GestionCitas.*;
 import GestionEnfermedades.*;
 import Justificantes.*;
 import Registro.*;
+import Inicio.PanelPortada;
 
 import javax.swing.*;
 import java.awt.*;
@@ -211,6 +212,18 @@ public class InterfazMedica extends JFrame {
      * incluyendo el nuevo detalle de emergencia.
      */
     private void registrarPaneles() {
+
+        // 0) Portada (bienvenida)
+        panelManager.registerPanel(new PanelProvider() {
+            @Override public JPanel getPanel() {
+                // ahora pasamos los tres argumentos
+                return new PanelPortada(panelManager, esMedico, userId);
+            }
+            @Override public String getPanelName() { return "portada"; }
+        });
+
+
+
         if (esMedico) {
             // 0) Formulario de Registro de Paciente
             panelManager.registerPanel(new PanelProvider() {
@@ -400,8 +413,9 @@ public class InterfazMedica extends JFrame {
             });
         }
 
-        // Mostrar panel inicial
-        panelManager.showPanel(esMedico ? "formularioRegistro" : "panelGestionCitas");
+        // Mostrar primero la portada
+        panelManager.showPanel("portada");
+
         checkNotifications();
     }
 
